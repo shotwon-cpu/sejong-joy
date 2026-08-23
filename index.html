@@ -305,7 +305,7 @@
     .badge-plan { background: rgba(41, 128, 185, 0.2); color: #3498db; border: 1px solid #2980b9; }
     .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
-    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 5px; }
+    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
     .badge-none { color: #556885; }
 
     .honor-th-title {
@@ -526,10 +526,10 @@
         </div>
       </div>
 
-      <!-- 기능장 9종 전체 취득 현황 (과목 구분 열 제거) -->
+      <!-- 기능장 전체 취득 현황 (시트 추가 시 자동 확장) -->
       <div class="card">
         <div class="card-title">
-          <span>🎖️ 기능장 9종 전체 취득 현황</span>
+          <span>🎖️ 기능장 전체 취득 현황</span>
           <span style="font-size:10px; color:#8fa0be; font-weight:normal;">기능장 이름 클릭 시 취득 대원 확인 👆</span>
         </div>
         <div class="table-container">
@@ -770,6 +770,7 @@
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
+    // 동적으로 시트에서 확장되는 기능장 목록 (기본 9종 + 자동 추가)
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
@@ -898,7 +899,7 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 1. 기능장 요약 (과목 구분 없이 4열로 렌더링)
+      // 1. 기능장 요약 (과목 구분 없이 4열 렌더링)
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -970,7 +971,7 @@
           <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${(m.honors || [0,0,0,0,0,0,0,0,0]).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${(m.honors || []).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
         </tr>
       `).join('');
     }
@@ -1037,13 +1038,12 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
+    // 기능장 취득 합계 모달 (나이, 출석 제외 -> 깔끔한 명부 구성)
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
-          <th>나이</th>
           <th>소속</th>
           <th class="sticky-col">이름</th>
-          <th>출석</th>
           <th>합계</th>
           ${honorStats.map(h => `
             <th>
@@ -1056,12 +1056,10 @@
 
       const tbody = members.map(m => `
         <tr>
-          <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff;">${m.name}</td>
-          <td>${m.days}일</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${(m.honors || [0,0,0,0,0,0,0,0,0]).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${(m.honors || []).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
         </tr>
       `).join('');
 
@@ -1180,9 +1178,10 @@
       `).join('');
     }
 
-    // Google 스프레드시트 2개 시트(출석 + 기능장) 실시간 연동
+    // Google 스프레드시트 실시간 동적 확장 연동 엔진
     async function fetchLiveSheetData() {
       try {
+        // 1. 대원출석_현황 시트에서 나이/소속/이름/출석 가져오기
         const attSheetName = encodeURIComponent("대원출석_현황");
         const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json`;
         const attRes = await fetch(attUrl);
@@ -1222,11 +1221,12 @@
               days: attCount > 0 ? attCount : (fallback ? fallback.days : 30),
               rate: attCount > 0 ? rateVal : (fallback ? fallback.rate : "88.2%"),
               hCount: fallback ? fallback.hCount : 0,
-              honors: fallback ? fallback.honors : [0,0,0,0,0,0,0,0,0]
+              honors: fallback ? fallback.honors : []
             });
           }
         }
 
+        // 2. 기능장_취득현황 시트에서 기능장 목록 및 대원별 취득 현황 동적 추출 (시트 추가 시 자동 확장)
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
@@ -1236,7 +1236,46 @@
 
           if (honorJson && honorJson.table && honorJson.table.rows) {
             const hRows = honorJson.table.rows;
-            for (let i = 0; i < hRows.length; i++) {
+            
+            // 4번 행(헤더 행)에서 D열(인덱스 3)부터 모든 기능장 열 이름 자동 추출
+            let headerRow = null;
+            let headerRowIdx = -1;
+            for (let rIdx = 0; rIdx < Math.min(6, hRows.length); rIdx++) {
+              const r = hRows[rIdx].c;
+              if (r && r[2] && String(r[2].v).includes('이름')) {
+                headerRow = r;
+                headerRowIdx = rIdx;
+                break;
+              }
+            }
+
+            let dynamicHonors = [];
+            if (headerRow) {
+              for (let colIdx = 3; colIdx < headerRow.length; colIdx++) {
+                if (headerRow[colIdx] && headerRow[colIdx].v) {
+                  const fullName = String(headerRow[colIdx].v).trim();
+                  if (!fullName || fullName === '합계' || fullName.includes('취득률')) continue;
+
+                  // "복슬복슬 양 (03.12)" -> 제목과 날짜 분리
+                  const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
+                  const titlePart = mMatch ? mMatch[1] : fullName;
+                  const datePart = mMatch ? mMatch[2] : "";
+
+                  dynamicHonors.push({
+                    colIdx: colIdx,
+                    id: dynamicHonors.length,
+                    name: fullName,
+                    title: titlePart,
+                    date: datePart,
+                    count: 0,
+                    rate: "0%"
+                  });
+                }
+              }
+            }
+
+            // 대원별 취득 현황 파싱
+            for (let i = headerRowIdx + 1; i < hRows.length; i++) {
               const r = hRows[i].c;
               if (!r || !r[2] || !r[2].v) continue;
               const hName = String(r[2].v).trim();
@@ -1244,18 +1283,31 @@
               if (mem) {
                 let userH = [];
                 let hCnt = 0;
-                for (let hIdx = 3; hIdx < 12; hIdx++) {
-                  let isEarned = (r[hIdx] && (r[hIdx].v === '취득' || String(r[hIdx].v).toUpperCase() === 'O' || r[hIdx].v === 1)) ? 1 : 0;
+                dynamicHonors.forEach((dHonor, dIdx) => {
+                  const cell = r[dHonor.colIdx];
+                  let isEarned = (cell && (cell.v === '취득' || String(cell.v).toUpperCase() === 'O' || cell.v === 1)) ? 1 : 0;
                   userH.push(isEarned);
-                  if (isEarned) hCnt++;
-                }
+                  if (isEarned) {
+                    hCnt++;
+                    dHonor.count++;
+                  }
+                });
                 mem.honors = userH;
                 mem.hCount = hCnt;
               }
             }
+
+            // 기능장 통계 수치 업데이트
+            if (dynamicHonors.length > 0) {
+              const totalMCount = updatedMembers.length || 13;
+              dynamicHonors.forEach(dh => {
+                dh.rate = ((dh.count / totalMCount) * 100).toFixed(1) + "%";
+              });
+              honorStats = dynamicHonors;
+            }
           }
         } catch (he) {
-          console.log("기능장 시트 파싱 완료:", he);
+          console.log("기능장 시트 동적 파싱 완료:", he);
         }
 
         if (updatedMembers.length > 0) {
