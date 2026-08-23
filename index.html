@@ -98,10 +98,46 @@
       align-items: center;
       gap: 4px;
       white-space: nowrap;
+      transition: all 0.2s ease;
     }
 
     .sync-btn:active {
       transform: scale(0.96);
+    }
+
+    .sync-btn.spinning .sync-icon {
+      display: inline-block;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* 부드러운 자동 소멸 토스트 알림 */
+    #toast-msg {
+      position: fixed;
+      top: 65px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(14, 27, 49, 0.95);
+      border: 1px solid var(--accent-green);
+      color: #2ecc71;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    #toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     .nav-tabs {
@@ -459,6 +495,9 @@
 </head>
 <body>
 
+  <!-- 자동 소멸 토스트 알림창 -->
+  <div id="toast-msg">✨ 최신 데이터로 동기화되었습니다!</div>
+
   <header>
     <div class="header-top">
       <div class="logo-badge">
@@ -468,7 +507,9 @@
           <p>Google 시트 실시간 연동 운영 시스템</p>
         </div>
       </div>
-      <button class="sync-btn" onclick="fetchLiveSheetData()">🔄 동기화</button>
+      <button id="btn-sync" class="sync-btn" onclick="fetchLiveSheetData(true)">
+        <span class="sync-icon">🔄</span> 동기화
+      </button>
     </div>
     <nav class="nav-tabs">
       <button class="nav-tab active" onclick="openTab('tab-dash')">📊 운영 현황</button>
@@ -526,7 +567,7 @@
         </div>
       </div>
 
-      <!-- 기능장 전체 취득 현황 (시트 추가 시 자동 확장) -->
+      <!-- 기능장 전체 취득 현황 -->
       <div class="card">
         <div class="card-title">
           <span>🎖️ 기능장 전체 취득 현황</span>
@@ -770,7 +811,6 @@
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
-    // 동적으로 시트에서 확장되는 기능장 목록 (기본 9종 + 자동 추가)
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
@@ -889,6 +929,15 @@
       return catStr;
     }
 
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1500);
+    }
+
     function renderUI() {
       const advCount = members.filter(m => m.dept === '어드벤처러').length;
       const pathCount = members.filter(m => m.dept === '패스파인더').length;
@@ -899,7 +948,7 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 1. 기능장 요약 (과목 구분 없이 4열 렌더링)
+      // 1. 기능장 요약
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -1038,7 +1087,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 취득 합계 모달 (나이, 출석 제외 -> 깔끔한 명부 구성)
+    // 기능장 전체 취득 명부 팝업 (나이, 출석 제외)
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1178,8 +1227,11 @@
       `).join('');
     }
 
-    // Google 스프레드시트 실시간 동적 확장 연동 엔진
-    async function fetchLiveSheetData() {
+    // Google 스프레드시트 실시간 동적 확장 연동 엔진 (isUserClick으로 팝업 여부 결정)
+    async function fetchLiveSheetData(isUserClick = false) {
+      const syncBtn = document.getElementById('btn-sync');
+      if (syncBtn) syncBtn.classList.add('spinning');
+
       try {
         // 1. 대원출석_현황 시트에서 나이/소속/이름/출석 가져오기
         const attSheetName = encodeURIComponent("대원출석_현황");
@@ -1226,7 +1278,7 @@
           }
         }
 
-        // 2. 기능장_취득현황 시트에서 기능장 목록 및 대원별 취득 현황 동적 추출 (시트 추가 시 자동 확장)
+        // 2. 기능장_취득현황 시트에서 기능장 목록 및 대원별 취득 현황 동적 추출
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
@@ -1237,7 +1289,6 @@
           if (honorJson && honorJson.table && honorJson.table.rows) {
             const hRows = honorJson.table.rows;
             
-            // 4번 행(헤더 행)에서 D열(인덱스 3)부터 모든 기능장 열 이름 자동 추출
             let headerRow = null;
             let headerRowIdx = -1;
             for (let rIdx = 0; rIdx < Math.min(6, hRows.length); rIdx++) {
@@ -1256,7 +1307,6 @@
                   const fullName = String(headerRow[colIdx].v).trim();
                   if (!fullName || fullName === '합계' || fullName.includes('취득률')) continue;
 
-                  // "복슬복슬 양 (03.12)" -> 제목과 날짜 분리
                   const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
                   const titlePart = mMatch ? mMatch[1] : fullName;
                   const datePart = mMatch ? mMatch[2] : "";
@@ -1274,7 +1324,6 @@
               }
             }
 
-            // 대원별 취득 현황 파싱
             for (let i = headerRowIdx + 1; i < hRows.length; i++) {
               const r = hRows[i].c;
               if (!r || !r[2] || !r[2].v) continue;
@@ -1283,7 +1332,7 @@
               if (mem) {
                 let userH = [];
                 let hCnt = 0;
-                dynamicHonors.forEach((dHonor, dIdx) => {
+                dynamicHonors.forEach((dHonor) => {
                   const cell = r[dHonor.colIdx];
                   let isEarned = (cell && (cell.v === '취득' || String(cell.v).toUpperCase() === 'O' || cell.v === 1)) ? 1 : 0;
                   userH.push(isEarned);
@@ -1297,7 +1346,6 @@
               }
             }
 
-            // 기능장 통계 수치 업데이트
             if (dynamicHonors.length > 0) {
               const totalMCount = updatedMembers.length || 13;
               dynamicHonors.forEach(dh => {
@@ -1313,9 +1361,17 @@
         if (updatedMembers.length > 0) {
           members = updatedMembers;
         }
-        alert("Google 스프레드시트와 실시간 동기화되었습니다!");
+
+        // 사용자가 직접 [동기화] 버튼을 눌렀을 때만 부드러운 토스트 알림 표시
+        if (isUserClick) {
+          showToast("✨ 최신 데이터로 동기화되었습니다!");
+        }
       } catch (e) {
         console.log("로컬 데이터 로드:", e);
+      } finally {
+        if (syncBtn) {
+          setTimeout(() => syncBtn.classList.remove('spinning'), 500);
+        }
       }
       renderUI();
     }
@@ -1343,7 +1399,8 @@
       });
     }
 
-    fetchLiveSheetData();
+    // 페이지 진입 시 조용히 최신 데이터 로드
+    fetchLiveSheetData(false);
   </script>
 </body>
 </html>
