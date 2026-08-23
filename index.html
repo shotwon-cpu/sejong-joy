@@ -14,6 +14,7 @@
       --accent-green: #27ae60;
       --accent-purple: #8e44ad;
       --accent-orange: #d35400;
+      --accent-teal: #16a085;
       --accent-red: #e74c3c;
       --text-white: #ffffff;
       --text-muted: #8fa0be;
@@ -288,10 +289,10 @@
       background: linear-gradient(90deg, #e5a93b, #27ae60);
     }
 
-    /* 영역별 비중 카드 */
+    /* 영역별 비중 카드 (클릭 가능 디자인) */
     .field-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 8px;
       margin-top: 10px;
     }
@@ -301,10 +302,60 @@
       border-radius: 8px;
       padding: 10px;
       border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .field-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-gold);
+      background: #1e335a;
+    }
+
+    .field-card.active {
+      border: 2px solid var(--accent-gold);
+      background: #203660;
     }
 
     .field-name { font-size: 12px; color: #cbd5e1; font-weight: 600; }
-    .field-stat { font-size: 14px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
+    .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
+    .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
+
+    /* 영역 상세 목록 패널 */
+    #field-detail-panel {
+      display: none;
+      background: #0d1a30;
+      border: 1px solid var(--accent-gold);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    .panel-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -321,11 +372,11 @@
       <button class="sync-btn" onclick="fetchLiveSheetData()">🔄 동기화</button>
     </div>
     <nav class="nav-tabs">
-      <button class="nav-tab active" onclick="openTab('tab-dash')">📊 운영 현황</button>
+      <button class="nav-tab active" onclick="openTab('tab-dash')">📊 종합 대시보드</button>
       <button class="nav-tab" onclick="openTab('tab-monthly')">📅 월간 계획표</button>
       <button class="nav-tab" onclick="openTab('tab-annual')">📋 52주 연간일정</button>
       <button class="nav-tab" onclick="openTab('tab-members')">👥 대원 출석·기능장</button>
-      <button class="nav-tab" onclick="openTab('tab-rundown')">⏱️ 활동 시간표</button>
+      <button class="nav-tab" onclick="openTab('tab-rundown')">⏱️ 주간 런다운</button>
     </nav>
   </header>
 
@@ -378,44 +429,77 @@
         </div>
       </div>
 
-      <!-- 3. 안식일활동 영역별 계획 및 비중 -->
+      <!-- 2026 안식일활동 영역별 계획 및 비중 (클릭 시 세부 일정 조회) -->
       <div class="card">
-        <div class="card-title">📊 2026 안식일활동 영역별 계획 및 비중 (총 52회)</div>
+        <div class="card-title">
+          <span>📊 2026 안식일활동 영역별 계획 및 비중 (총 52회)</span>
+          <span style="font-size:10px; color:#8fa0be; font-weight:normal;">카드 터치 시 상세 일정 확인 👆</span>
+        </div>
         <div class="field-grid">
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('기능교육')">
             <div class="field-name">🎯 기능교육</div>
             <div class="field-stat">20회 (38.5%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 38.5%;"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('정기집회')">
             <div class="field-name">🏛️ 정기집회</div>
             <div class="field-stat">9회 (17.3%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 17.3%; background:var(--accent-blue);"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('영성훈련')">
             <div class="field-name">🙏 영성훈련</div>
             <div class="field-stat">7회 (13.5%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 13.5%; background:var(--accent-purple);"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('봉사활동')">
             <div class="field-name">🤝 봉사활동</div>
             <div class="field-stat">5회 (9.6%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 9.6%; background:var(--accent-orange);"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('야외활동')">
             <div class="field-name">⛺ 야외활동</div>
             <div class="field-stat">4회 (7.7%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 7.7%; background:#16a085;"></div></div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 7.7%; background:var(--accent-teal);"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('특별활동')">
             <div class="field-name">🎉 특별활동</div>
             <div class="field-stat">4회 (7.7%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 7.7%; background:#e67e22;"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card">
+          <div class="field-card" onclick="showFieldDetails('진급식')">
             <div class="field-name">🎖️ 진급/수료</div>
             <div class="field-stat">3회 (5.8%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 5.8%; background:#95a5a6;"></div></div>
+            <div class="field-click-tip">일정 보기 ➔</div>
+          </div>
+        </div>
+
+        <!-- 클릭 시 노출되는 영역별 상세 일정 패널 -->
+        <div id="field-detail-panel">
+          <div class="panel-header">
+            <span class="panel-title" id="panel-category-title">🎯 [기능교육] 세부 활동 일정</span>
+            <button class="panel-close-btn" onclick="closeFieldDetails()">✕ 닫기</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>일자(토)</th>
+                  <th>활동 주제 및 세부 계획</th>
+                  <th>담당 교사</th>
+                  <th>장소</th>
+                  <th>진행 상태</th>
+                </tr>
+              </thead>
+              <tbody id="field-detail-tbody"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -621,38 +705,38 @@
 
     const rawMonthly = [
       { month: 1, week: "1월 1주차", date: "2026-01-03", type: "정기집회", title: "시무식 및 신입대원 환영회", teacher: "부장교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 개회식/서약 실습 → 15:00 반별활동", mat: "단복 및 기본 규정", budget: 20000, status: "완료", memo: "출석 정상" },
-      { month: 1, week: "1월 2주차", date: "2026-01-10", type: "기능교육", title: "기초 매듭법 1", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 매듭 실습 → 15:00 반별활동", mat: "로프 실습", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 2주차", date: "2026-01-10", type: "기능교육", title: "기초 매듭법 1 (사각, 활줄, 옭매듭)", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 매듭 실습 → 15:00 반별활동", mat: "로프 실습", budget: 15000, status: "완료", memo: "출석 정상" },
       { month: 1, week: "1월 3주차", date: "2026-01-17", type: "영성훈련", title: "표어·서약 묵상 및 성경 골든벨", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 골든벨 → 15:00 말씀", mat: "성경 퀴즈지", budget: 15000, status: "완료", memo: "출석 정상" },
-      { month: 1, week: "1월 4주차", date: "2026-01-24", type: "정기집회", title: "제식훈련 기초", teacher: "부장교사", place: "체육관", prog: "14:00 개회식 → 14:15 제식 동작 → 15:00 정렬", mat: "제식 기본 동작", budget: 15000, status: "완료", memo: "출석 정상" },
-      { month: 1, week: "1월 5주차", date: "2026-01-31", type: "기능교육", title: "응급처치 1단계", teacher: "박교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 소독·붕대법 → 15:00 실습", mat: "구급함 점검", budget: 20000, status: "완료", memo: "출석 정상" },
-      { month: 2, week: "2월 1주차", date: "2026-02-07", type: "특별활동", title: "겨울철 실내 체육대회", teacher: "전체교사", place: "체육관", prog: "14:00 개회식 → 14:15 팀빌딩 → 15:00 체육경기", mat: "대원 화합", budget: 30000, status: "완료", memo: "출석 정상" },
-      { month: 2, week: "2월 2주차", date: "2026-02-14", type: "기능교육", title: "독도법 기초", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 지도 기호 → 15:00 나침반", mat: "지도 읽기", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 4주차", date: "2026-01-24", type: "정기집회", title: "제식훈련 기초 (차렷, 열중쉬어, 경례)", teacher: "부장교사", place: "체육관", prog: "14:00 개회식 → 14:15 제식 동작 → 15:00 정렬", mat: "제식 기본 동작", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 5주차", date: "2026-01-31", type: "기능교육", title: "응급처치 1단계 (상처 소독, 붕대법)", teacher: "박교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 소독·붕대법 → 15:00 실습", mat: "구급함 점검", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 1주차", date: "2026-02-07", type: "특별활동", title: "겨울철 실내 체육대회 및 팀빌딩", teacher: "전체교사", place: "체육관", prog: "14:00 개회식 → 14:15 팀빌딩 → 15:00 체육경기", mat: "대원 화합", budget: 30000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 2주차", date: "2026-02-14", type: "기능교육", title: "독도법 기초 (지도 기호, 방위각)", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 지도 기호 → 15:00 나침반", mat: "지도 읽기", budget: 15000, status: "완료", memo: "출석 정상" },
       { month: 2, week: "2월 3주차", date: "2026-02-21", type: "영성훈련", title: "찬양 나눔 및 기도 짝 결연", teacher: "이교사", place: "본당", prog: "14:00 개회식 → 14:15 찬양 실습 → 15:00 기도 짝", mat: "기도제목 카드", budget: 15000, status: "완료", memo: "출석 정상" },
-      { month: 2, week: "2월 4주차", date: "2026-02-28", type: "기능교육", title: "복슬복슬 양 기능 교육", teacher: "정교사", place: "소예배실", prog: "14:00 개회식 → 14:15 양 관찰 → 15:00 만들기", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 4주차", date: "2026-02-28", type: "기능교육", title: "복슬복슬 양 기능 교육 및 관찰", teacher: "정교사", place: "소예배실", prog: "14:00 개회식 → 14:15 양 관찰 → 15:00 만들기", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
       { month: 3, week: "3월 1주차", date: "2026-03-07", type: "봉사활동", title: "새봄맞이 환경정화(플로깅)", teacher: "최교사", place: "교회 인근", prog: "14:00 개회식 → 14:15 플로깅 → 15:00 분리수거", mat: "봉투 및 집게", budget: 20000, status: "완료", memo: "출석 정상" },
       { month: 3, week: "3월 2주차", date: "2026-03-14", type: "정기집회", title: "기국례 및 클럽기 다루기", teacher: "부장교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 기수단 실습 → 15:00 점검", mat: "기수단 훈련", budget: 15000, status: "완료", memo: "출석 정상" },
       { month: 3, week: "3월 3주차", date: "2026-03-21", type: "기능교육", title: "캠핑 장비 기초 및 텐트 설치", teacher: "정교사", place: "교회마당", prog: "14:00 개회식 → 14:15 텐트 설영 → 15:00 장비정리", mat: "텐트 실습", budget: 20000, status: "완료", memo: "출석 정상" },
-      { month: 3, week: "3월 4주차", date: "2026-03-28", type: "진급식", title: "1분기 기능 이수 평가", teacher: "부장/교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 평가 → 15:00 기능장 수여", mat: "1분기 평가", budget: 40000, status: "완료", memo: "출석 정상" },
-      { month: 4, week: "4월 1주차", date: "2026-04-04", type: "정기집회", title: "2분기 사역 개시", teacher: "부장교사", place: "소예배실", prog: "14:00 개회식 → 14:15 분기 목표 → 15:00 반별활동", mat: "반별 활동", budget: 15000, status: "완료", memo: "출석 정상" },
-      { month: 4, week: "4월 2주차", date: "2026-04-11", type: "기능교육", title: "매듭법 심화 2", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 두겹매듭 → 15:00 응용", mat: "로프 심화", budget: 15000, status: "완료", memo: "출석 정상" },
-      { month: 4, week: "4월 3주차", date: "2026-04-18", type: "야외활동", title: "생태탐사 하이킹", teacher: "전체교사", place: "근교 야산", prog: "14:00 개회식 → 14:15 하이킹 → 15:00 미션", mat: "도시락/구급약", budget: 50000, status: "완료", memo: "출석 정상" },
-      { month: 4, week: "4월 4주차", date: "2026-04-25", type: "영성훈련", title: "헌신예배 순서 주관", teacher: "이교사", place: "대예배실", prog: "14:00 개회식 → 14:15 예배 준비 → 15:00 순서 진행", mat: "순서 주관", budget: 20000, status: "완료", memo: "출석 정상" },
-      { month: 5, week: "5월 1주차", date: "2026-05-02", type: "특별활동", title: "부모님 초청 열린 안식일", teacher: "여교사회", place: "식당", prog: "14:00 개회식 → 14:15 어버이 은혜 → 15:00 다과", mat: "카네이션/다과", budget: 60000, status: "완료", memo: "출석 정상" },
+      { month: 3, week: "3월 4주차", date: "2026-03-28", type: "진급식", title: "1분기 기능 이수 평가 및 단합회", teacher: "부장/교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 평가 → 15:00 기능장 수여", mat: "1분기 평가", budget: 40000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 1주차", date: "2026-04-04", type: "정기집회", title: "2분기 사역 개시 및 목표 수립", teacher: "부장교사", place: "소예배실", prog: "14:00 개회식 → 14:15 분기 목표 → 15:00 반별활동", mat: "반별 활동", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 2주차", date: "2026-04-11", type: "기능교육", title: "매듭법 심화 2 (두겹매듭, 감아매기)", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 두겹매듭 → 15:00 응용", mat: "로프 심화", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 3주차", date: "2026-04-18", type: "야외활동", title: "생태탐사 하이킹 및 독도법 실습", teacher: "전체교사", place: "근교 야산", prog: "14:00 개회식 → 14:15 하이킹 → 15:00 미션", mat: "도시락/구급약", budget: 50000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 4주차", date: "2026-04-25", type: "영성훈련", title: "패스파인더 헌신예배 순서 주관", teacher: "이교사", place: "대예배실", prog: "14:00 개회식 → 14:15 예배 준비 → 15:00 순서 진행", mat: "순서 주관", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 1주차", date: "2026-05-02", type: "특별활동", title: "가정의 달 부모님 초청 열린 안식일", teacher: "여교사회", place: "식당", prog: "14:00 개회식 → 14:15 어버이 은혜 → 15:00 다과", mat: "카네이션/다과", budget: 60000, status: "완료", memo: "출석 정상" },
       { month: 5, week: "5월 2주차", date: "2026-05-09", type: "봉사활동", title: "이웃 사랑 나눔 키트 전달", teacher: "최교사", place: "복지관", prog: "14:00 개회식 → 14:15 키트 포장 → 15:00 전달", mat: "나눔 키트", budget: 35000, status: "완료", memo: "출석 정상" },
-      { month: 5, week: "5월 3주차", date: "2026-05-16", type: "기능교육", title: "심폐소생술(CPR) 및 AED", teacher: "박교사", place: "소예배실", prog: "14:00 개회식 → 14:15 CPR 이론 → 15:00 마네킹 실습", mat: "마네킹 실습", budget: 20000, status: "완료", memo: "출석 정상" },
-      { month: 5, week: "5월 4주차", date: "2026-05-23", type: "기능교육", title: "창조 기능 교육", teacher: "정교사", place: "야외공원", prog: "14:00 개회식 → 14:15 자연 관찰 → 15:00 표본", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 3주차", date: "2026-05-16", type: "기능교육", title: "심폐소생술(CPR) 및 AED 실습", teacher: "박교사", place: "소예배실", prog: "14:00 개회식 → 14:15 CPR 이론 → 15:00 마네킹 실습", mat: "마네킹 실습", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 4주차", date: "2026-05-23", type: "기능교육", title: "창조 기능 교육 (별자리/생태계)", teacher: "정교사", place: "야외공원", prog: "14:00 개회식 → 14:15 자연 관찰 → 15:00 표본", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
       { month: 5, week: "5월 5주차", date: "2026-05-30", type: "기능교육", title: "내 친구 예수 기능 교육", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 말씀 나눔 → 15:00 활동지", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
-      { month: 6, week: "6월 1주차", date: "2026-06-06", type: "기능교육", title: "지역사회 도우미 봉사", teacher: "최교사", place: "지역사회", prog: "14:00 개회식 → 14:15 소방서/파출소 → 15:00 봉사", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 6, week: "6월 1주차", date: "2026-06-06", type: "기능교육", title: "지역사회 도우미 봉사 및 견학", teacher: "최교사", place: "지역사회", prog: "14:00 개회식 → 14:15 소방서/파출소 → 15:00 봉사", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
       { month: 6, week: "6월 2주차", date: "2026-06-13", type: "기능교육", title: "성경 친구들 1 기능 교육", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 성경 인물 → 15:00 퀴즈", mat: "기능장 취득 연계", budget: 20000, status: "완료", memo: "출석 정상" },
       { month: 6, week: "6월 3주차", date: "2026-06-20", type: "기능교육", title: "성경 친구들 2 기능 교육", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 성경 인물 2 → 15:00 암기", mat: "기능장 취득 연계", budget: 20000, status: "완료", memo: "출석 정상" },
       { month: 6, week: "6월 4주차", date: "2026-06-27", type: "기능교육", title: "수영 1 수상안전 실습", teacher: "체육교사", place: "수영장", prog: "14:00 개회식 → 14:15 수상 안전 → 15:00 수영 검정", mat: "기능장 취득 연계", budget: 60000, status: "완료", memo: "출석 정상" },
       { month: 7, week: "7월 1주차", date: "2026-07-04", type: "기능교육", title: "화재 안전 및 소화기 사용", teacher: "박교사", place: "교회마당", prog: "14:00 개회식 → 14:15 화재 예방 → 15:00 소화기 분사", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
       { month: 7, week: "7월 2주차", date: "2026-07-11", type: "야외활동", title: "하계 패스파인더 캠포리", teacher: "전체교사", place: "캠핑장", prog: "14:00 개회식 → 14:15 텐트 설영 → 15:00 캠포리 순서", mat: "전체 야영", budget: 150000, status: "완료", memo: "출석 정상" },
       { month: 7, week: "7월 3주차", date: "2026-07-18", type: "영성훈련", title: "캠포리 은혜 나눔", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 소감 나눔 → 15:00 말씀", mat: "소감문 나눔", budget: 20000, status: "완료", memo: "출석 정상" },
-      { month: 7, week: "7월 4주차", date: "2026-07-25", type: "기능교육", title: "천문관찰: 별자리 찾기", teacher: "김교사", place: "옥상/야외", prog: "14:00 개회식 → 14:15 별자리 도감 → 15:00 관찰", mat: "별자리 도감", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 7, week: "7월 4주차", date: "2026-07-25", type: "기능교육", title: "천문관찰: 여름철 별자리 찾기", teacher: "김교사", place: "옥상/야외", prog: "14:00 개회식 → 14:15 별자리 도감 → 15:00 관찰", mat: "별자리 도감", budget: 20000, status: "완료", memo: "출석 정상" },
       { month: 8, week: "8월 1주차", date: "2026-08-01", type: "봉사활동", title: "교회 시설 정비 및 대청소", teacher: "최교사", place: "교회 전체", prog: "14:00 개회식 → 14:15 봉사활동 → 15:00 정돈", mat: "환경 정돈", budget: 15000, status: "완료", memo: "출석 정상" },
       { month: 8, week: "8월 2주차", date: "2026-08-08", type: "정기집회", title: "단복 및 제식 리마인드", teacher: "부장교사", place: "체육관", prog: "14:00 개회식 → 14:15 제식 훈련 → 15:00 단복 점검", mat: "복장 점검", budget: 15000, status: "완료", memo: "출석 정상" },
-      { month: 8, week: "8월 3주차", date: "2026-08-15", type: "기능교육", title: "신호법 (모스 부호/깃발)", teacher: "정교사", place: "소예배실", prog: "14:00 개회식 → 14:15 모스부호 → 15:00 송수신 실습", mat: "신호 실습", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 8, week: "8월 3주차", date: "2026-08-15", type: "기능교육", title: "신호법 (모스 부호/깃발 신호)", teacher: "정교사", place: "소예배실", prog: "14:00 개회식 → 14:15 모스부호 → 15:00 송수신 실습", mat: "신호 실습", budget: 15000, status: "완료", memo: "출석 정상" },
       { month: 8, week: "8월 4주차", date: "2026-08-22", type: "영성훈련", title: "기도회 및 대원 비전 나눔", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 비전 나눔 → 15:00 중보기도", mat: "비전 나눔", budget: 15000, status: "완료", memo: "출석 정상" },
       { month: 8, week: "8월 5주차", date: "2026-08-29", type: "기능교육", title: "기초 가죽공예 / 수공예 실습", teacher: "김교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 공예 이론 → 15:00 작품 제작", mat: "공예 실습 재료", budget: 30000, status: "예정", memo: "사전 준비물 점검" },
       { month: 9, week: "9월 1주차", date: "2026-09-05", type: "야외활동", title: "초가을 숲 오리엔티어링", teacher: "전체교사", place: "수목원", prog: "14:00 개회식 → 14:15 오리엔티어링 → 15:00 미션런", mat: "미션 런", budget: 40000, status: "예정", memo: "야외 안전 유의" },
@@ -688,7 +772,7 @@
       note: m.mat
     }));
 
-    let activeMonth = new Date().getMonth() + 1; // 현재 접속 월 자동 지정
+    let activeMonth = new Date().getMonth() + 1;
 
     function renderUI() {
       // 1. 기능장 요약
@@ -702,7 +786,7 @@
         </tr>
       `).join('');
 
-      // 2. 월 선택 버튼 생성
+      // 2. 월 선택 버튼
       const monthBtnBox = document.getElementById('month-buttons');
       monthBtnBox.innerHTML = '';
       for (let m = 1; m <= 12; m++) {
@@ -743,6 +827,38 @@
           ${m.honors.map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
         </tr>
       `).join('');
+    }
+
+    // 영역별 계획 클릭 시 세부 일정 표시 함수
+    function showFieldDetails(category) {
+      document.querySelectorAll('.field-card').forEach(card => card.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      const panel = document.getElementById('field-detail-panel');
+      const tbody = document.getElementById('field-detail-tbody');
+      const title = document.getElementById('panel-category-title');
+
+      const filtered = rawAnnual.filter(s => s.type === category);
+      title.innerHTML = `📌 [${category}] 관련 세부 활동 일정 (${filtered.length}건)`;
+
+      tbody.innerHTML = filtered.map(item => `
+        <tr>
+          <td>${item.no}</td>
+          <td><strong>${item.date}</strong></td>
+          <td style="font-weight:600; color:#fff;">${item.title}</td>
+          <td>${item.teacher}</td>
+          <td>${item.place}</td>
+          <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
+        </tr>
+      `).join('');
+
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeFieldDetails() {
+      document.getElementById('field-detail-panel').style.display = 'none';
+      document.querySelectorAll('.field-card').forEach(card => card.classList.remove('active'));
     }
 
     function selectMonth(m) {
