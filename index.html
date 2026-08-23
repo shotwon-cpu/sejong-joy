@@ -305,7 +305,7 @@
     .badge-plan { background: rgba(41, 128, 185, 0.2); color: #3498db; border: 1px solid #2980b9; }
     .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
-    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
+    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 5px; }
     .badge-none { color: #556885; }
 
     .honor-th-title {
@@ -504,7 +504,7 @@
           <div class="kpi-sub" id="kpi-m-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
-        <!-- 3. 기능장 취득 합계 (터치 시 팝업 정상 작동) -->
+        <!-- 3. 기능장 취득 합계 -->
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
           <div class="kpi-label">
             <span>기능장 취득 합계</span>
@@ -526,7 +526,7 @@
         </div>
       </div>
 
-      <!-- 기능장 9종 전체 취득 현황 -->
+      <!-- 기능장 9종 전체 취득 현황 (과목 구분 열 제거) -->
       <div class="card">
         <div class="card-title">
           <span>🎖️ 기능장 9종 전체 취득 현황</span>
@@ -536,11 +536,10 @@
           <table>
             <thead>
               <tr>
-                <th>No</th>
-                <th class="sticky-col text-left">기능장 명칭 (클릭)</th>
-                <th>취득 인원</th>
-                <th>취득률</th>
-                <th>과목 구분</th>
+                <th style="width: 15%;">No</th>
+                <th class="sticky-col text-left" style="width: 50%;">기능장 명칭 (클릭)</th>
+                <th style="width: 17%;">취득 인원</th>
+                <th style="width: 18%;">취득률</th>
               </tr>
             </thead>
             <tbody id="honor-summary-tbody"></tbody>
@@ -772,15 +771,15 @@
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let honorStats = [
-      { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
-      { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
-      { id: 2, name: "내 친구 예수 (06.13)", title: "내 친구 예수", date: "(06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { id: 3, name: "어린 소년 예수 (06.13)", title: "어린 소년 예수", date: "(06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { id: 4, name: "지역사회 도우미 (06.20)", title: "지역사회 도우미", date: "(06.20)", count: 8, rate: "61.5%", cat: "정기 기능 교육" },
-      { id: 5, name: "성경 친구들 1 (06.27)", title: "성경 친구들 1", date: "(06.27)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { id: 6, name: "성경 친구들 2 (07.04)", title: "성경 친구들 2", date: "(07.04)", count: 5, rate: "38.5%", cat: "정기 기능 교육" },
-      { id: 7, name: "수영 1 / 초급 1 (07.15)", title: "수영 1 / 초급 1", date: "(07.15)", count: 6, rate: "46.2%", cat: "어드/패파 공통" },
-      { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
+      { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
+      { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
+      { id: 2, name: "내 친구 예수 (06.13)", title: "내 친구 예수", date: "(06.13)", count: 4, rate: "30.8%" },
+      { id: 3, name: "어린 소년 예수 (06.13)", title: "어린 소년 예수", date: "(06.13)", count: 4, rate: "30.8%" },
+      { id: 4, name: "지역사회 도우미 (06.20)", title: "지역사회 도우미", date: "(06.20)", count: 8, rate: "61.5%" },
+      { id: 5, name: "성경 친구들 1 (06.27)", title: "성경 친구들 1", date: "(06.27)", count: 4, rate: "30.8%" },
+      { id: 6, name: "성경 친구들 2 (07.04)", title: "성경 친구들 2", date: "(07.04)", count: 5, rate: "38.5%" },
+      { id: 7, name: "수영 1 / 초급 1 (07.15)", title: "수영 1 / 초급 1", date: "(07.15)", count: 6, rate: "46.2%" },
+      { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%" }
     ];
 
     let members = [
@@ -899,14 +898,13 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 1. 기능장 요약
+      // 1. 기능장 요약 (과목 구분 없이 4열로 렌더링)
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
           <td class="sticky-col text-left" style="font-weight:700; color:var(--accent-gold); text-decoration: underline;">${h.name} 👆</td>
           <td><span class="badge badge-done">${h.count}명</span></td>
           <td>${h.rate}</td>
-          <td><span class="badge badge-plan">${h.cat}</span></td>
         </tr>
       `).join('');
 
@@ -939,7 +937,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (2줄 명칭 헤더)
+      // 4. 대원 명부
       renderFullMembersTable();
     }
 
@@ -1039,7 +1037,6 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 취득 합계 모달
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1183,10 +1180,9 @@
       `).join('');
     }
 
-    // Google 스프레드시트 2개 시트 동시 파싱 (출석 + 기능장)
+    // Google 스프레드시트 2개 시트(출석 + 기능장) 실시간 연동
     async function fetchLiveSheetData() {
       try {
-        // 1. 대원출석_현황 시트에서 나이/이름/출석 가져오기
         const attSheetName = encodeURIComponent("대원출석_현황");
         const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json`;
         const attRes = await fetch(attUrl);
@@ -1231,7 +1227,6 @@
           }
         }
 
-        // 2. 기능장_취득현황 시트에서 9종 취득 현황 매칭
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
@@ -1260,7 +1255,7 @@
             }
           }
         } catch (he) {
-          console.log("기능장 시트 파싱 완료 (기본값 유지):", he);
+          console.log("기능장 시트 파싱 완료:", he);
         }
 
         if (updatedMembers.length > 0) {
