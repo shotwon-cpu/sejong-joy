@@ -489,9 +489,9 @@
             <span>진행된 안식일 활동</span>
             <span class="click-hint">목록보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-done-count">34</span> <span style="font-size:12px;color:var(--text-muted);">/ 52회</span></div>
-          <div class="kpi-sub">진행률 <span id="kpi-done-rate">65.4%</span> (터치 시 완료목록)</div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-prog-bar" style="width: 65.4%;"></div></div>
+          <div class="kpi-value">34 <span style="font-size:12px;color:var(--text-muted);">/ 52회</span></div>
+          <div class="kpi-sub">진행률 65.4% (터치 시 완료목록)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 65.4%;"></div></div>
         </div>
 
         <!-- 2. 등록 대원수 -->
@@ -500,8 +500,8 @@
             <span>등록 대원수</span>
             <span class="click-hint">명부보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-member-count">13</span> <span style="font-size:12px;color:var(--text-muted);">명</span></div>
-          <div class="kpi-sub" id="kpi-member-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
+          <div class="kpi-value"><span id="kpi-m-total">13</span> <span style="font-size:12px;color:var(--text-muted);">명</span></div>
+          <div class="kpi-sub" id="kpi-m-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
         <!-- 3. 기능장 취득 합계 -->
@@ -510,8 +510,8 @@
             <span>기능장 취득 합계</span>
             <span class="click-hint">명부보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-honor-count">51</span> <span style="font-size:12px;color:var(--text-muted);">건</span></div>
-          <div class="kpi-sub">1인 평균 <span id="kpi-honor-avg">3.9</span>개 (터치 시 전체명부)</div>
+          <div class="kpi-value"><span id="kpi-h-total">51</span> <span style="font-size:12px;color:var(--text-muted);">건</span></div>
+          <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">3.9</span>개 (터치 시 전체명부)</div>
         </div>
 
         <!-- 4. 예산 집행 -->
@@ -670,7 +670,7 @@
     <!-- TAB 4: 대원 출석 및 기능장 -->
     <div id="tab-members" class="tab-content">
       <div class="card">
-        <div class="card-title">👥 대원 13명 출석 및 기능장 명부</div>
+        <div class="card-title">👥 대원 출석 및 기능장 명부</div>
         <div class="table-container">
           <table>
             <thead id="full-members-thead"></thead>
@@ -769,7 +769,6 @@
   </div>
 
   <script>
-    // 새 Google 스프레드시트 고유 ID
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let honorStats = [
@@ -784,6 +783,7 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
+    // 기본 대원 데이터 (시트의 실제 나이 반영)
     let members = [
       { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
@@ -891,6 +891,16 @@
     }
 
     function renderUI() {
+      // KPI 업데이트
+      const advCount = members.filter(m => m.dept === '어드벤처러').length;
+      const pathCount = members.filter(m => m.dept === '패스파인더').length;
+      const totalH = members.reduce((sum, m) => sum + (m.hCount || 0), 0);
+
+      document.getElementById('kpi-m-total').innerText = members.length;
+      document.getElementById('kpi-m-sub').innerText = `어드 ${advCount}명 / 패파 ${pathCount}명 (터치 시 명부)`;
+      document.getElementById('kpi-h-total').innerText = totalH;
+      document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
+
       // 1. 기능장 요약
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
@@ -931,7 +941,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (2줄 명칭 헤더)
+      // 4. 대원 명부
       renderFullMembersTable();
     }
 
@@ -1009,7 +1019,7 @@
     }
 
     function showHonorMembers(honorIdx, honorName) {
-      const earners = members.filter(m => m.honors[honorIdx] === 1);
+      const earners = members.filter(m => m.honors && m.honors[honorIdx] === 1);
       const thead = `
         <tr>
           <th>소속</th>
@@ -1114,7 +1124,7 @@
         </tr>
       `).join('');
 
-      openModal("👥 2026 등록 대원 명부 (총 13명)", thead, tbody);
+      openModal(`👥 2026 등록 대원 명부 (총 ${members.length}명)`, thead, tbody);
     }
 
     function showFieldDetails(category) {
@@ -1174,63 +1184,69 @@
       `).join('');
     }
 
-    // Google 스프레드시트 실시간 데이터 패치 엔진
+    // Google 스프레드시트의 '대원_출석_기능장_관리' 시트 전용 실시간 패치 엔진
     async function fetchLiveSheetData() {
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json`;
+        const sheetName = encodeURIComponent("대원_출석_기능장_관리");
+        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${sheetName}&tqx=out:json`;
         const res = await fetch(url);
         const text = await res.text();
         const json = JSON.parse(text.substr(47).slice(0, -2));
         
         if (json && json.table && json.table.rows) {
           const rows = json.table.rows;
-          // 대원 데이터 행 파싱 (4번 행부터 시작)
-          const newMembers = [];
-          for (let i = 4; i < rows.length; i++) {
+          const parsed = [];
+
+          // 4번 인덱스 행부터 대원 데이터 추출
+          for (let i = 0; i < rows.length; i++) {
             const r = rows[i].c;
-            if (!r || !r[2] || !r[2].v) continue; // 이름이 없으면 패스
+            if (!r || !r[2] || !r[2].v) continue;
             
+            const rawName = String(r[2].v).trim();
+            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리')) continue;
+
             const ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
-            const deptVal = r[1] ? String(r[1].v).trim() : "패스파인더";
-            const nameVal = r[2] ? String(r[2].v).trim() : "";
-            
-            // 안식일 출석 수 카운트 (D열(인덱스 3)부터 37열까지)
+            const deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
+            const nameVal = rawName;
+
+            // 출석 수 카운트 (D열 ~ AK열, 안식일 34회)
             let attCount = 0;
             for (let cIdx = 3; cIdx <= 36; cIdx++) {
-              if (r[cIdx] && String(r[cIdx].v).toUpperCase() === 'O') attCount++;
+              if (r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1')) {
+                attCount++;
+              }
             }
 
-            // 기능장 취득 여부 파싱
+            // 기능장 9종 취득 현황 (AN열 ~ AV열)
             let userHonors = [];
             let hCount = 0;
-            for (let hIdx = 0; hIdx < 9; hIdx++) {
-              // 기능장 열 탐색
-              let val = (r[40 + hIdx] && (r[40 + hIdx].v === '취득' || r[40 + hIdx].v === 1 || String(r[40 + hIdx].v).toUpperCase() === 'O')) ? 1 : 0;
-              userHonors.push(val);
-              if (val) hCount++;
+            for (let hIdx = 39; hIdx <= 47; hIdx++) {
+              let isEarned = (r[hIdx] && (r[hIdx].v === '취득' || String(r[hIdx].v).toUpperCase() === 'O' || r[hIdx].v === 1)) ? 1 : 0;
+              userHonors.push(isEarned);
+              if (isEarned) hCount++;
             }
 
             const totalSabbaths = 34;
             const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
 
-            newMembers.push({
-              age: ageVal,
+            parsed.push({
+              age: ageVal > 0 ? ageVal : (members[parsed.length]?.age || 9),
               dept: deptVal,
               name: nameVal,
-              days: attCount > 0 ? attCount : (members[newMembers.length]?.days || 30),
-              rate: attCount > 0 ? rateVal : (members[newMembers.length]?.rate || "90.0%"),
-              hCount: hCount > 0 ? hCount : (members[newMembers.length]?.hCount || 0),
-              honors: userHonors.length === 9 ? userHonors : (members[newMembers.length]?.honors || [0,0,0,0,0,0,0,0,0])
+              days: attCount,
+              rate: rateVal,
+              hCount: hCount,
+              honors: userHonors
             });
           }
 
-          if (newMembers.length > 0) {
-            members = newMembers;
+          if (parsed.length > 0) {
+            members = parsed;
           }
         }
         alert("Google 스프레드시트와 실시간 동기화되었습니다!");
       } catch (e) {
-        console.log("로컬 데이터 로드:", e);
+        console.log("로컬 백업 데이터 유지:", e);
       }
       renderUI();
     }
