@@ -335,45 +335,71 @@
     .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
-    /* 대화형 상세 안내 패널/모달 */
-    #detail-pop-panel {
+    /* 대화형 전체화면 모달 (배경 터치 시 닫힘) */
+    .modal-overlay {
       display: none;
-      background: #0d1a30;
-      border: 1.5px solid var(--accent-gold);
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 14px;
-      animation: fadeIn 0.2s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 9, 20, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
     }
 
-    .panel-header {
+    .modal-content {
+      background: var(--card-bg);
+      border: 1.5px solid var(--accent-gold);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 950px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+      animation: modalScale 0.2s ease-out;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
       border-bottom: 1px solid var(--border-color);
-      padding-bottom: 6px;
+      background: #091324;
     }
 
-    .panel-title {
-      font-size: 13px;
-      font-weight: 700;
+    .modal-title {
+      font-size: 14px;
+      font-weight: 800;
       color: var(--accent-gold);
     }
 
-    .panel-close-btn {
+    .modal-close-btn {
       background: #1b2a47;
       border: 1px solid #334e7a;
       color: #fff;
+      padding: 5px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+    .modal-body {
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    @keyframes modalScale {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
   </style>
 </head>
@@ -403,7 +429,7 @@
     <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
-        <!-- 1. 진행된 안식일 활동 카드 (클릭 시 완료된 활동 모아보기) -->
+        <!-- 1. 진행된 안식일 활동 카드 -->
         <div class="kpi-card green" onclick="showCompletedActivities()">
           <div class="kpi-label">
             <span>진행된 안식일 활동</span>
@@ -414,7 +440,7 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 65.4%;"></div></div>
         </div>
 
-        <!-- 2. 등록 대원수 카드 (클릭 시 13명 전체 명부 모아보기) -->
+        <!-- 2. 등록 대원수 카드 -->
         <div class="kpi-card blue" onclick="showAllMembersList()">
           <div class="kpi-label">
             <span>등록 대원수</span>
@@ -424,14 +450,14 @@
           <div class="kpi-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
-        <!-- 3. 총 기능장 취득 합계 -->
-        <div class="kpi-card" onclick="openTab('tab-members')">
+        <!-- 3. 기능장 취득 합계 카드 (클릭 시 명부 모달 팝업) -->
+        <div class="kpi-card" onclick="showHonorsSummaryModal()">
           <div class="kpi-label">
             <span>기능장 취득 합계</span>
-            <span class="click-hint">상세보기 👆</span>
+            <span class="click-hint">명부보기 👆</span>
           </div>
           <div class="kpi-value">51 <span style="font-size:12px;color:var(--text-muted);">건</span></div>
-          <div class="kpi-sub">1인 평균 3.9개 취득</div>
+          <div class="kpi-sub">1인 평균 3.9개 (터치 시 9종 명부)</div>
         </div>
 
         <!-- 4. 예산 집행 -->
@@ -446,21 +472,7 @@
         </div>
       </div>
 
-      <!-- 동적 상세 결과 노출 패널 (진행된 활동 / 대원 명부 / 기능장 취득자) -->
-      <div id="detail-pop-panel">
-        <div class="panel-header">
-          <span class="panel-title" id="pop-panel-title">상세 정보</span>
-          <button class="panel-close-btn" onclick="closePopPanel()">✕ 닫기</button>
-        </div>
-        <div class="table-container">
-          <table id="pop-table">
-            <thead id="pop-thead"></thead>
-            <tbody id="pop-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 기능장 9종 전체 취득 현황 (이름 클릭 시 취득자 확인) -->
+      <!-- 기능장 9종 전체 취득 현황 -->
       <div class="card">
         <div class="card-title">
           <span>🎖️ 기능장 9종 전체 취득 현황</span>
@@ -702,6 +714,24 @@
     </div>
   </main>
 
+  <!-- 전체화면 팝업 모달 (배경 터치 또는 닫기 클릭 시 이전 화면으로 복귀) -->
+  <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title">상세 정보</span>
+        <button class="modal-close-btn" onclick="closeModal()">✕ 닫기</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-container">
+          <table>
+            <thead id="modal-thead"></thead>
+            <tbody id="modal-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
@@ -805,7 +835,7 @@
     let activeMonth = new Date().getMonth() + 1;
 
     function renderUI() {
-      // 1. 기능장 요약 (클릭 시 취득자 확인 이벤트 연결)
+      // 1. 기능장 요약
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -845,7 +875,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (원본 엑셀 순서)
+      // 4. 대원 명부
       document.getElementById('members-tbody').innerHTML = members.map(m => `
         <tr>
           <td>${m.no}</td>
@@ -859,17 +889,65 @@
       `).join('');
     }
 
-    // --- 동적 팝업 패널 함수들 ---
+    // --- 모달 제어 함수 (배경 클릭 및 닫기 버튼 지원) ---
+    function openModal(title, theadHtml, tbodyHtml) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-thead').innerHTML = theadHtml;
+      document.getElementById('modal-tbody').innerHTML = tbodyHtml;
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function closeModalOnOverlay(e) {
+      if (e.target.id === 'modal-overlay') {
+        closeModal();
+      }
+    }
+
+    // 1. 기능장 9종 전체 명부 모달
+    function showHonorsSummaryModal() {
+      const thead = `
+        <tr>
+          <th>번호</th>
+          <th>소속</th>
+          <th>이름</th>
+          <th>출석일수</th>
+          <th>출석률</th>
+          <th>기능장</th>
+          <th>복슬복슬 양</th>
+          <th>창조</th>
+          <th>내 친구 예수</th>
+          <th>어린 소년 예수</th>
+          <th>지역사회 도우미</th>
+          <th>성경 친구들 1</th>
+          <th>성경 친구들 2</th>
+          <th>수영 1 / 초급 1</th>
+          <th>화재 안전</th>
+        </tr>
+      `;
+
+      const tbody = members.map(m => `
+        <tr>
+          <td>${m.no}</td>
+          <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
+          <td style="font-weight:700; color:#fff;">${m.name}</td>
+          <td>${m.days}일</td>
+          <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
+          <td><span class="badge badge-done">${m.hCount}개</span></td>
+          ${m.honors.map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+        </tr>
+      `).join('');
+
+      openModal("👥 대원 13명 출석 및 기능장 9종 전체 취득 명부", thead, tbody);
+    }
+
+    // 2. 완료된 안식일 활동 모아보기 모달
     function showCompletedActivities() {
-      const panel = document.getElementById('detail-pop-panel');
-      const title = document.getElementById('pop-panel-title');
-      const thead = document.getElementById('pop-thead');
-      const tbody = document.getElementById('pop-tbody');
-
       const completed = rawAnnual.filter(s => s.status === '완료');
-      title.innerText = `✅ 진행 완료된 안식일 활동 모아보기 (총 ${completed.length}회)`;
-
-      thead.innerHTML = `
+      const thead = `
         <tr>
           <th>No</th>
           <th>일자(토)</th>
@@ -881,7 +959,7 @@
         </tr>
       `;
 
-      tbody.innerHTML = completed.map(s => `
+      const tbody = completed.map(s => `
         <tr>
           <td>${s.no}</td>
           <td><strong>${s.date}</strong></td>
@@ -893,19 +971,12 @@
         </tr>
       `).join('');
 
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      openModal(`✅ 진행 완료된 안식일 활동 (${completed.length}회)`, thead, tbody);
     }
 
+    // 3. 등록 대원 명부 모달
     function showAllMembersList() {
-      const panel = document.getElementById('detail-pop-panel');
-      const title = document.getElementById('pop-panel-title');
-      const thead = document.getElementById('pop-thead');
-      const tbody = document.getElementById('pop-tbody');
-
-      title.innerText = `👥 2026 등록 대원 명부 (어드벤처러 6명 / 패스파인더 7명, 총 13명)`;
-
-      thead.innerHTML = `
+      const thead = `
         <tr>
           <th>번호</th>
           <th>소속</th>
@@ -916,7 +987,7 @@
         </tr>
       `;
 
-      tbody.innerHTML = members.map(m => `
+      const tbody = members.map(m => `
         <tr>
           <td>${m.no}</td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
@@ -927,20 +998,13 @@
         </tr>
       `).join('');
 
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      openModal("👥 2026 등록 대원 명부 (총 13명)", thead, tbody);
     }
 
+    // 4. 단일 기능장 취득 대원 목록 모달
     function showHonorMembers(honorIdx, honorName) {
-      const panel = document.getElementById('detail-pop-panel');
-      const title = document.getElementById('pop-panel-title');
-      const thead = document.getElementById('pop-thead');
-      const tbody = document.getElementById('pop-tbody');
-
       const earners = members.filter(m => m.honors[honorIdx] === 1);
-      title.innerText = `🎖️ [${honorName}] 취득 대원 목록 (총 ${earners.length}명)`;
-
-      thead.innerHTML = `
+      const thead = `
         <tr>
           <th>번호</th>
           <th>소속</th>
@@ -951,7 +1015,7 @@
         </tr>
       `;
 
-      tbody.innerHTML = earners.map((m, idx) => `
+      const tbody = earners.map((m, idx) => `
         <tr>
           <td>${idx + 1}</td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
@@ -962,20 +1026,13 @@
         </tr>
       `).join('');
 
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
+    // 5. 영역별 활동 일정 모달
     function showFieldDetails(category) {
-      const panel = document.getElementById('detail-pop-panel');
-      const title = document.getElementById('pop-panel-title');
-      const thead = document.getElementById('pop-thead');
-      const tbody = document.getElementById('pop-tbody');
-
       const filtered = rawAnnual.filter(s => s.type === category);
-      title.innerText = `📌 [${category}] 관련 52주 활동 일정 (${filtered.length}건)`;
-
-      thead.innerHTML = `
+      const thead = `
         <tr>
           <th>No</th>
           <th>일자(토)</th>
@@ -986,7 +1043,7 @@
         </tr>
       `;
 
-      tbody.innerHTML = filtered.map(item => `
+      const tbody = filtered.map(item => `
         <tr>
           <td>${item.no}</td>
           <td><strong>${item.date}</strong></td>
@@ -997,12 +1054,7 @@
         </tr>
       `).join('');
 
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function closePopPanel() {
-      document.getElementById('detail-pop-panel').style.display = 'none';
+      openModal(`📌 [${category}] 관련 52주 활동 일정 (${filtered.length}건)`, thead, tbody);
     }
 
     function selectMonth(m) {
@@ -1053,7 +1105,7 @@
       document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       event.target.classList.add('active');
-      closePopPanel();
+      closeModal();
     }
 
     function filterSchedule(category) {
