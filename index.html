@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>2026 세종 JOY 패스파인더 & 어드벤처러 통합 대시보드</title>
+  <title>2026 세종 JOY 패스파인더 & 어드벤처러 운영 현황</title>
   <style>
     :root {
       --bg-color: #0b1528;
@@ -181,6 +181,14 @@
       padding: 12px 10px;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-gold);
+      background: #152442;
     }
 
     .kpi-card::after {
@@ -197,9 +205,10 @@
     .kpi-card.blue::after { background: var(--accent-blue); }
     .kpi-card.red::after { background: var(--accent-red); }
 
-    .kpi-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .kpi-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
     .kpi-value { font-size: 18px; font-weight: 800; color: var(--text-white); }
     .kpi-sub { font-size: 10px; color: var(--accent-gold); margin-top: 3px; }
+    .click-hint { font-size: 9px; color: var(--accent-gold); font-weight: normal; }
 
     .table-container {
       width: 100%;
@@ -230,6 +239,16 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       color: #e1e7f0;
       white-space: nowrap;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .clickable-row:hover td {
+      background: rgba(229, 169, 59, 0.15);
+      color: #fff;
     }
 
     .badge {
@@ -289,7 +308,6 @@
       background: linear-gradient(90deg, #e5a93b, #27ae60);
     }
 
-    /* 영역별 비중 카드 (클릭 가능 디자인) */
     .field-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -313,23 +331,18 @@
       background: #1e335a;
     }
 
-    .field-card.active {
-      border: 2px solid var(--accent-gold);
-      background: #203660;
-    }
-
     .field-name { font-size: 12px; color: #cbd5e1; font-weight: 600; }
     .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
-    /* 영역 상세 목록 패널 */
-    #field-detail-panel {
+    /* 대화형 상세 안내 패널/모달 */
+    #detail-pop-panel {
       display: none;
       background: #0d1a30;
-      border: 1px solid var(--accent-gold);
+      border: 1.5px solid var(--accent-gold);
       border-radius: 8px;
       padding: 12px;
-      margin-top: 12px;
+      margin-top: 14px;
       animation: fadeIn 0.2s ease;
     }
 
@@ -349,12 +362,18 @@
     }
 
     .panel-close-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
+      background: #1b2a47;
+      border: 1px solid #334e7a;
+      color: #fff;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -366,61 +385,95 @@
         <div class="logo-icon">🛡️</div>
         <div class="logo-text">
           <h1>세종 JOY 패스파인더</h1>
-          <p>Google 시트 실시간 연동 대시보드</p>
+          <p>Google 시트 실시간 연동 운영 시스템</p>
         </div>
       </div>
       <button class="sync-btn" onclick="fetchLiveSheetData()">🔄 동기화</button>
     </div>
     <nav class="nav-tabs">
-      <button class="nav-tab active" onclick="openTab('tab-dash')">📊 종합 대시보드</button>
+      <button class="nav-tab active" onclick="openTab('tab-dash')">📊 운영 현황</button>
       <button class="nav-tab" onclick="openTab('tab-monthly')">📅 월간 계획표</button>
       <button class="nav-tab" onclick="openTab('tab-annual')">📋 52주 연간일정</button>
       <button class="nav-tab" onclick="openTab('tab-members')">👥 대원 출석·기능장</button>
-      <button class="nav-tab" onclick="openTab('tab-rundown')">⏱️ 주간 런다운</button>
+      <button class="nav-tab" onclick="openTab('tab-rundown')">⏱️ 활동시간표</button>
     </nav>
   </header>
 
   <main>
-    <!-- TAB 1: 종합 대시보드 -->
+    <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
-        <div class="kpi-card green">
-          <div class="kpi-label">진행된 안식일 활동</div>
+        <!-- 1. 진행된 안식일 활동 카드 (클릭 시 완료된 활동 모아보기) -->
+        <div class="kpi-card green" onclick="showCompletedActivities()">
+          <div class="kpi-label">
+            <span>진행된 안식일 활동</span>
+            <span class="click-hint">목록보기 👆</span>
+          </div>
           <div class="kpi-value">34 <span style="font-size:12px;color:var(--text-muted);">/ 52회</span></div>
-          <div class="kpi-sub">진행률 65.4%</div>
+          <div class="kpi-sub">진행률 65.4% (터치 시 완료목록)</div>
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 65.4%;"></div></div>
         </div>
 
-        <div class="kpi-card blue">
-          <div class="kpi-label">등록 대원수</div>
+        <!-- 2. 등록 대원수 카드 (클릭 시 13명 전체 명부 모아보기) -->
+        <div class="kpi-card blue" onclick="showAllMembersList()">
+          <div class="kpi-label">
+            <span>등록 대원수</span>
+            <span class="click-hint">명부보기 👆</span>
+          </div>
           <div class="kpi-value">13 <span style="font-size:12px;color:var(--text-muted);">명</span></div>
-          <div class="kpi-sub">어드 6명 / 패파 7명</div>
+          <div class="kpi-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="kpi-label">기능장 취득 합계</div>
+        <!-- 3. 총 기능장 취득 합계 -->
+        <div class="kpi-card" onclick="openTab('tab-members')">
+          <div class="kpi-label">
+            <span>기능장 취득 합계</span>
+            <span class="click-hint">상세보기 👆</span>
+          </div>
           <div class="kpi-value">51 <span style="font-size:12px;color:var(--text-muted);">건</span></div>
-          <div class="kpi-sub">1인 평균 3.9개</div>
+          <div class="kpi-sub">1인 평균 3.9개 취득</div>
         </div>
 
-        <div class="kpi-card red">
-          <div class="kpi-label">예산 집행 (총 149만)</div>
+        <!-- 4. 예산 집행 -->
+        <div class="kpi-card red" onclick="openTab('tab-annual')">
+          <div class="kpi-label">
+            <span>예산 집행 (총 149만)</span>
+            <span class="click-hint">일정보기 👆</span>
+          </div>
           <div class="kpi-value">930,000 <span style="font-size:12px;color:var(--text-muted);">원</span></div>
           <div class="kpi-sub">잔여 560,000원 (62.4%)</div>
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 62.4%;"></div></div>
         </div>
       </div>
 
+      <!-- 동적 상세 결과 노출 패널 (진행된 활동 / 대원 명부 / 기능장 취득자) -->
+      <div id="detail-pop-panel">
+        <div class="panel-header">
+          <span class="panel-title" id="pop-panel-title">상세 정보</span>
+          <button class="panel-close-btn" onclick="closePopPanel()">✕ 닫기</button>
+        </div>
+        <div class="table-container">
+          <table id="pop-table">
+            <thead id="pop-thead"></thead>
+            <tbody id="pop-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 기능장 9종 전체 취득 현황 (이름 클릭 시 취득자 확인) -->
       <div class="card">
-        <div class="card-title">🎖️ 기능장 9종 전체 취득 현황</div>
+        <div class="card-title">
+          <span>🎖️ 기능장 9종 전체 취득 현황</span>
+          <span style="font-size:10px; color:#8fa0be; font-weight:normal;">기능장 이름 클릭 시 취득 대원 확인 👆</span>
+        </div>
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>No</th>
-                <th>기능장 명칭</th>
+                <th>기능장 명칭 (클릭)</th>
                 <th>취득 인원</th>
-                <th>취득률 (13명 기준)</th>
+                <th>취득률</th>
                 <th>과목 구분</th>
               </tr>
             </thead>
@@ -429,11 +482,11 @@
         </div>
       </div>
 
-      <!-- 2026 안식일활동 영역별 계획 및 비중 (클릭 시 세부 일정 조회) -->
+      <!-- 2026 안식일활동 영역별 계획 및 비중 -->
       <div class="card">
         <div class="card-title">
           <span>📊 2026 안식일활동 영역별 계획 및 비중 (총 52회)</span>
-          <span style="font-size:10px; color:#8fa0be; font-weight:normal;">카드 터치 시 상세 일정 확인 👆</span>
+          <span style="font-size:10px; color:#8fa0be; font-weight:normal;">카드 터치 시 일정 확인 👆</span>
         </div>
         <div class="field-grid">
           <div class="field-card" onclick="showFieldDetails('기능교육')">
@@ -477,29 +530,6 @@
             <div class="field-stat">3회 (5.8%)</div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 5.8%; background:#95a5a6;"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
-          </div>
-        </div>
-
-        <!-- 클릭 시 노출되는 영역별 상세 일정 패널 -->
-        <div id="field-detail-panel">
-          <div class="panel-header">
-            <span class="panel-title" id="panel-category-title">🎯 [기능교육] 세부 활동 일정</span>
-            <button class="panel-close-btn" onclick="closeFieldDetails()">✕ 닫기</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>No</th>
-                  <th>일자(토)</th>
-                  <th>활동 주제 및 세부 계획</th>
-                  <th>담당 교사</th>
-                  <th>장소</th>
-                  <th>진행 상태</th>
-                </tr>
-              </thead>
-              <tbody id="field-detail-tbody"></tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -571,7 +601,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: 대원 출석 및 기능장 (풀네임 표시) -->
+    <!-- TAB 4: 대원 출석 및 기능장 -->
     <div id="tab-members" class="tab-content">
       <div class="card">
         <div class="card-title">👥 대원 13명 출석 및 기능장 9종 명부</div>
@@ -602,10 +632,10 @@
       </div>
     </div>
 
-    <!-- TAB 5: 주간 런다운 -->
+    <!-- TAB 5: 활동시간표 -->
     <div id="tab-rundown" class="tab-content">
       <div class="card">
-        <div class="card-title">⏱️ 오후 표준 타임테이블 (14:00~16:30)</div>
+        <div class="card-title">⏱️ 안식일 오후 표준 활동시간표 (14:00~16:30)</div>
         <div class="table-container">
           <table>
             <thead>
@@ -676,15 +706,15 @@
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
     const honorStats = [
-      { name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
-      { name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
-      { name: "내 친구 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { name: "어린 소년 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { name: "지역사회 도우미 (06.20)", count: 8, rate: "61.5%", cat: "정기 기능 교육" },
-      { name: "성경 친구들 1 (06.27)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { name: "성경 친구들 2 (07.04)", count: 5, rate: "38.5%", cat: "정기 기능 교육" },
-      { name: "수영 1 / 초급 1 (07.15)", count: 6, rate: "46.2%", cat: "어드/패파 공통" },
-      { name: "화재 안전 (07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
+      { id: 0, name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
+      { id: 1, name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
+      { id: 2, name: "내 친구 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
+      { id: 3, name: "어린 소년 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
+      { id: 4, name: "지역사회 도우미 (06.20)", count: 8, rate: "61.5%", cat: "정기 기능 교육" },
+      { id: 5, name: "성경 친구들 1 (06.27)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
+      { id: 6, name: "성경 친구들 2 (07.04)", count: 5, rate: "38.5%", cat: "정기 기능 교육" },
+      { id: 7, name: "수영 1 / 초급 1 (07.15)", count: 6, rate: "46.2%", cat: "어드/패파 공통" },
+      { id: 8, name: "화재 안전 (07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
     const members = [
@@ -775,11 +805,11 @@
     let activeMonth = new Date().getMonth() + 1;
 
     function renderUI() {
-      // 1. 기능장 요약
+      // 1. 기능장 요약 (클릭 시 취득자 확인 이벤트 연결)
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
-        <tr>
+        <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
-          <td style="font-weight:600; color:#fff;">${h.name}</td>
+          <td style="font-weight:700; color:var(--accent-gold); text-decoration: underline;">${h.name} 👆</td>
           <td><span class="badge badge-done">${h.count}명</span></td>
           <td>${h.rate}</td>
           <td><span class="badge badge-plan">${h.cat}</span></td>
@@ -815,7 +845,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부
+      // 4. 대원 명부 (원본 엑셀 순서)
       document.getElementById('members-tbody').innerHTML = members.map(m => `
         <tr>
           <td>${m.no}</td>
@@ -829,17 +859,132 @@
       `).join('');
     }
 
-    // 영역별 계획 클릭 시 세부 일정 표시 함수
-    function showFieldDetails(category) {
-      document.querySelectorAll('.field-card').forEach(card => card.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+    // --- 동적 팝업 패널 함수들 ---
+    function showCompletedActivities() {
+      const panel = document.getElementById('detail-pop-panel');
+      const title = document.getElementById('pop-panel-title');
+      const thead = document.getElementById('pop-thead');
+      const tbody = document.getElementById('pop-tbody');
 
-      const panel = document.getElementById('field-detail-panel');
-      const tbody = document.getElementById('field-detail-tbody');
-      const title = document.getElementById('panel-category-title');
+      const completed = rawAnnual.filter(s => s.status === '완료');
+      title.innerText = `✅ 진행 완료된 안식일 활동 모아보기 (총 ${completed.length}회)`;
+
+      thead.innerHTML = `
+        <tr>
+          <th>No</th>
+          <th>일자(토)</th>
+          <th>구분</th>
+          <th>활동 주제 및 세부 내용</th>
+          <th>담당 교사</th>
+          <th>장소</th>
+          <th>상태</th>
+        </tr>
+      `;
+
+      tbody.innerHTML = completed.map(s => `
+        <tr>
+          <td>${s.no}</td>
+          <td><strong>${s.date}</strong></td>
+          <td><span class="badge badge-plan">${s.type}</span></td>
+          <td style="font-weight:600; color:#fff;">${s.title}</td>
+          <td>${s.teacher}</td>
+          <td>${s.place}</td>
+          <td><span class="badge badge-done">완료</span></td>
+        </tr>
+      `).join('');
+
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function showAllMembersList() {
+      const panel = document.getElementById('detail-pop-panel');
+      const title = document.getElementById('pop-panel-title');
+      const thead = document.getElementById('pop-thead');
+      const tbody = document.getElementById('pop-tbody');
+
+      title.innerText = `👥 2026 등록 대원 명부 (어드벤처러 6명 / 패스파인더 7명, 총 13명)`;
+
+      thead.innerHTML = `
+        <tr>
+          <th>번호</th>
+          <th>소속</th>
+          <th>이름</th>
+          <th>출석일수</th>
+          <th>출석률</th>
+          <th>취득 기능장수</th>
+        </tr>
+      `;
+
+      tbody.innerHTML = members.map(m => `
+        <tr>
+          <td>${m.no}</td>
+          <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
+          <td style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
+          <td>${m.days}일 / 34일</td>
+          <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
+          <td><span class="badge badge-done">${m.hCount}개 취득</span></td>
+        </tr>
+      `).join('');
+
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function showHonorMembers(honorIdx, honorName) {
+      const panel = document.getElementById('detail-pop-panel');
+      const title = document.getElementById('pop-panel-title');
+      const thead = document.getElementById('pop-thead');
+      const tbody = document.getElementById('pop-tbody');
+
+      const earners = members.filter(m => m.honors[honorIdx] === 1);
+      title.innerText = `🎖️ [${honorName}] 취득 대원 목록 (총 ${earners.length}명)`;
+
+      thead.innerHTML = `
+        <tr>
+          <th>번호</th>
+          <th>소속</th>
+          <th>취득 대원 이름</th>
+          <th>출석률</th>
+          <th>전체 기능장 취득</th>
+          <th>상태</th>
+        </tr>
+      `;
+
+      tbody.innerHTML = earners.map((m, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
+          <td style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
+          <td>${m.rate}</td>
+          <td>${m.hCount}개</td>
+          <td><span class="badge badge-done">취득 완료</span></td>
+        </tr>
+      `).join('');
+
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function showFieldDetails(category) {
+      const panel = document.getElementById('detail-pop-panel');
+      const title = document.getElementById('pop-panel-title');
+      const thead = document.getElementById('pop-thead');
+      const tbody = document.getElementById('pop-tbody');
 
       const filtered = rawAnnual.filter(s => s.type === category);
-      title.innerHTML = `📌 [${category}] 관련 세부 활동 일정 (${filtered.length}건)`;
+      title.innerText = `📌 [${category}] 관련 52주 활동 일정 (${filtered.length}건)`;
+
+      thead.innerHTML = `
+        <tr>
+          <th>No</th>
+          <th>일자(토)</th>
+          <th>활동 주제 및 세부 계획</th>
+          <th>담당 교사</th>
+          <th>장소</th>
+          <th>상태</th>
+        </tr>
+      `;
 
       tbody.innerHTML = filtered.map(item => `
         <tr>
@@ -856,9 +1001,8 @@
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function closeFieldDetails() {
-      document.getElementById('field-detail-panel').style.display = 'none';
-      document.querySelectorAll('.field-card').forEach(card => card.classList.remove('active'));
+    function closePopPanel() {
+      document.getElementById('detail-pop-panel').style.display = 'none';
     }
 
     function selectMonth(m) {
@@ -909,6 +1053,7 @@
       document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       event.target.classList.add('active');
+      closePopPanel();
     }
 
     function filterSchedule(category) {
