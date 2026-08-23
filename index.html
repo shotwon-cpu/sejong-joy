@@ -1012,6 +1012,7 @@
         </tr>
       `;
 
+      // honors 배열이 비어있거나 크기가 다르더라도 표가 깨지지 않게 예외처리 적용
       tbody.innerHTML = members.map(m => `
         <tr>
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
@@ -1020,7 +1021,10 @@
           <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${(m.honors || []).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${honorStats.map((h, i) => {
+            const isEarned = m.honors && m.honors[i] === 1;
+            return `<td><span class="${isEarned ? 'badge-honor' : 'badge-none'}">${isEarned ? '취득' : '-'}</span></td>`;
+          }).join('')}
         </tr>
       `).join('');
     }
@@ -1087,7 +1091,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 전체 취득 명부 팝업 (나이, 출석 제외 완비)
+    // 기능장 전체 취득 명부 팝업
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1108,7 +1112,10 @@
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff;">${m.name}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${(m.honors || []).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${honorStats.map((h, i) => {
+            const isEarned = m.honors && m.honors[i] === 1;
+            return `<td><span class="${isEarned ? 'badge-honor' : 'badge-none'}">${isEarned ? '취득' : '-'}</span></td>`;
+          }).join('')}
         </tr>
       `).join('');
 
@@ -1248,7 +1255,6 @@
             const r = rows[i].c;
             if (!r) continue;
 
-            // 이름 위치 찾기 (Col C 또는 Col B 탐색)
             let nameVal = "";
             let ageVal = 0;
             let deptVal = "어드벤처러";
@@ -1298,9 +1304,11 @@
           if (honorJson && honorJson.table && honorJson.table.rows) {
             const hRows = honorJson.table.rows;
             
-            // 헤더 행 탐색 (Col C가 '이름'이거나 '소속'이 있는 행)
+            // 헤더 행 및 이름 열 위치 유동적 탐색
             let headerRow = null;
             let headerRowIdx = -1;
+            let nameColIdx = -1;
+            
             for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
               const r = hRows[rIdx].c;
               if (!r) continue;
@@ -1308,6 +1316,7 @@
                 if (r[cIdx] && String(r[cIdx].v).trim() === '이름') {
                   headerRow = r;
                   headerRowIdx = rIdx;
+                  nameColIdx = cIdx;
                   break;
                 }
               }
@@ -1315,8 +1324,9 @@
             }
 
             let dynamicHonors = [];
-            if (headerRow) {
-              for (let colIdx = 3; colIdx < headerRow.length; colIdx++) {
+            // 찾은 '이름' 열 다음부터 기능장 목록 추출
+            if (headerRow && nameColIdx !== -1) {
+              for (let colIdx = nameColIdx + 1; colIdx < headerRow.length; colIdx++) {
                 if (headerRow[colIdx] && headerRow[colIdx].v) {
                   const fullName = String(headerRow[colIdx].v).trim();
                   if (!fullName || fullName === '합계' || fullName.includes('취득률') || fullName.includes('구분')) continue;
@@ -1338,40 +1348,46 @@
               }
             }
 
-            // 대원별 기능장 취득 매칭
-            for (let i = headerRowIdx + 1; i < hRows.length; i++) {
-              const r = hRows[i].c;
-              if (!r) continue;
+            // 대원별 기능장 취득 매칭 (안전하게 덮어쓰기)
+            if (headerRowIdx !== -1) {
+              for (let i = headerRowIdx + 1; i < hRows.length; i++) {
+                const r = hRows[i].c;
+                if (!r) continue;
 
-              // 이름 컬럼 탐색
-              let rowName = "";
-              for (let cIdx = 0; cIdx < Math.min(4, r.length); cIdx++) {
-                if (r[cIdx] && r[cIdx].v) {
-                  const val = String(r[cIdx].v).trim();
-                  if (updatedMembers.some(m => m.name === val)) {
-                    rowName = val;
-                    break;
+                let rowName = "";
+                for (let cIdx = 0; cIdx < Math.min(4, r.length); cIdx++) {
+                  if (r[cIdx] && r[cIdx].v) {
+                    const val = String(r[cIdx].v).trim();
+                    if (updatedMembers.some(m => m.name === val)) {
+                      rowName = val;
+                      break;
+                    }
                   }
                 }
-              }
 
-              if (!rowName) continue;
-              const mem = updatedMembers.find(m => m.name === rowName);
-              if (mem) {
-                let userH = [];
-                let hCnt = 0;
-                dynamicHonors.forEach((dHonor) => {
-                  const cell = r[dHonor.colIdx];
-                  const cellVal = cell && cell.v ? String(cell.v).trim().toUpperCase() : "";
-                  let isEarned = (cellVal === '취득' || cellVal === 'O' || cellVal === '1' || cellVal === 'TRUE') ? 1 : 0;
-                  userH.push(isEarned);
-                  if (isEarned) {
-                    hCnt++;
-                    dHonor.count++;
-                  }
-                });
-                mem.honors = userH;
-                mem.hCount = hCnt;
+                if (!rowName) continue;
+                const mem = updatedMembers.find(m => m.name === rowName);
+                
+                // 기능장 데이터가 정상적으로 읽혀왔을 경우에만 적용
+                if (mem && dynamicHonors.length > 0) {
+                  let userH = [];
+                  let hCnt = 0;
+                  dynamicHonors.forEach((dHonor) => {
+                    const cell = r[dHonor.colIdx];
+                    const cellVal = cell && cell.v ? String(cell.v).trim().toUpperCase() : "";
+                    
+                    // 넓은 범위의 체크 기호 인식
+                    let isEarned = (cellVal === '취득' || cellVal === 'O' || cellVal === '〇' || cellVal === '○' || cellVal === '1' || cellVal === 'TRUE' || cellVal === 'V') ? 1 : 0;
+                    
+                    userH.push(isEarned);
+                    if (isEarned) {
+                      hCnt++;
+                      dHonor.count++;
+                    }
+                  });
+                  mem.honors = userH;
+                  mem.hCount = hCnt;
+                }
               }
             }
 
