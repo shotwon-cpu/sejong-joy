@@ -783,7 +783,6 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
-    // 태블릿 엑셀에 입력하신 실제 13명 명부 기본값
     let members = [
       { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
@@ -891,7 +890,6 @@
     }
 
     function renderUI() {
-      // 1. 등록 대원 및 기능장 KPI 업데이트
       const advCount = members.filter(m => m.dept === '어드벤처러').length;
       const pathCount = members.filter(m => m.dept === '패스파인더').length;
       const totalH = members.reduce((sum, m) => sum + (m.hCount || 0), 0);
@@ -901,7 +899,7 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 2. 기능장 요약
+      // 1. 기능장 요약
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -912,7 +910,7 @@
         </tr>
       `).join('');
 
-      // 3. 월 선택 버튼
+      // 2. 월 선택 버튼
       const monthBtnBox = document.getElementById('month-buttons');
       monthBtnBox.innerHTML = '';
       for (let m = 1; m <= 12; m++) {
@@ -924,7 +922,7 @@
       }
       renderMonthlyTable(activeMonth);
 
-      // 4. 연간 계획표
+      // 3. 연간 계획표
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => `
         <tr class="sched-row" data-quarter="${s.q}" data-status="${s.status}">
           <td>${s.no}</td>
@@ -941,7 +939,7 @@
         </tr>
       `).join('');
 
-      // 5. 대원 명부 (2줄 명칭 헤더)
+      // 4. 대원 명부 (2줄 명칭 헤더)
       renderFullMembersTable();
     }
 
@@ -974,7 +972,7 @@
           <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${m.honors.map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${(m.honors || [0,0,0,0,0,0,0,0,0]).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
         </tr>
       `).join('');
     }
@@ -1041,6 +1039,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
+    // 기능장 취득 합계 모달 (완벽 수정)
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1058,14 +1057,14 @@
         </tr>
       `;
 
-      tbody.innerHTML = members.map(m => `
+      const tbody = members.map(m => `
         <tr>
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff;">${m.name}</td>
           <td>${m.days}일</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${m.honors.map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${(m.honors || [0,0,0,0,0,0,0,0,0]).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
         </tr>
       `).join('');
 
@@ -1184,7 +1183,7 @@
       `).join('');
     }
 
-    // Google 스프레드시트의 정확한 시트('대원출석_현황') 전용 실시간 연동 엔진
+    // Google 스프레드시트 '대원출석_현황' 시트 전용 실시간 패치
     async function fetchLiveSheetData() {
       try {
         const sheetName = encodeURIComponent("대원출석_현황");
@@ -1202,13 +1201,12 @@
             if (!r || !r[2] || !r[2].v) continue;
             
             const rawName = String(r[2].v).trim();
-            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리') || rawName === '비중') continue;
+            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리') || rawName === '비중' || rawName.includes('명')) continue;
 
             const ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
             const deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
             const nameVal = rawName;
 
-            // 안식일 출석 수 카운트 (D열 ~ AK열, 안식일 34회)
             let attCount = 0;
             for (let cIdx = 3; cIdx < r.length; cIdx++) {
               if (r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1')) {
@@ -1218,8 +1216,6 @@
 
             const totalSabbaths = 34;
             const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
-
-            // 기존 명부와 매칭하여 기능장 정보 보존
             const existing = members.find(m => m.name === nameVal);
 
             parsed.push({
@@ -1239,7 +1235,7 @@
         }
         alert("Google 스프레드시트와 실시간 동기화되었습니다!");
       } catch (e) {
-        console.log("로컬 백업 데이터 유지:", e);
+        console.log("기본 데이터 사용:", e);
       }
       renderUI();
     }
@@ -1267,7 +1263,7 @@
       });
     }
 
-    fetchLiveSheetData();
+    renderUI();
   </script>
 </body>
 </html>
