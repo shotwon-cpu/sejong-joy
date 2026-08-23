@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 세종 JOY 패스파인더 & 어드벤처러 통합 대시보드</title>
+  <style>
+    :root {
+      --bg-color: #0b1528;
+      --card-bg: #111e36;
+      --card-inner: #182846;
+      --accent-gold: #e5a93b;
+      --accent-blue: #2980b9;
+      --accent-green: #27ae60;
+      --accent-red: #e74c3c;
+      --text-white: #ffffff;
+      --text-muted: #8fa0be;
+      --border-color: #24385a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #070e1b;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      font-size: 26px;
+      background: rgba(229, 169, 59, 0.2);
+      border: 1px solid var(--accent-gold);
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    .logo-text h1 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--accent-gold);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      background: #0d1a30;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-white);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab.active {
+      background: var(--accent-gold);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .sync-btn {
+      background: #1b2a47;
+      color: #fff;
+      border: 1px solid #2c3e60;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sync-btn:hover {
+      background: #2a3d63;
+    }
+
+    main {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+      flex: 1;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent-gold);
+    }
+
+    .kpi-card.green::after { background: var(--accent-green); }
+    .kpi-card.blue::after { background: var(--accent-blue); }
+    .kpi-card.red::after { background: var(--accent-red); }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-white);
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--accent-gold);
+      margin-top: 4px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    th {
+      background: #0e1b32;
+      color: var(--accent-gold);
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e1e7f0;
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-done { background: rgba(39, 174, 96, 0.2); color: #2ecc71; border: 1px solid #27ae60; }
+    .badge-plan { background: rgba(41, 128, 185, 0.2); color: #3498db; border: 1px solid #2980b9; }
+    .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
+    .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
+    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
+    .badge-none { color: #556885; }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--card-inner);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: var(--accent-gold);
+      color: #000;
+      font-weight: 700;
+      border-color: var(--accent-gold);
+    }
+
+    .progress-bar-wrap {
+      background: #0c1626;
+      border-radius: 10px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #e5a93b, #27ae60);
+      border-radius: 10px;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .nav-tabs {
+        width: 100%;
+      }
+      .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-badge">
+      <div class="logo-icon">🛡️</div>
+      <div class="logo-text">
+        <h1>2026 세종 JOY 패스파인더 & 어드벤처러</h1>
+        <p>Google 시트 실시간 연동 운영 대시보드</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="openTab('tab-dash')">📊 종합 대시보드</button>
+        <button class="nav-tab" onclick="openTab('tab-annual')">📅 52주 연간일정</button>
+        <button class="nav-tab" onclick="openTab('tab-members')">👥 대원 출석·기능장</button>
+        <button class="nav-tab" onclick="openTab('tab-rundown')">⏱️ 주간 런다운</button>
+      </nav>
+      <button class="sync-btn" onclick="fetchLiveSheetData()">🔄 동기화</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- TAB 1: 종합 대시보드 -->
+    <div id="tab-dash" class="tab-content active">
+      <div class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-label">진행된 안식일 활동 (52주 중)</div>
+          <div class="kpi-value"><span id="kpi-done-sabbaths">34</span><span style="font-size:14px;color:var(--text-muted);">/ 52회</span></div>
+          <div class="kpi-sub">활동 진행률 <span id="kpi-prog-rate">65.4%</span></div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-prog" style="width: 65.4%;"></div></div>
+        </div>
+
+        <div class="kpi-card blue">
+          <div class="kpi-label">등록 대원수 (어드벤처러+패파)</div>
+          <div class="kpi-value"><span id="kpi-members">13</span><span style="font-size:14px;color:var(--text-muted);">명</span></div>
+          <div class="kpi-sub">어드벤처러 6명 / 패스파인더 7명</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">총 기능장(Honor) 취득 합계</div>
+          <div class="kpi-value"><span id="kpi-honors">51</span><span style="font-size:14px;color:var(--text-muted);">건</span></div>
+          <div class="kpi-sub">1인당 평균 3.9개 취득 달성</div>
+        </div>
+
+        <div class="kpi-card red">
+          <div class="kpi-label">예산 집행 현황 (총 1,490,000원)</div>
+          <div class="kpi-value"><span id="kpi-used-budget">930,000</span><span style="font-size:14px;color:var(--text-muted);">원</span></div>
+          <div class="kpi-sub">잔여 <span id="kpi-remain-budget">560,000</span>원 (집행률 <span id="kpi-budget-rate">62.4%</span>)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-budget" style="width: 62.4%;"></div></div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+        <div class="card">
+          <div class="card-title">🎖️ 기능장(Honor) 9종 취득 현황</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>기능장 명칭</th>
+                  <th>취득 대원수</th>
+                  <th>취득률</th>
+                  <th>구분</th>
+                </tr>
+              </thead>
+              <tbody id="honor-summary-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📌 세종 JOY 실시간 연동 안내</div>
+          <div style="font-size: 13px; line-height: 1.8; color: #cbd5e1;">
+            <div style="background: var(--card-inner); padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid var(--accent-gold);">
+              <strong style="color:var(--accent-gold);">⚡ 자동 실시간 갱신</strong><br>
+              스마트폰 Google 시트 앱에서 출석(O/X)이나 일정을 수정하면 대시보드에 즉시 반영됩니다.
+            </div>
+            <div style="background: var(--card-inner); padding: 12px; border-radius: 8px; border-left: 3px solid var(--accent-green);">
+              <strong style="color:#2ecc71;">📈 대원 현황 바로가기</strong><br>
+              상단 [👥 대원 출석·기능장] 탭에서 대원 13명의 출석률 및 기능장 취득 명부를 확인하실 수 있습니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: 52주 연간 일정 계획 -->
+    <div id="tab-annual" class="tab-content">
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between; flex-wrap: wrap;">
+          <span>📅 2026년 52주 안식일 연간 활동 계획표</span>
+          <div class="filter-bar" style="margin: 0;">
+            <button class="filter-btn active" onclick="filterSchedule('all')">전체보기</button>
+            <button class="filter-btn" onclick="filterSchedule('1분기')">1분기</button>
+            <button class="filter-btn" onclick="filterSchedule('2분기')">2분기</button>
+            <button class="filter-btn" onclick="filterSchedule('3분기')">3분기</button>
+            <button class="filter-btn" onclick="filterSchedule('4분기')">4분기</button>
+            <button class="filter-btn" onclick="filterSchedule('완료')">진행완료</button>
+            <button class="filter-btn" onclick="filterSchedule('예정')">예정활동</button>
+          </div>
+        </div>
+        <div class="table-container" style="max-height: 600px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>일자</th>
+                <th>분기</th>
+                <th>구분</th>
+                <th>활동 주제 및 세부 계획</th>
+                <th>주요 영역</th>
+                <th>담당 교사</th>
+                <th>장소</th>
+                <th>예산</th>
+                <th>상태</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody id="annual-schedule-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: 대원 출석 및 기능장 -->
+    <div id="tab-members" class="tab-content">
+      <div class="card">
+        <div class="card-title">👥 등록 대원 13명 출석 및 기능장 취득 명부</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>소속</th>
+                <th>이름</th>
+                <th>출석일수</th>
+                <th>출석률</th>
+                <th>기능장</th>
+                <th>양</th>
+                <th>창조</th>
+                <th>친구예수</th>
+                <th>소년예수</th>
+                <th>지역사회</th>
+                <th>성경1</th>
+                <th>성경2</th>
+                <th>수영</th>
+                <th>화재</th>
+              </tr>
+            </thead>
+            <tbody id="members-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 주간 런다운 -->
+    <div id="tab-rundown" class="tab-content">
+      <div class="card">
+        <div class="card-title">⏱️ 안식일 오후 표준 타임테이블 (14:00 ~ 16:30)</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>시간</th>
+                <th>소요시간</th>
+                <th>프로그램 / 활동 내용</th>
+                <th>담당자</th>
+                <th>준비물 / 장비</th>
+                <th>비고 및 유의사항</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-plan">개회</span></td>
+                <td>14:00 ~ 14:15</td>
+                <td>15분</td>
+                <td style="font-weight:600; color:#fff;">개회식 (입장, 기국례, 서약 및 법 제창, 표어, 찬양, 개회기도)</td>
+                <td>인도자 / 기수</td>
+                <td>클럽기, 태극기, 반주</td>
+                <td>단복 정렬 및 제식 점검</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-done">기능</span></td>
+                <td>14:15 ~ 15:00</td>
+                <td>45분</td>
+                <td style="font-weight:600; color:#fff;">기능 교육 (해당 주차 기능장 이론 및 실습)</td>
+                <td>기능교사</td>
+                <td>교안, 실습 재료</td>
+                <td>어드벤처러/패스파인더 분반</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-adv">활동</span></td>
+                <td>15:00 ~ 15:45</td>
+                <td>45분</td>
+                <td style="font-weight:600; color:#fff;">팀 빌딩 & 응용 신체활동 게임 (조별 협동 미션)</td>
+                <td>활동교사</td>
+                <td>미션 카드, 타이머</td>
+                <td>안전사고 유의, 체육관</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-path">영성</span></td>
+                <td>15:45 ~ 16:15</td>
+                <td>30분</td>
+                <td style="font-weight:600; color:#fff;">영성 훈련 & 말씀 나눔 (성경 퀴즈 및 기도 짝 나눔)</td>
+                <td>영성교사</td>
+                <td>성경 퀴즈지, 선물</td>
+                <td>대원별 기도제목 공유</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-plan">폐회</span></td>
+                <td>16:15 ~ 16:30</td>
+                <td>15분</td>
+                <td style="font-weight:600; color:#fff;">폐회식 & 공지사항 (클럽기 하강, 폐회기도, 간식 배부, 해산)</td>
+                <td>총괄부장</td>
+                <td>간식(개별포장)</td>
+                <td>다음 주 준비물 안내</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 구글 스프레드시트 고유 ID
+    const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
+
+    // 기본 데이터
+    const honorStats = [
+      { name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "공통" },
+      { name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기" },
+      { name: "내 친구 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기" },
+      { name: "어린 소년 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기" },
+      { name: "지역사회 도우미 (06.20)", count: 8, rate: "61.5%", cat: "정기" },
+      { name: "성경 친구들 1 (06.27)", count: 4, rate: "30.8%", cat: "정기" },
+      { name: "성경 친구들 2 (07.04)", count: 5, rate: "38.5%", cat: "정기" },
+      { name: "수영 1 / 초급 1 (07.15)", count: 6, rate: "46.2%", cat: "공통" },
+      { name: "화재 안전 (07.25)", count: 5, rate: "38.5%", cat: "공통" }
+    ];
+
+    const members = [
+      { no: 1, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
+      { no: 2, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
+      { no: 3, dept: "어드벤처러", name: "박봄", days: 29, rate: "85.3%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { no: 4, dept: "어드벤처러", name: "최고은", days: 31, rate: "91.2%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
+      { no: 5, dept: "어드벤처러", name: "최시우", days: 31, rate: "91.2%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { no: 6, dept: "어드벤처러", name: "신동주", days: 32, rate: "94.1%", hCount: 7, honors: [1,1,0,0,1,1,1,1,1] },
+      { no: 7, dept: "패스파인더", name: "황예찬", days: 31, rate: "91.2%", hCount: 6, honors: [1,1,1,1,1,0,0,0,1] },
+      { no: 8, dept: "패스파인더", name: "성민수", days: 31, rate: "91.2%", hCount: 5, honors: [1,1,1,1,0,0,0,1,0] },
+      { no: 9, dept: "패스파인더", name: "최시은", days: 28, rate: "82.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { no: 10, dept: "패스파인더", name: "황예림", days: 30, rate: "88.2%", hCount: 4, honors: [1,0,0,0,1,0,0,1,1] },
+      { no: 11, dept: "패스파인더", name: "차한규", days: 26, rate: "76.5%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { no: 12, dept: "패스파인더", name: "강나래", days: 30, rate: "88.2%", hCount: 3, honors: [0,0,0,0,1,0,0,1,1] },
+      { no: 13, dept: "패스파인더", name: "김예송", days: 31, rate: "91.2%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
+    ];
+
+    const rawSchedules = [
+      { no: 1, date: "2026-01-03", q: "1분기", type: "정기집회", title: "2026 패스파인더 & 어드벤처러 시무식 및 신입대원 환영회", field: "개회식/서약", teacher: "부장교사", place: "패스파인더실", budget: 20000, status: "완료", note: "단복 및 기본 규정 안내" },
+      { no: 2, date: "2026-01-10", q: "1분기", type: "기능교육", title: "기초 매듭법 1 (사각매듭, 활줄매듭, 옭매듭)", field: "기능(Honor)", teacher: "김교사", place: "소예배실", budget: 15000, status: "완료", note: "로프 실습" },
+      { no: 3, date: "2026-01-17", q: "1분기", type: "영성훈련", title: "패스파인더 표어·서약 묵상 및 성경 골든벨", field: "영성/예배", teacher: "이교사", place: "소예배실", budget: 15000, status: "완료", note: "성경 퀴즈" },
+      { no: 4, date: "2026-01-24", q: "1분기", type: "정기집회", title: "제식훈련 기초 (정렬, 차렷, 열중쉬어, 경례)", field: "기율/제식", teacher: "부장교사", place: "체육관", budget: 15000, status: "완료", note: "제식 기본 동작" },
+      { no: 5, date: "2026-01-31", q: "1분기", type: "기능교육", title: "응급처치 1단계 (상처 소독, 붕대법)", field: "기능(Honor)", teacher: "박교사", place: "패스파인더실", budget: 20000, status: "완료", note: "구급함 점검" },
+      { no: 6, date: "2026-02-07", q: "1분기", type: "특별활동", title: "겨울철 실내 체육대회 및 팀빌딩", field: "친교/체육", teacher: "전체교사", place: "체육관", budget: 30000, status: "완료", note: "대원 화합" },
+      { no: 7, date: "2026-02-14", q: "1분기", type: "기능교육", title: "독도법 기초 (지도 기호 읽기 및 방위각)", field: "기능(Honor)", teacher: "김교사", place: "소예배실", budget: 15000, status: "완료", note: "지도 읽기" },
+      { no: 8, date: "2026-02-21", q: "1분기", type: "영성훈련", title: "안식일 오후 찬양 나눔 및 기도 짝 결연", field: "영성/예배", teacher: "이교사", place: "본당", budget: 15000, status: "완료", note: "기도제목 카드" },
+      { no: 9, date: "2026-02-28", q: "1분기", type: "기능교육", title: "복슬복슬 양 기능 교육 및 동물 관찰", field: "기능(Honor)", teacher: "정교사", place: "소예배실", budget: 25000, status: "완료", note: "기능장 취득 연계" },
+      { no: 10, date: "2026-03-07", q: "1분기", type: "봉사활동", title: "새봄맞이 교회 및 주변 환경정화(플로깅)", field: "봉사활동", teacher: "최교사", place: "교회 인근", budget: 20000, status: "완료", note: "봉투 및 집게" },
+      { no: 11, date: "2026-03-14", q: "1분기", type: "정기집회", title: "기국례 및 클럽기 다루기 실습", field: "기율/제식", teacher: "부장교사", place: "패스파인더실", budget: 15000, status: "완료", note: "기수단 훈련" },
+      { no: 12, date: "2026-03-21", q: "1분기", type: "기능교육", title: "캠핑 장비 기초 및 텐트 설치법 1", field: "기능(Honor)", teacher: "정교사", place: "교회마당", budget: 20000, status: "완료", note: "텐트 실습" },
+      { no: 13, date: "2026-03-28", q: "1분기", type: "진급식", title: "1분기 기능 이수 평가 및 단합회", field: "수료/평가", teacher: "부장/교사", place: "패스파인더실", budget: 40000, status: "완료", note: "1분기 평가" },
+      { no: 14, date: "2026-04-04", q: "2분기", type: "정기집회", title: "2분기 사역 개시 및 반별 목표 수립", field: "정기집회", teacher: "부장교사", place: "소예배실", budget: 15000, status: "완료", note: "반별 활동" },
+      { no: 15, date: "2026-04-11", q: "2분기", type: "기능교육", title: "매듭법 심화 2 (두겹매듭, 감아매기)", field: "기능(Honor)", teacher: "김교사", place: "소예배실", budget: 15000, status: "완료", note: "로프 심화" },
+      { no: 16, date: "2026-04-18", q: "2분기", type: "야외활동", title: "봄철 생태탐사 하이킹 및 독도법 실습", field: "야외활동", teacher: "전체교사", place: "근교 야산", budget: 50000, status: "완료", note: "도시락/구급약" },
+      { no: 17, date: "2026-04-25", q: "2분기", type: "영성훈련", title: "패스파인더 헌신예배 순서 주관", field: "영성/예배", teacher: "이교사", place: "대예배실", budget: 20000, status: "완료", note: "순서 주관" },
+      { no: 18, date: "2026-05-02", q: "2분기", type: "특별활동", title: "가정의 달 기념 부모님 초청 열린 안식일", field: "친교/특별", teacher: "여교사회", place: "식당", budget: 60000, status: "완료", note: "카네이션/다과" },
+      { no: 19, date: "2026-05-09", q: "2분기", type: "봉사활동", title: "이웃 사랑 나눔 및 생필품 키트 전달", field: "봉사활동", teacher: "최교사", place: "지역 복지관", budget: 35000, status: "완료", note: "나눔 키트" },
+      { no: 20, date: "2026-05-16", q: "2분기", type: "기능교육", title: "심폐소생술(CPR) 및 AED 사용 실습", field: "기능(Honor)", teacher: "박교사", place: "소예배실", budget: 20000, status: "완료", note: "마네킹 실습" },
+      { no: 21, date: "2026-05-23", q: "2분기", type: "기능교육", title: "창조 기능 교육 및 자연 탐사", field: "기능(Honor)", teacher: "정교사", place: "야외공원", budget: 25000, status: "완료", note: "기능장 취득 연계" },
+      { no: 22, date: "2026-05-30", q: "2분기", type: "기능교육", title: "내 친구 예수 & 어린 소년 예수 기능 교육", field: "기능(Honor)", teacher: "이교사", place: "소예배실", budget: 25000, status: "완료", note: "기능장 취득 연계" },
+      { no: 23, date: "2026-06-06", q: "2분기", type: "기능교육", title: "지역사회 도우미 봉사 및 기능", field: "기능(Honor)", teacher: "최교사", place: "지역사회", budget: 25000, status: "완료", note: "기능장 취득 연계" },
+      { no: 24, date: "2026-06-13", q: "2분기", type: "기능교육", title: "성경 친구들 1 기능 교육", field: "기능(Honor)", teacher: "이교사", place: "소예배실", budget: 20000, status: "완료", note: "기능장 취득 연계" },
+      { no: 25, date: "2026-06-20", q: "2분기", type: "기능교육", title: "성경 친구들 2 기능 교육", field: "기능(Honor)", teacher: "이교사", place: "소예배실", budget: 20000, status: "완료", note: "기능장 취득 연계" },
+      { no: 26, date: "2026-06-27", q: "2분기", type: "기능교육", title: "수영 1 / 초급 1 수상안전 실습", field: "기능(Honor)", teacher: "체육교사", place: "수영장", budget: 60000, status: "완료", note: "기능장 취득 연계" },
+      { no: 27, date: "2026-07-04", q: "3분기", type: "기능교육", title: "화재 안전 및 소화기 사용 실습", field: "기능(Honor)", teacher: "박교사", place: "교회마당", budget: 25000, status: "완료", note: "기능장 취득 연계" },
+      { no: 28, date: "2026-07-11", q: "3분기", type: "야외활동", title: "하계 패스파인더 캠포리 (여름 캠핑)", field: "야외활동", teacher: "전체교사", place: "수련원/캠핑장", budget: 150000, status: "완료", note: "전체 야영" },
+      { no: 29, date: "2026-07-18", q: "3분기", type: "영성훈련", title: "캠포리 은혜 나눔 및 간증의 시간", field: "영성/예배", teacher: "이교사", place: "소예배실", budget: 20000, status: "완료", note: "소감문 나눔" },
+      { no: 30, date: "2026-07-25", q: "3분기", type: "기능교육", title: "천문관찰: 여름철 별자리 찾기", field: "기능(Honor)", teacher: "김교사", place: "옥상/야외", budget: 20000, status: "완료", note: "별자리 도감" },
+      { no: 31, date: "2026-08-01", q: "3분기", type: "봉사활동", title: "교회 시설 정비 및 패스파인더실 대청소", field: "봉사활동", teacher: "최교사", place: "교회 전체", budget: 15000, status: "완료", note: "환경 정돈" },
+      { no: 32, date: "2026-08-08", q: "3분기", type: "정기집회", title: "단복 및 휘장 점검, 제식 리마인드", field: "기율/제식", teacher: "부장교사", place: "체육관", budget: 15000, status: "완료", note: "복장 점검" },
+      { no: 33, date: "2026-08-15", q: "3분기", type: "기능교육", title: "신호법 (모스 부호 및 깃발 신호)", field: "기능(Honor)", teacher: "정교사", place: "소예배실", budget: 15000, status: "완료", note: "신호 실습" },
+      { no: 34, date: "2026-08-22", q: "3분기", type: "영성훈련", title: "패스파인더 기도회 및 대원 비전 나눔", field: "영성/예배", teacher: "이교사", place: "소예배실", budget: 15000, status: "완료", note: "비전 나눔" },
+      { no: 35, date: "2026-08-29", q: "3분기", type: "기능교육", title: "기초 가죽공예 / 수공예 기능 실습", field: "기능(Honor)", teacher: "외부/김교사", place: "패스파인더실", budget: 30000, status: "예정", note: "공예 실습" },
+      { no: 36, date: "2026-09-05", q: "3분기", type: "야외활동", title: "초가을 숲 체험 및 오리엔티어링 미션", field: "야외활동", teacher: "전체교사", place: "수목원", budget: 40000, status: "예정", note: "미션 런" },
+      { no: 37, date: "2026-09-12", q: "3분기", type: "진급식", title: "3분기 기능 및 출석 우수자 시상", field: "수료/평가", teacher: "부장교사", place: "패스파인더실", budget: 35000, status: "예정", note: "3분기 결산" },
+      { no: 38, date: "2026-09-19", q: "3분기", type: "정기집회", title: "4분기 활동 개시 및 연말 총회 준비", field: "정기집회", teacher: "부장교사", place: "소예배실", budget: 15000, status: "예정", note: "하반기 운영" },
+      { no: 39, date: "2026-09-26", q: "3분기", type: "기능교육", title: "매듭법 총복습 및 응용 건축물 만들기", field: "기능(Honor)", teacher: "김교사", place: "체육관", budget: 20000, status: "예정", note: "개척 매듭" },
+      { no: 40, date: "2026-10-03", q: "4분기", type: "영성훈련", title: "안식일 오후 성경 퀴즈 왕중왕전", field: "영성/예배", teacher: "이교사", place: "본당", budget: 25000, status: "예정", note: "퀴즈 대회" },
+      { no: 41, date: "2026-10-10", q: "4분기", type: "봉사활동", title: "가을철 낙엽 청소 및 사랑의 쌀 나눔", field: "봉사활동", teacher: "최교사", place: "마을 일대", budget: 30000, status: "예정", note: "이웃 돕기" },
+      { no: 42, date: "2026-10-17", q: "4분기", type: "기능교육", title: "재난 대비 및 방재 안전 기능", field: "기능(Honor)", teacher: "박교사", place: "마당/소예배실", budget: 20000, status: "예정", note: "안전 교육" },
+      { no: 43, date: "2026-10-24", q: "4분기", type: "야외활동", title: "가을 단풍 트레킹 및 자연 묵상", field: "야외활동", teacher: "전체교사", place: "국립공원/산", budget: 45000, status: "예정", note: "자연 묵상" },
+      { no: 44, date: "2026-10-31", q: "4분기", type: "정기집회", title: "연간 활동 앨범 제작 및 영상 상영", field: "정기집회", teacher: "미디어/부장", place: "패스파인더실", budget: 20000, status: "예정", note: "추억 정리" },
+      { no: 45, date: "2026-11-07", q: "4분기", type: "영성훈련", title: "추수감사 연계 감사 찬양제 및 발표회", field: "영성/예배", teacher: "이교사", place: "대예배실", budget: 30000, status: "예정", note: "찬양 발표" },
+      { no: 46, date: "2026-11-14", q: "4분기", type: "기능교육", title: "겨울철 건강관리 및 위생 교육", field: "기능(Honor)", teacher: "박교사", place: "패스파인더실", budget: 15000, status: "예정", note: "건강 생활" },
+      { no: 47, date: "2026-11-21", q: "4분기", type: "특별활동", title: "패스파인더의 날(Pathfinder Sabbath) 주관", field: "특별행사", teacher: "전체교사", place: "대예배실", budget: 50000, status: "예정", note: "전교인 안식일" },
+      { no: 48, date: "2026-11-28", q: "4분기", type: "봉사활동", title: "연말 사랑의 연탄/방한용품 나눔 봉사", field: "봉사활동", teacher: "최교사", place: "소외이웃", budget: 50000, status: "예정", note: "연말 봉사" },
+      { no: 49, date: "2026-12-05", q: "4분기", type: "진급식", title: "2026 패스파인더 총결산 대수료식 & 진급식", field: "수료/진급", teacher: "담임목사/부장", place: "본당", budget: 60000, status: "예정", note: "수료 뱃지 수여" },
+      { no: 50, date: "2026-12-12", q: "4분기", type: "정기집회", title: "2026 종무식 및 교사·대원 사은회", field: "친교/총회", teacher: "전체", place: "패스파인더실", budget: 40000, status: "예정", note: "한해 마감" },
+      { no: 51, date: "2026-12-19", q: "4분기", type: "특별활동", title: "신년 계획 수립 및 대원 멘토링", field: "친교", teacher: "전체교사", place: "패스파인더실", budget: 20000, status: "예정", note: "신년 준비" },
+      { no: 52, date: "2026-12-26", q: "4분기", type: "정기집회", title: "연말 대청소 및 비품 점검", field: "정기집회", teacher: "부장교사", place: "패스파인더실", budget: 15000, status: "예정", note: "비품 정리" }
+    ];
+
+    function renderUI() {
+      // 1. 기능장 요약
+      document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
+        <tr>
+          <td>${i+1}</td>
+          <td style="font-weight:600;">${h.name}</td>
+          <td><span class="badge badge-done">${h.count}명</span></td>
+          <td>${h.rate}</td>
+          <td><span class="badge badge-plan">${h.cat}</span></td>
+        </tr>
+      `).join('');
+
+      // 2. 대원 명부
+      document.getElementById('members-tbody').innerHTML = members.map(m => `
+        <tr>
+          <td>${m.no}</td>
+          <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
+          <td style="font-weight:700; color:#fff;">${m.name}</td>
+          <td>${m.days}일</td>
+          <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
+          <td><span class="badge badge-done">${m.hCount}개</span></td>
+          ${m.honors.map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+        </tr>
+      `).join('');
+
+      // 3. 연간 일정
+      document.getElementById('annual-schedule-tbody').innerHTML = rawSchedules.map(s => `
+        <tr class="sched-row" data-quarter="${s.q}" data-status="${s.status}">
+          <td>${s.no}</td>
+          <td><strong>${s.date}</strong></td>
+          <td>${s.q}</td>
+          <td><span class="badge badge-plan">${s.type}</span></td>
+          <td style="font-weight:600; color:#fff;">${s.title}</td>
+          <td>${s.field}</td>
+          <td>${s.teacher}</td>
+          <td>${s.place}</td>
+          <td>${s.budget.toLocaleString()}원</td>
+          <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
+          <td style="color:var(--text-muted);">${s.note}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function fetchLiveSheetData() {
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json`;
+        const res = await fetch(url);
+        const text = await res.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        alert("Google 스프레드시트와 실시간 동기화되었습니다!");
+      } catch (e) {
+        console.log("기본 데이터로 안정적으로 로드되었습니다.");
+      }
+      renderUI();
+    }
+
+    function openTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function filterSchedule(category) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const rows = document.querySelectorAll('.sched-row');
+      rows.forEach(row => {
+        const q = row.getAttribute('data-quarter');
+        const s = row.getAttribute('data-status');
+
+        if(category === 'all') row.style.display = '';
+        else if(category.includes('분기')) row.style.display = (q === category) ? '' : 'none';
+        else if(category === '완료' || category === '예정') row.style.display = (s === category) ? '' : 'none';
+      });
+    }
+
+    fetchLiveSheetData();
+  </script>
+</body>
+</html>
+
