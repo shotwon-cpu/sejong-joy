@@ -212,7 +212,6 @@
     .kpi-sub { font-size: 10px; color: var(--accent-gold); margin-top: 3px; }
     .click-hint { font-size: 9px; color: var(--accent-gold); font-weight: normal; }
 
-    /* 테이블 스타일 & 완벽 일치 줄무늬 */
     .table-container {
       width: 100%;
       overflow-x: auto;
@@ -233,19 +232,18 @@
       background: #091325;
       color: var(--accent-gold);
       font-weight: 700;
-      padding: 8px 6px;
+      padding: 9px 8px;
       border-bottom: 2px solid var(--border-color);
       white-space: nowrap;
     }
 
     td {
-      padding: 8px 6px;
+      padding: 8px 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       color: #e1e7f0;
       white-space: nowrap;
     }
 
-    /* 홀수 / 짝수 줄 색상 */
     tbody tr:nth-child(even) {
       background-color: var(--row-even);
     }
@@ -253,7 +251,6 @@
       background-color: var(--row-odd);
     }
 
-    /* 고정 열(Sticky)의 배경색을 해당 행과 완벽 일치시킴 */
     .sticky-col {
       position: sticky;
       left: 0;
@@ -298,7 +295,7 @@
     .badge-plan { background: rgba(41, 128, 185, 0.2); color: #3498db; border: 1px solid #2980b9; }
     .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
-    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 5px; }
+    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
     .badge-none { color: #556885; }
 
     .filter-bar {
@@ -370,7 +367,6 @@
     .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
-    /* 모달 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -495,7 +491,7 @@
           <div class="kpi-sub">1인 평균 3.9개 (터치 시 전체명부)</div>
         </div>
 
-        <!-- 4. 예산 집행 (클릭 시 일자/활동주제/예산 팝업 노출) -->
+        <!-- 4. 예산 집행 -->
         <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
             <span>예산 집행 (총 149만)</span>
@@ -582,7 +578,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 월간 계획표 (안식일 고정 & 같은 줄 같은 색상) -->
+    <!-- TAB 2: 월간 계획표 -->
     <div id="tab-monthly" class="tab-content">
       <div class="card">
         <div class="card-title">
@@ -612,7 +608,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: 52주 연간 일정 계획 (일자 고정 & 같은 줄 같은 색상) -->
+    <!-- TAB 3: 52주 연간 일정 계획 -->
     <div id="tab-annual" class="tab-content">
       <div class="card">
         <div class="card-title">📋 52주 안식일 활동 계획표</div>
@@ -648,7 +644,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: 대원 출석 및 기능장 (이름 고정 & 같은 줄 같은 색상) -->
+    <!-- TAB 4: 대원 출석 및 기능장 (기능장 정식 풀네임+날짜 표기) -->
     <div id="tab-members" class="tab-content">
       <div class="card">
         <div class="card-title">👥 대원 13명 출석 및 기능장 명부</div>
@@ -752,6 +748,7 @@
   <script>
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
+    // 기능장 정식 풀네임 및 날짜 데이터
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
       { id: 1, name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
@@ -911,7 +908,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (이름 열 고정)
+      // 4. 대원 명부 (기능장 정식 풀네임+날짜 전체 노출)
       renderFullMembersTable();
     }
 
@@ -927,7 +924,7 @@
           <th>출석일수</th>
           <th>출석률</th>
           <th>기능장</th>
-          ${honorStats.map(h => `<th>${h.name.split(' ')[0]}</th>`).join('')}
+          ${honorStats.map(h => `<th>${h.name}</th>`).join('')}
         </tr>
       `;
 
@@ -944,7 +941,6 @@
       `).join('');
     }
 
-    // --- 모달 제어 함수 ---
     function openModal(title, theadHtml, tbodyHtml) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-thead').innerHTML = theadHtml;
@@ -962,7 +958,6 @@
       }
     }
 
-    // 예산 집행 상세 모달 (일자, 활동주제, 예산만 노출)
     function showBudgetDetailModal() {
       const thead = `
         <tr>
@@ -985,7 +980,6 @@
       openModal("💰 2026 연간 예산 집행 세부 내역 (총 1,490,000원)", thead, tbody);
     }
 
-    // 단일 기능장 취득 대원 목록 모달
     function showHonorMembers(honorIdx, honorName) {
       const earners = members.filter(m => m.honors[honorIdx] === 1);
       const thead = `
@@ -1009,7 +1003,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 9종 전체 명부 모달
+    // 기능장 전체 명부 모달 (기능장 정식 풀네임+날짜 전체 노출)
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1017,7 +1011,7 @@
           <th class="sticky-col">이름</th>
           <th>출석일수</th>
           <th>기능장 합계</th>
-          ${honorStats.map(h => `<th>${h.name.split(' ')[0]}</th>`).join('')}
+          ${honorStats.map(h => `<th>${h.name}</th>`).join('')}
         </tr>
       `;
 
@@ -1034,7 +1028,6 @@
       openModal("👥 대원 13명 기능장 전체 취득 명부", thead, tbody);
     }
 
-    // 완료된 안식일 활동 모아보기 모달
     function showCompletedActivities() {
       const completed = rawAnnual.filter(s => s.status === '완료');
       const thead = `
@@ -1064,7 +1057,6 @@
       openModal(`✅ 진행 완료된 안식일 활동 (${completed.length}회)`, thead, tbody);
     }
 
-    // 등록 대원 명부 모달
     function showAllMembersList() {
       const thead = `
         <tr>
@@ -1089,7 +1081,6 @@
       openModal("👥 2026 등록 대원 명부 (총 13명)", thead, tbody);
     }
 
-    // 영역별 활동 일정 모달
     function showFieldDetails(category) {
       const filtered = rawAnnual.filter(s => s.type === category);
       const thead = `
@@ -1125,7 +1116,6 @@
       renderMonthlyTable(m);
     }
 
-    // 월간 계획표 (안식일 열 고정 및 같은 줄 동일 색상 렌더링)
     function renderMonthlyTable(m) {
       document.getElementById('current-month-label').innerText = `${m}월`;
       const filtered = rawMonthly.filter(item => item.month === m);
