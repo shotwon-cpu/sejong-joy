@@ -246,7 +246,6 @@
       text-align: center;
     }
 
-    /* 좌측 정렬이 필요한 텍스트용 */
     td.text-left, th.text-left {
       text-align: left;
     }
@@ -305,7 +304,6 @@
     .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
     .badge-none { color: #556885; }
 
-    /* 2줄 기능장 헤더 디자인 */
     .honor-th-title {
       font-size: 11px;
       font-weight: 700;
@@ -665,7 +663,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: 대원 출석 및 기능장 (2줄 명칭 헤더) -->
+    <!-- TAB 4: 대원 출석 및 기능장 (나이 열 반영) -->
     <div id="tab-members" class="tab-content">
       <div class="card">
         <div class="card-title">👥 대원 13명 출석 및 기능장 명부</div>
@@ -748,7 +746,7 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 (배경 터치 또는 닫기 클릭 시 복귀) -->
+  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -769,7 +767,6 @@
   <script>
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
-    // 기능장 원본 데이터 (이름 + 날짜 분리 파싱 지원)
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
@@ -782,20 +779,21 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
+    // 번호 대신 '나이(age)' 반영
     let members = [
-      { no: 1, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
-      { no: 2, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
-      { no: 3, dept: "어드벤처러", name: "박봄", days: 29, rate: "85.3%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
-      { no: 4, dept: "어드벤처러", name: "최고은", days: 31, rate: "91.2%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
-      { no: 5, dept: "어드벤처러", name: "최시우", days: 31, rate: "91.2%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
-      { no: 6, dept: "어드벤처러", name: "신동주", days: 32, rate: "94.1%", hCount: 7, honors: [1,1,0,0,1,1,1,1,1] },
-      { no: 7, dept: "패스파인더", name: "황예찬", days: 31, rate: "91.2%", hCount: 6, honors: [1,1,1,1,1,0,0,0,1] },
-      { no: 8, dept: "패스파인더", name: "성민수", days: 31, rate: "91.2%", hCount: 5, honors: [1,1,1,1,0,0,0,1,0] },
-      { no: 9, dept: "패스파인더", name: "최시은", days: 28, rate: "82.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
-      { no: 10, dept: "패스파인더", name: "황예림", days: 30, rate: "88.2%", hCount: 4, honors: [1,0,0,0,1,0,0,1,1] },
-      { no: 11, dept: "패스파인더", name: "차한규", days: 26, rate: "76.5%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
-      { no: 12, dept: "패스파인더", name: "강나래", days: 30, rate: "88.2%", hCount: 3, honors: [0,0,0,0,1,0,0,1,1] },
-      { no: 13, dept: "패스파인더", name: "김예송", days: 31, rate: "91.2%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
+      { age: 9, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
+      { age: 9, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
+      { age: 8, dept: "어드벤처러", name: "박봄", days: 29, rate: "85.3%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { age: 8, dept: "어드벤처러", name: "최고은", days: 31, rate: "91.2%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
+      { age: 7, dept: "어드벤처러", name: "최시우", days: 31, rate: "91.2%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { age: 7, dept: "어드벤처러", name: "신동주", days: 32, rate: "94.1%", hCount: 7, honors: [1,1,0,0,1,1,1,1,1] },
+      { age: 13, dept: "패스파인더", name: "황예찬", days: 31, rate: "91.2%", hCount: 6, honors: [1,1,1,1,1,0,0,0,1] },
+      { age: 13, dept: "패스파인더", name: "성민수", days: 31, rate: "91.2%", hCount: 5, honors: [1,1,1,1,0,0,0,1,0] },
+      { age: 12, dept: "패스파인더", name: "최시은", days: 28, rate: "82.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { age: 11, dept: "패스파인더", name: "황예림", days: 30, rate: "88.2%", hCount: 4, honors: [1,0,0,0,1,0,0,1,1] },
+      { age: 11, dept: "패스파인더", name: "차한규", days: 26, rate: "76.5%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { age: 10, dept: "패스파인더", name: "강나래", days: 30, rate: "88.2%", hCount: 3, honors: [0,0,0,0,1,0,0,1,1] },
+      { age: 10, dept: "패스파인더", name: "김예송", days: 31, rate: "91.2%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
     ];
 
     const rawMonthly = [
@@ -912,7 +910,7 @@
       }
       renderMonthlyTable(activeMonth);
 
-      // 3. 연간 계획표 (일자 열 고정)
+      // 3. 연간 계획표
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => `
         <tr class="sched-row" data-quarter="${s.q}" data-status="${s.status}">
           <td>${s.no}</td>
@@ -929,18 +927,17 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (2줄 명칭 헤더로 렌더링)
+      // 4. 대원 명부 (나이 열 반영)
       renderFullMembersTable();
     }
 
-    // 2줄 헤더 렌더링 함수 (이름/날짜 분리)
     function renderFullMembersTable() {
       const thead = document.getElementById('full-members-thead');
       const tbody = document.getElementById('full-members-tbody');
 
       thead.innerHTML = `
         <tr>
-          <th>번호</th>
+          <th>나이</th>
           <th>소속</th>
           <th class="sticky-col">이름</th>
           <th>출석</th>
@@ -957,7 +954,7 @@
 
       tbody.innerHTML = members.map(m => `
         <tr>
-          <td>${m.no}</td>
+          <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff;">${m.name}</td>
           <td>${m.days}일</td>
@@ -1033,6 +1030,7 @@
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
+          <th>나이</th>
           <th>소속</th>
           <th class="sticky-col">이름</th>
           <th>출석</th>
@@ -1046,8 +1044,9 @@
         </tr>
       `;
 
-      const tbody = members.map(m => `
+      tbody.innerHTML = members.map(m => `
         <tr>
+          <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff;">${m.name}</td>
           <td>${m.days}일</td>
@@ -1091,6 +1090,7 @@
     function showAllMembersList() {
       const thead = `
         <tr>
+          <th>나이</th>
           <th>소속</th>
           <th class="sticky-col">이름</th>
           <th>출석일수</th>
@@ -1101,6 +1101,7 @@
 
       const tbody = members.map(m => `
         <tr>
+          <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
           <td>${m.days}일 / 34일</td>
