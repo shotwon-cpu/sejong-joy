@@ -115,7 +115,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* 부드러운 자동 소멸 토스트 알림 */
     #toast-msg {
       position: fixed;
       top: 65px;
@@ -495,7 +494,6 @@
 </head>
 <body>
 
-  <!-- 자동 소멸 토스트 알림창 -->
   <div id="toast-msg">✨ 최신 데이터로 동기화되었습니다!</div>
 
   <header>
@@ -811,6 +809,7 @@
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
+    // 기본 기능장 9종 목록
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
@@ -823,6 +822,7 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%" }
     ];
 
+    // 기본 대원 13명 전체 취득 내역
     let members = [
       { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
@@ -948,7 +948,7 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 1. 기능장 요약
+      // 1. 기능장 요약 표
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -987,7 +987,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부
+      // 4. 대원 출석·기능장 명부 탭
       renderFullMembersTable();
     }
 
@@ -1087,7 +1087,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 전체 취득 명부 팝업 (나이, 출석 제외)
+    // 기능장 전체 취득 명부 팝업 (나이, 출석 제외 완비)
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1227,13 +1227,13 @@
       `).join('');
     }
 
-    // Google 스프레드시트 실시간 동적 확장 연동 엔진 (isUserClick으로 팝업 여부 결정)
+    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
 
       try {
-        // 1. 대원출석_현황 시트에서 나이/소속/이름/출석 가져오기
+        // 1. 대원출석_현황 시트에서 나이/소속/이름/출석수 파싱
         const attSheetName = encodeURIComponent("대원출석_현황");
         const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json`;
         const attRes = await fetch(attUrl);
@@ -1246,14 +1246,23 @@
           const rows = attJson.table.rows;
           for (let i = 0; i < rows.length; i++) {
             const r = rows[i].c;
-            if (!r || !r[2] || !r[2].v) continue;
-            
-            const rawName = String(r[2].v).trim();
-            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리') || rawName === '비중') continue;
+            if (!r) continue;
 
-            const ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
-            const deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
-            const nameVal = rawName;
+            // 이름 위치 찾기 (Col C 또는 Col B 탐색)
+            let nameVal = "";
+            let ageVal = 0;
+            let deptVal = "어드벤처러";
+
+            if (r[2] && r[2].v) {
+              nameVal = String(r[2].v).trim();
+              ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
+              deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
+            } else if (r[1] && r[1].v && !String(r[1].v).includes('소속')) {
+              nameVal = String(r[1].v).trim();
+              ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
+            }
+
+            if (!nameVal || nameVal === '이름' || nameVal === '합계' || nameVal.includes('출석률') || nameVal.includes('관리') || nameVal === '비중' || nameVal.includes('대원')) continue;
 
             let attCount = 0;
             for (let cIdx = 3; cIdx < r.length; cIdx++) {
@@ -1278,7 +1287,7 @@
           }
         }
 
-        // 2. 기능장_취득현황 시트에서 기능장 목록 및 대원별 취득 현황 동적 추출
+        // 2. 기능장_취득현황 시트에서 기능장 목록 및 대원별 취득 현황 파싱
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
@@ -1289,15 +1298,20 @@
           if (honorJson && honorJson.table && honorJson.table.rows) {
             const hRows = honorJson.table.rows;
             
+            // 헤더 행 탐색 (Col C가 '이름'이거나 '소속'이 있는 행)
             let headerRow = null;
             let headerRowIdx = -1;
-            for (let rIdx = 0; rIdx < Math.min(6, hRows.length); rIdx++) {
+            for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
               const r = hRows[rIdx].c;
-              if (r && r[2] && String(r[2].v).includes('이름')) {
-                headerRow = r;
-                headerRowIdx = rIdx;
-                break;
+              if (!r) continue;
+              for (let cIdx = 0; cIdx < Math.min(5, r.length); cIdx++) {
+                if (r[cIdx] && String(r[cIdx].v).trim() === '이름') {
+                  headerRow = r;
+                  headerRowIdx = rIdx;
+                  break;
+                }
               }
+              if (headerRow) break;
             }
 
             let dynamicHonors = [];
@@ -1305,7 +1319,7 @@
               for (let colIdx = 3; colIdx < headerRow.length; colIdx++) {
                 if (headerRow[colIdx] && headerRow[colIdx].v) {
                   const fullName = String(headerRow[colIdx].v).trim();
-                  if (!fullName || fullName === '합계' || fullName.includes('취득률')) continue;
+                  if (!fullName || fullName === '합계' || fullName.includes('취득률') || fullName.includes('구분')) continue;
 
                   const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
                   const titlePart = mMatch ? mMatch[1] : fullName;
@@ -1324,17 +1338,32 @@
               }
             }
 
+            // 대원별 기능장 취득 매칭
             for (let i = headerRowIdx + 1; i < hRows.length; i++) {
               const r = hRows[i].c;
-              if (!r || !r[2] || !r[2].v) continue;
-              const hName = String(r[2].v).trim();
-              const mem = updatedMembers.find(m => m.name === hName);
+              if (!r) continue;
+
+              // 이름 컬럼 탐색
+              let rowName = "";
+              for (let cIdx = 0; cIdx < Math.min(4, r.length); cIdx++) {
+                if (r[cIdx] && r[cIdx].v) {
+                  const val = String(r[cIdx].v).trim();
+                  if (updatedMembers.some(m => m.name === val)) {
+                    rowName = val;
+                    break;
+                  }
+                }
+              }
+
+              if (!rowName) continue;
+              const mem = updatedMembers.find(m => m.name === rowName);
               if (mem) {
                 let userH = [];
                 let hCnt = 0;
                 dynamicHonors.forEach((dHonor) => {
                   const cell = r[dHonor.colIdx];
-                  let isEarned = (cell && (cell.v === '취득' || String(cell.v).toUpperCase() === 'O' || cell.v === 1)) ? 1 : 0;
+                  const cellVal = cell && cell.v ? String(cell.v).trim().toUpperCase() : "";
+                  let isEarned = (cellVal === '취득' || cellVal === 'O' || cellVal === '1' || cellVal === 'TRUE') ? 1 : 0;
                   userH.push(isEarned);
                   if (isEarned) {
                     hCnt++;
@@ -1355,22 +1384,21 @@
             }
           }
         } catch (he) {
-          console.log("기능장 시트 동적 파싱 완료:", he);
+          console.log("기능장 동적 시트 연동:", he);
         }
 
         if (updatedMembers.length > 0) {
           members = updatedMembers;
         }
 
-        // 사용자가 직접 [동기화] 버튼을 눌렀을 때만 부드러운 토스트 알림 표시
         if (isUserClick) {
           showToast("✨ 최신 데이터로 동기화되었습니다!");
         }
       } catch (e) {
-        console.log("로컬 데이터 로드:", e);
+        console.log("기본 데이터 사용:", e);
       } finally {
         if (syncBtn) {
-          setTimeout(() => syncBtn.classList.remove('spinning'), 500);
+          setTimeout(() => syncBtn.classList.remove('spinning'), 400);
         }
       }
       renderUI();
@@ -1399,7 +1427,7 @@
       });
     }
 
-    // 페이지 진입 시 조용히 최신 데이터 로드
+    // 접속 시 자동 로드
     fetchLiveSheetData(false);
   </script>
 </body>
