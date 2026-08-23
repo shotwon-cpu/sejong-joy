@@ -335,7 +335,6 @@
     .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
-    /* 대화형 전체화면 모달 (배경 터치 시 닫힘) */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -429,7 +428,7 @@
     <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
-        <!-- 1. 진행된 안식일 활동 카드 -->
+        <!-- 1. 진행된 안식일 활동 -->
         <div class="kpi-card green" onclick="showCompletedActivities()">
           <div class="kpi-label">
             <span>진행된 안식일 활동</span>
@@ -440,7 +439,7 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 65.4%;"></div></div>
         </div>
 
-        <!-- 2. 등록 대원수 카드 -->
+        <!-- 2. 등록 대원수 -->
         <div class="kpi-card blue" onclick="showAllMembersList()">
           <div class="kpi-label">
             <span>등록 대원수</span>
@@ -450,7 +449,7 @@
           <div class="kpi-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
-        <!-- 3. 기능장 취득 합계 카드 (클릭 시 명부 모달 팝업) -->
+        <!-- 3. 기능장 취득 합계 -->
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
           <div class="kpi-label">
             <span>기능장 취득 합계</span>
@@ -616,29 +615,11 @@
     <!-- TAB 4: 대원 출석 및 기능장 -->
     <div id="tab-members" class="tab-content">
       <div class="card">
-        <div class="card-title">👥 대원 13명 출석 및 기능장 9종 명부</div>
+        <div class="card-title">👥 대원 13명 출석 및 기능장 명부</div>
         <div class="table-container">
           <table>
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>소속</th>
-                <th>이름</th>
-                <th>출석일수</th>
-                <th>출석률</th>
-                <th>기능장</th>
-                <th>복슬복슬 양</th>
-                <th>창조</th>
-                <th>내 친구 예수</th>
-                <th>어린 소년 예수</th>
-                <th>지역사회 도우미</th>
-                <th>성경 친구들 1</th>
-                <th>성경 친구들 2</th>
-                <th>수영 1 / 초급 1</th>
-                <th>화재 안전</th>
-              </tr>
-            </thead>
-            <tbody id="members-tbody"></tbody>
+            <thead id="full-members-thead"></thead>
+            <tbody id="full-members-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -714,7 +695,7 @@
     </div>
   </main>
 
-  <!-- 전체화면 팝업 모달 (배경 터치 또는 닫기 클릭 시 이전 화면으로 복귀) -->
+  <!-- 전체화면 모달 (배경 터치 또는 닫기 클릭 시 이전 화면 복귀) -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -735,7 +716,8 @@
   <script>
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
-    const honorStats = [
+    // 동적으로 확장 가능한 기능장 목록
+    let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
       { id: 1, name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
       { id: 2, name: "내 친구 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
@@ -747,7 +729,7 @@
       { id: 8, name: "화재 안전 (07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
-    const members = [
+    let members = [
       { no: 1, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { no: 2, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
       { no: 3, dept: "어드벤처러", name: "박봄", days: 29, rate: "85.3%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
@@ -875,8 +857,27 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부
-      document.getElementById('members-tbody').innerHTML = members.map(m => `
+      // 4. 대원 명부 (동적 기능장 열 헤더 및 바디 자동 생성)
+      renderFullMembersTable();
+    }
+
+    function renderFullMembersTable() {
+      const thead = document.getElementById('full-members-thead');
+      const tbody = document.getElementById('full-members-tbody');
+
+      thead.innerHTML = `
+        <tr>
+          <th>번호</th>
+          <th>소속</th>
+          <th>이름</th>
+          <th>출석일수</th>
+          <th>출석률</th>
+          <th>기능장</th>
+          ${honorStats.map(h => `<th>${h.name.split(' ')[0]}</th>`).join('')}
+        </tr>
+      `;
+
+      tbody.innerHTML = members.map(m => `
         <tr>
           <td>${m.no}</td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
@@ -889,7 +890,7 @@
       `).join('');
     }
 
-    // --- 모달 제어 함수 (배경 클릭 및 닫기 버튼 지원) ---
+    // --- 모달 제어 함수 (배경 터치 또는 닫기 클릭 시 복귀) ---
     function openModal(title, theadHtml, tbodyHtml) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-thead').innerHTML = theadHtml;
@@ -907,44 +908,56 @@
       }
     }
 
-    // 1. 기능장 9종 전체 명부 모달
+    // 1. 단일 기능장 취득 대원 목록 모달 (요청사항: 번호, 출석률 제거 완비)
+    function showHonorMembers(honorIdx, honorName) {
+      const earners = members.filter(m => m.honors[honorIdx] === 1);
+      const thead = `
+        <tr>
+          <th>소속</th>
+          <th>취득 대원 이름</th>
+          <th>전체 기능장 취득</th>
+          <th>상태</th>
+        </tr>
+      `;
+
+      const tbody = earners.map(m => `
+        <tr>
+          <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
+          <td style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
+          <td><span class="badge badge-done">${m.hCount}개</span></td>
+          <td><span class="badge badge-done">취득 완료</span></td>
+        </tr>
+      `).join('');
+
+      openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
+    }
+
+    // 2. 기능장 9종 전체 명부 모달
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
-          <th>번호</th>
           <th>소속</th>
           <th>이름</th>
           <th>출석일수</th>
-          <th>출석률</th>
-          <th>기능장</th>
-          <th>복슬복슬 양</th>
-          <th>창조</th>
-          <th>내 친구 예수</th>
-          <th>어린 소년 예수</th>
-          <th>지역사회 도우미</th>
-          <th>성경 친구들 1</th>
-          <th>성경 친구들 2</th>
-          <th>수영 1 / 초급 1</th>
-          <th>화재 안전</th>
+          <th>기능장 합계</th>
+          ${honorStats.map(h => `<th>${h.name.split(' ')[0]}</th>`).join('')}
         </tr>
       `;
 
       const tbody = members.map(m => `
         <tr>
-          <td>${m.no}</td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td style="font-weight:700; color:#fff;">${m.name}</td>
           <td>${m.days}일</td>
-          <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
           ${m.honors.map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
         </tr>
       `).join('');
 
-      openModal("👥 대원 13명 출석 및 기능장 9종 전체 취득 명부", thead, tbody);
+      openModal("👥 대원 13명 기능장 전체 취득 명부", thead, tbody);
     }
 
-    // 2. 완료된 안식일 활동 모아보기 모달
+    // 3. 완료된 안식일 활동 모아보기 모달
     function showCompletedActivities() {
       const completed = rawAnnual.filter(s => s.status === '완료');
       const thead = `
@@ -974,11 +987,10 @@
       openModal(`✅ 진행 완료된 안식일 활동 (${completed.length}회)`, thead, tbody);
     }
 
-    // 3. 등록 대원 명부 모달
+    // 4. 등록 대원 명부 모달
     function showAllMembersList() {
       const thead = `
         <tr>
-          <th>번호</th>
           <th>소속</th>
           <th>이름</th>
           <th>출석일수</th>
@@ -989,7 +1001,6 @@
 
       const tbody = members.map(m => `
         <tr>
-          <td>${m.no}</td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
           <td>${m.days}일 / 34일</td>
@@ -999,34 +1010,6 @@
       `).join('');
 
       openModal("👥 2026 등록 대원 명부 (총 13명)", thead, tbody);
-    }
-
-    // 4. 단일 기능장 취득 대원 목록 모달
-    function showHonorMembers(honorIdx, honorName) {
-      const earners = members.filter(m => m.honors[honorIdx] === 1);
-      const thead = `
-        <tr>
-          <th>번호</th>
-          <th>소속</th>
-          <th>취득 대원 이름</th>
-          <th>출석률</th>
-          <th>전체 기능장 취득</th>
-          <th>상태</th>
-        </tr>
-      `;
-
-      const tbody = earners.map((m, idx) => `
-        <tr>
-          <td>${idx + 1}</td>
-          <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
-          <td style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
-          <td>${m.rate}</td>
-          <td>${m.hCount}개</td>
-          <td><span class="badge badge-done">취득 완료</span></td>
-        </tr>
-      `).join('');
-
-      openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
     // 5. 영역별 활동 일정 모달
