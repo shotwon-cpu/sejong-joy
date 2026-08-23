@@ -21,8 +21,6 @@
       --border-color: #24385a;
       --row-even: #13223f;
       --row-odd: #0e192f;
-      --row-sticky-even: #172a4d;
-      --row-sticky-odd: #121f3a;
     }
 
     * {
@@ -214,7 +212,7 @@
     .kpi-sub { font-size: 10px; color: var(--accent-gold); margin-top: 3px; }
     .click-hint { font-size: 9px; color: var(--accent-gold); font-weight: normal; }
 
-    /* 테이블 스타일 & 줄무늬(Zebra Striping) */
+    /* 테이블 스타일 & 완벽 일치 줄무늬 */
     .table-container {
       width: 100%;
       overflow-x: auto;
@@ -235,19 +233,19 @@
       background: #091325;
       color: var(--accent-gold);
       font-weight: 700;
-      padding: 9px 8px;
+      padding: 8px 6px;
       border-bottom: 2px solid var(--border-color);
       white-space: nowrap;
     }
 
     td {
-      padding: 8px 8px;
+      padding: 8px 6px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       color: #e1e7f0;
       white-space: nowrap;
     }
 
-    /* 홀수 / 짝수 줄 색상 구분 */
+    /* 홀수 / 짝수 줄 색상 */
     tbody tr:nth-child(even) {
       background-color: var(--row-even);
     }
@@ -255,33 +253,37 @@
       background-color: var(--row-odd);
     }
 
-    tbody tr:hover {
-      background-color: rgba(229, 169, 59, 0.12) !important;
-    }
-
-    /* 슬라이드 시 고정 열 (Sticky Columns) */
+    /* 고정 열(Sticky)의 배경색을 해당 행과 완벽 일치시킴 */
     .sticky-col {
       position: sticky;
       left: 0;
       z-index: 10;
-      box-shadow: 2px 0 6px rgba(0,0,0,0.35);
     }
 
     th.sticky-col {
-      background: #060e1c !important;
+      background: #091325 !important;
       z-index: 20;
     }
 
     tbody tr:nth-child(even) td.sticky-col {
-      background-color: var(--row-sticky-even);
+      background-color: var(--row-even);
     }
 
     tbody tr:nth-child(odd) td.sticky-col {
-      background-color: var(--row-sticky-odd);
+      background-color: var(--row-odd);
+    }
+
+    tbody tr:hover {
+      background-color: rgba(229, 169, 59, 0.15) !important;
     }
 
     tbody tr:hover td.sticky-col {
-      background-color: #223759 !important;
+      background-color: #1e2e4a !important;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: background 0.15s ease;
     }
 
     .badge {
@@ -368,7 +370,7 @@
     .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
-    /* 전체화면 모달 (닫기/오버레이 터치 지원) */
+    /* 모달 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -493,14 +495,14 @@
           <div class="kpi-sub">1인 평균 3.9개 (터치 시 전체명부)</div>
         </div>
 
-        <!-- 4. 예산 집행 -->
-        <div class="kpi-card red" onclick="openTab('tab-annual')">
+        <!-- 4. 예산 집행 (클릭 시 일자/활동주제/예산 팝업 노출) -->
+        <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
             <span>예산 집행 (총 149만)</span>
-            <span class="click-hint">일정보기 👆</span>
+            <span class="click-hint">내역보기 👆</span>
           </div>
           <div class="kpi-value">930,000 <span style="font-size:12px;color:var(--text-muted);">원</span></div>
-          <div class="kpi-sub">잔여 560,000원 (62.4%)</div>
+          <div class="kpi-sub">잔여 560,000원 (62.4%) (터치 시 내역)</div>
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 62.4%;"></div></div>
         </div>
       </div>
@@ -580,7 +582,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 월간 계획표 (안식일 고정 & 줄무늬 행) -->
+    <!-- TAB 2: 월간 계획표 (안식일 고정 & 같은 줄 같은 색상) -->
     <div id="tab-monthly" class="tab-content">
       <div class="card">
         <div class="card-title">
@@ -610,7 +612,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: 52주 연간 일정 계획 (일자 고정 & 줄무늬 행) -->
+    <!-- TAB 3: 52주 연간 일정 계획 (일자 고정 & 같은 줄 같은 색상) -->
     <div id="tab-annual" class="tab-content">
       <div class="card">
         <div class="card-title">📋 52주 안식일 활동 계획표</div>
@@ -646,7 +648,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: 대원 출석 및 기능장 (이름 고정 & 줄무늬 행) -->
+    <!-- TAB 4: 대원 출석 및 기능장 (이름 고정 & 같은 줄 같은 색상) -->
     <div id="tab-members" class="tab-content">
       <div class="card">
         <div class="card-title">👥 대원 13명 출석 및 기능장 명부</div>
@@ -960,6 +962,30 @@
       }
     }
 
+    // 예산 집행 상세 모달 (일자, 활동주제, 예산만 노출)
+    function showBudgetDetailModal() {
+      const thead = `
+        <tr>
+          <th class="sticky-col">안식일</th>
+          <th>활동 주제 및 계획</th>
+          <th>소요 예산</th>
+          <th>집행 상태</th>
+        </tr>
+      `;
+
+      const tbody = rawAnnual.map(s => `
+        <tr>
+          <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
+          <td style="font-weight:600; color:#fff;">${s.title}</td>
+          <td style="color:var(--accent-gold); font-weight:bold;">${s.budget.toLocaleString()}원</td>
+          <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
+        </tr>
+      `).join('');
+
+      openModal("💰 2026 연간 예산 집행 세부 내역 (총 1,490,000원)", thead, tbody);
+    }
+
+    // 단일 기능장 취득 대원 목록 모달
     function showHonorMembers(honorIdx, honorName) {
       const earners = members.filter(m => m.honors[honorIdx] === 1);
       const thead = `
@@ -983,6 +1009,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
+    // 기능장 9종 전체 명부 모달
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1007,6 +1034,7 @@
       openModal("👥 대원 13명 기능장 전체 취득 명부", thead, tbody);
     }
 
+    // 완료된 안식일 활동 모아보기 모달
     function showCompletedActivities() {
       const completed = rawAnnual.filter(s => s.status === '완료');
       const thead = `
@@ -1036,6 +1064,7 @@
       openModal(`✅ 진행 완료된 안식일 활동 (${completed.length}회)`, thead, tbody);
     }
 
+    // 등록 대원 명부 모달
     function showAllMembersList() {
       const thead = `
         <tr>
@@ -1060,6 +1089,7 @@
       openModal("👥 2026 등록 대원 명부 (총 13명)", thead, tbody);
     }
 
+    // 영역별 활동 일정 모달
     function showFieldDetails(category) {
       const filtered = rawAnnual.filter(s => s.type === category);
       const thead = `
@@ -1095,7 +1125,7 @@
       renderMonthlyTable(m);
     }
 
-    // 월간 계획표 (안식일 열 고정 렌더링)
+    // 월간 계획표 (안식일 열 고정 및 같은 줄 동일 색상 렌더링)
     function renderMonthlyTable(m) {
       document.getElementById('current-month-label').innerText = `${m}월`;
       const filtered = rawMonthly.filter(item => item.month === m);
