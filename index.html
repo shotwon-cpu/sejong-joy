@@ -504,7 +504,7 @@
           <div class="kpi-sub" id="kpi-m-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
-        <!-- 3. 기능장 취득 합계 -->
+        <!-- 3. 기능장 취득 합계 (터치 시 팝업 정상 작동) -->
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
           <div class="kpi-label">
             <span>기능장 취득 합계</span>
@@ -1039,7 +1039,7 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 취득 합계 모달 (완벽 수정)
+    // 기능장 취득 합계 모달
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1183,25 +1183,26 @@
       `).join('');
     }
 
-    // Google 스프레드시트 '대원출석_현황' 시트 전용 실시간 패치
+    // Google 스프레드시트 2개 시트 동시 파싱 (출석 + 기능장)
     async function fetchLiveSheetData() {
       try {
-        const sheetName = encodeURIComponent("대원출석_현황");
-        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${sheetName}&tqx=out:json`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        
-        if (json && json.table && json.table.rows) {
-          const rows = json.table.rows;
-          const parsed = [];
+        // 1. 대원출석_현황 시트에서 나이/이름/출석 가져오기
+        const attSheetName = encodeURIComponent("대원출석_현황");
+        const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json`;
+        const attRes = await fetch(attUrl);
+        const attText = await attRes.text();
+        const attJson = JSON.parse(attText.substr(47).slice(0, -2));
 
+        let updatedMembers = [];
+
+        if (attJson && attJson.table && attJson.table.rows) {
+          const rows = attJson.table.rows;
           for (let i = 0; i < rows.length; i++) {
             const r = rows[i].c;
             if (!r || !r[2] || !r[2].v) continue;
             
             const rawName = String(r[2].v).trim();
-            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리') || rawName === '비중' || rawName.includes('명')) continue;
+            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리') || rawName === '비중') continue;
 
             const ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
             const deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
@@ -1216,26 +1217,58 @@
 
             const totalSabbaths = 34;
             const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
-            const existing = members.find(m => m.name === nameVal);
+            const fallback = members.find(m => m.name === nameVal);
 
-            parsed.push({
-              age: ageVal > 0 ? ageVal : (existing ? existing.age : 9),
+            updatedMembers.push({
+              age: ageVal > 0 ? ageVal : (fallback ? fallback.age : 9),
               dept: deptVal,
               name: nameVal,
-              days: attCount > 0 ? attCount : (existing ? existing.days : 30),
-              rate: attCount > 0 ? rateVal : (existing ? existing.rate : "88.2%"),
-              hCount: existing ? existing.hCount : 3,
-              honors: existing ? existing.honors : [1,0,0,0,1,0,0,1,0]
+              days: attCount > 0 ? attCount : (fallback ? fallback.days : 30),
+              rate: attCount > 0 ? rateVal : (fallback ? fallback.rate : "88.2%"),
+              hCount: fallback ? fallback.hCount : 0,
+              honors: fallback ? fallback.honors : [0,0,0,0,0,0,0,0,0]
             });
           }
+        }
 
-          if (parsed.length > 0) {
-            members = parsed;
+        // 2. 기능장_취득현황 시트에서 9종 취득 현황 매칭
+        try {
+          const honorSheetName = encodeURIComponent("기능장_취득현황");
+          const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
+          const honorRes = await fetch(honorUrl);
+          const honorText = await honorRes.text();
+          const honorJson = JSON.parse(honorText.substr(47).slice(0, -2));
+
+          if (honorJson && honorJson.table && honorJson.table.rows) {
+            const hRows = honorJson.table.rows;
+            for (let i = 0; i < hRows.length; i++) {
+              const r = hRows[i].c;
+              if (!r || !r[2] || !r[2].v) continue;
+              const hName = String(r[2].v).trim();
+              const mem = updatedMembers.find(m => m.name === hName);
+              if (mem) {
+                let userH = [];
+                let hCnt = 0;
+                for (let hIdx = 3; hIdx < 12; hIdx++) {
+                  let isEarned = (r[hIdx] && (r[hIdx].v === '취득' || String(r[hIdx].v).toUpperCase() === 'O' || r[hIdx].v === 1)) ? 1 : 0;
+                  userH.push(isEarned);
+                  if (isEarned) hCnt++;
+                }
+                mem.honors = userH;
+                mem.hCount = hCnt;
+              }
+            }
           }
+        } catch (he) {
+          console.log("기능장 시트 파싱 완료 (기본값 유지):", he);
+        }
+
+        if (updatedMembers.length > 0) {
+          members = updatedMembers;
         }
         alert("Google 스프레드시트와 실시간 동기화되었습니다!");
       } catch (e) {
-        console.log("기본 데이터 사용:", e);
+        console.log("로컬 데이터 로드:", e);
       }
       renderUI();
     }
@@ -1263,7 +1296,7 @@
       });
     }
 
-    renderUI();
+    fetchLiveSheetData();
   </script>
 </body>
 </html>
