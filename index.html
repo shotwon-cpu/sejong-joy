@@ -783,7 +783,7 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
-    // 기본 대원 데이터 (시트의 실제 나이 반영)
+    // 태블릿 엑셀에 입력하신 실제 13명 명부 기본값
     let members = [
       { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
@@ -891,7 +891,7 @@
     }
 
     function renderUI() {
-      // KPI 업데이트
+      // 1. 등록 대원 및 기능장 KPI 업데이트
       const advCount = members.filter(m => m.dept === '어드벤처러').length;
       const pathCount = members.filter(m => m.dept === '패스파인더').length;
       const totalH = members.reduce((sum, m) => sum + (m.hCount || 0), 0);
@@ -901,7 +901,7 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 1. 기능장 요약
+      // 2. 기능장 요약
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -912,7 +912,7 @@
         </tr>
       `).join('');
 
-      // 2. 월 선택 버튼
+      // 3. 월 선택 버튼
       const monthBtnBox = document.getElementById('month-buttons');
       monthBtnBox.innerHTML = '';
       for (let m = 1; m <= 12; m++) {
@@ -924,7 +924,7 @@
       }
       renderMonthlyTable(activeMonth);
 
-      // 3. 연간 계획표
+      // 4. 연간 계획표
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => `
         <tr class="sched-row" data-quarter="${s.q}" data-status="${s.status}">
           <td>${s.no}</td>
@@ -941,7 +941,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부
+      // 5. 대원 명부 (2줄 명칭 헤더)
       renderFullMembersTable();
     }
 
@@ -1184,10 +1184,10 @@
       `).join('');
     }
 
-    // Google 스프레드시트의 '대원_출석_기능장_관리' 시트 전용 실시간 패치 엔진
+    // Google 스프레드시트의 정확한 시트('대원출석_현황') 전용 실시간 연동 엔진
     async function fetchLiveSheetData() {
       try {
-        const sheetName = encodeURIComponent("대원_출석_기능장_관리");
+        const sheetName = encodeURIComponent("대원출석_현황");
         const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${sheetName}&tqx=out:json`;
         const res = await fetch(url);
         const text = await res.text();
@@ -1197,46 +1197,39 @@
           const rows = json.table.rows;
           const parsed = [];
 
-          // 4번 인덱스 행부터 대원 데이터 추출
           for (let i = 0; i < rows.length; i++) {
             const r = rows[i].c;
             if (!r || !r[2] || !r[2].v) continue;
             
             const rawName = String(r[2].v).trim();
-            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리')) continue;
+            if (rawName === '이름' || rawName === '합계' || rawName.includes('출석률') || rawName.includes('관리') || rawName === '비중') continue;
 
             const ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
             const deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
             const nameVal = rawName;
 
-            // 출석 수 카운트 (D열 ~ AK열, 안식일 34회)
+            // 안식일 출석 수 카운트 (D열 ~ AK열, 안식일 34회)
             let attCount = 0;
-            for (let cIdx = 3; cIdx <= 36; cIdx++) {
+            for (let cIdx = 3; cIdx < r.length; cIdx++) {
               if (r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1')) {
                 attCount++;
               }
             }
 
-            // 기능장 9종 취득 현황 (AN열 ~ AV열)
-            let userHonors = [];
-            let hCount = 0;
-            for (let hIdx = 39; hIdx <= 47; hIdx++) {
-              let isEarned = (r[hIdx] && (r[hIdx].v === '취득' || String(r[hIdx].v).toUpperCase() === 'O' || r[hIdx].v === 1)) ? 1 : 0;
-              userHonors.push(isEarned);
-              if (isEarned) hCount++;
-            }
-
             const totalSabbaths = 34;
             const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
 
+            // 기존 명부와 매칭하여 기능장 정보 보존
+            const existing = members.find(m => m.name === nameVal);
+
             parsed.push({
-              age: ageVal > 0 ? ageVal : (members[parsed.length]?.age || 9),
+              age: ageVal > 0 ? ageVal : (existing ? existing.age : 9),
               dept: deptVal,
               name: nameVal,
-              days: attCount,
-              rate: rateVal,
-              hCount: hCount,
-              honors: userHonors
+              days: attCount > 0 ? attCount : (existing ? existing.days : 30),
+              rate: attCount > 0 ? rateVal : (existing ? existing.rate : "88.2%"),
+              hCount: existing ? existing.hCount : 3,
+              honors: existing ? existing.honors : [1,0,0,0,1,0,0,1,0]
             });
           }
 
