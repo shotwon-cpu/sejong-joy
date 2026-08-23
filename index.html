@@ -232,16 +232,23 @@
       background: #091325;
       color: var(--accent-gold);
       font-weight: 700;
-      padding: 9px 8px;
+      padding: 8px 6px;
       border-bottom: 2px solid var(--border-color);
       white-space: nowrap;
+      text-align: center;
     }
 
     td {
-      padding: 8px 8px;
+      padding: 8px 6px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       color: #e1e7f0;
       white-space: nowrap;
+      text-align: center;
+    }
+
+    /* 좌측 정렬이 필요한 텍스트용 */
+    td.text-left, th.text-left {
+      text-align: left;
     }
 
     tbody tr:nth-child(even) {
@@ -297,6 +304,20 @@
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
     .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
     .badge-none { color: #556885; }
+
+    /* 2줄 기능장 헤더 디자인 */
+    .honor-th-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      line-height: 1.2;
+    }
+    .honor-th-date {
+      font-size: 10px;
+      color: #8fa0be;
+      margin-top: 2px;
+      font-weight: normal;
+    }
 
     .filter-bar {
       display: flex;
@@ -363,8 +384,8 @@
       background: #1e335a;
     }
 
-    .field-name { font-size: 12px; color: #cbd5e1; font-weight: 600; }
-    .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; }
+    .field-name { font-size: 12px; color: #cbd5e1; font-weight: 600; text-align: left; }
+    .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; text-align: left; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
     .modal-overlay {
@@ -514,7 +535,7 @@
             <thead>
               <tr>
                 <th>No</th>
-                <th class="sticky-col">기능장 명칭 (클릭)</th>
+                <th class="sticky-col text-left">기능장 명칭 (클릭)</th>
                 <th>취득 인원</th>
                 <th>취득률</th>
                 <th>과목 구분</th>
@@ -592,14 +613,14 @@
                 <th>주차</th>
                 <th class="sticky-col">안식일</th>
                 <th>구분</th>
-                <th>활동 주제</th>
+                <th class="text-left">활동 주제</th>
                 <th>담당</th>
                 <th>장소</th>
-                <th>세부 진행 순서</th>
-                <th>준비물</th>
+                <th class="text-left">세부 진행 순서</th>
+                <th class="text-left">준비물</th>
                 <th>소요 예산</th>
                 <th>상태</th>
-                <th>교사 메모</th>
+                <th class="text-left">교사 메모</th>
               </tr>
             </thead>
             <tbody id="monthly-tbody"></tbody>
@@ -629,13 +650,13 @@
                 <th class="sticky-col">일자</th>
                 <th>분기</th>
                 <th>구분</th>
-                <th>활동 주제 및 계획</th>
+                <th class="text-left">활동 주제 및 계획</th>
                 <th>영역</th>
                 <th>담당</th>
                 <th>장소</th>
                 <th>예산</th>
                 <th>상태</th>
-                <th>비고</th>
+                <th class="text-left">비고</th>
               </tr>
             </thead>
             <tbody id="annual-schedule-tbody"></tbody>
@@ -644,7 +665,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: 대원 출석 및 기능장 (기능장 정식 풀네임+날짜 표기) -->
+    <!-- TAB 4: 대원 출석 및 기능장 (2줄 명칭 헤더) -->
     <div id="tab-members" class="tab-content">
       <div class="card">
         <div class="card-title">👥 대원 13명 출석 및 기능장 명부</div>
@@ -668,10 +689,10 @@
                 <th>구분</th>
                 <th class="sticky-col">시간</th>
                 <th>소요</th>
-                <th>프로그램 내용</th>
+                <th class="text-left">프로그램 내용</th>
                 <th>담당</th>
-                <th>준비물</th>
-                <th>비고</th>
+                <th class="text-left">준비물</th>
+                <th class="text-left">비고</th>
               </tr>
             </thead>
             <tbody>
@@ -679,46 +700,46 @@
                 <td><span class="badge badge-plan">개회</span></td>
                 <td class="sticky-col" style="font-weight:bold;">14:00~14:15</td>
                 <td>15분</td>
-                <td style="font-weight:600; color:#fff;">개회식 (입장, 기국례, 서약/법, 표어, 찬양, 기도)</td>
+                <td class="text-left" style="font-weight:600; color:#fff;">개회식 (입장, 기국례, 서약/법, 표어, 찬양, 기도)</td>
                 <td>인도자/기수</td>
-                <td>클럽기, 태극기, 반주</td>
-                <td>단복 정렬 및 제식 점검</td>
+                <td class="text-left">클럽기, 태극기, 반주</td>
+                <td class="text-left">단복 정렬 및 제식 점검</td>
               </tr>
               <tr>
                 <td><span class="badge badge-done">기능</span></td>
                 <td class="sticky-col" style="font-weight:bold;">14:15~15:00</td>
                 <td>45분</td>
-                <td style="font-weight:600; color:#fff;">기능 교육 (해당 주차 기능장 이론 및 실습)</td>
+                <td class="text-left" style="font-weight:600; color:#fff;">기능 교육 (해당 주차 기능장 이론 및 실습)</td>
                 <td>기능교사</td>
-                <td>교안, 실습 재료</td>
-                <td>어드벤처러/패스파인더 분반</td>
+                <td class="text-left">교안, 실습 재료</td>
+                <td class="text-left">어드벤처러/패스파인더 분반</td>
               </tr>
               <tr>
                 <td><span class="badge badge-adv">활동</span></td>
                 <td class="sticky-col" style="font-weight:bold;">15:00~15:45</td>
                 <td>45분</td>
-                <td style="font-weight:600; color:#fff;">팀 빌딩 & 응용 신체활동 게임 (조별 협동 미션)</td>
+                <td class="text-left" style="font-weight:600; color:#fff;">팀 빌딩 & 응용 신체활동 게임 (조별 협동 미션)</td>
                 <td>활동교사</td>
-                <td>미션 카드, 타이머</td>
-                <td>안전사고 유의, 체육관</td>
+                <td class="text-left">미션 카드, 타이머</td>
+                <td class="text-left">안전사고 유의, 체육관</td>
               </tr>
               <tr>
                 <td><span class="badge badge-path">영성</span></td>
                 <td class="sticky-col" style="font-weight:bold;">15:45~16:15</td>
                 <td>30분</td>
-                <td style="font-weight:600; color:#fff;">영성 훈련 & 말씀 나눔 (성경 퀴즈 및 기도 짝)</td>
+                <td class="text-left" style="font-weight:600; color:#fff;">영성 훈련 & 말씀 나눔 (성경 퀴즈 및 기도 짝)</td>
                 <td>영성교사</td>
-                <td>성경 퀴즈지, 선물</td>
-                <td>대원별 기도제목 공유</td>
+                <td class="text-left">성경 퀴즈지, 선물</td>
+                <td class="text-left">대원별 기도제목 공유</td>
               </tr>
               <tr>
                 <td><span class="badge badge-plan">폐회</span></td>
                 <td class="sticky-col" style="font-weight:bold;">16:15~16:30</td>
                 <td>15분</td>
-                <td style="font-weight:600; color:#fff;">폐회식 & 공지사항 (클럽기 하강, 간식 배부)</td>
+                <td class="text-left" style="font-weight:600; color:#fff;">폐회식 & 공지사항 (클럽기 하강, 간식 배부)</td>
                 <td>총괄부장</td>
-                <td>간식(개별포장)</td>
-                <td>다음 주 준비물 안내</td>
+                <td class="text-left">간식(개별포장)</td>
+                <td class="text-left">다음 주 준비물 안내</td>
               </tr>
             </tbody>
           </table>
@@ -748,17 +769,17 @@
   <script>
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
-    // 기능장 정식 풀네임 및 날짜 데이터
+    // 기능장 원본 데이터 (이름 + 날짜 분리 파싱 지원)
     let honorStats = [
-      { id: 0, name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
-      { id: 1, name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
-      { id: 2, name: "내 친구 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { id: 3, name: "어린 소년 예수 (06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { id: 4, name: "지역사회 도우미 (06.20)", count: 8, rate: "61.5%", cat: "정기 기능 교육" },
-      { id: 5, name: "성경 친구들 1 (06.27)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
-      { id: 6, name: "성경 친구들 2 (07.04)", count: 5, rate: "38.5%", cat: "정기 기능 교육" },
-      { id: 7, name: "수영 1 / 초급 1 (07.15)", count: 6, rate: "46.2%", cat: "어드/패파 공통" },
-      { id: 8, name: "화재 안전 (07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
+      { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
+      { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
+      { id: 2, name: "내 친구 예수 (06.13)", title: "내 친구 예수", date: "(06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
+      { id: 3, name: "어린 소년 예수 (06.13)", title: "어린 소년 예수", date: "(06.13)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
+      { id: 4, name: "지역사회 도우미 (06.20)", title: "지역사회 도우미", date: "(06.20)", count: 8, rate: "61.5%", cat: "정기 기능 교육" },
+      { id: 5, name: "성경 친구들 1 (06.27)", title: "성경 친구들 1", date: "(06.27)", count: 4, rate: "30.8%", cat: "정기 기능 교육" },
+      { id: 6, name: "성경 친구들 2 (07.04)", title: "성경 친구들 2", date: "(07.04)", count: 5, rate: "38.5%", cat: "정기 기능 교육" },
+      { id: 7, name: "수영 1 / 초급 1 (07.15)", title: "수영 1 / 초급 1", date: "(07.15)", count: 6, rate: "46.2%", cat: "어드/패파 공통" },
+      { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%", cat: "어드/패파 공통" }
     ];
 
     let members = [
@@ -872,7 +893,7 @@
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
-          <td class="sticky-col" style="font-weight:700; color:var(--accent-gold); text-decoration: underline;">${h.name} 👆</td>
+          <td class="sticky-col text-left" style="font-weight:700; color:var(--accent-gold); text-decoration: underline;">${h.name} 👆</td>
           <td><span class="badge badge-done">${h.count}명</span></td>
           <td>${h.rate}</td>
           <td><span class="badge badge-plan">${h.cat}</span></td>
@@ -898,20 +919,21 @@
           <td class="sticky-col"><strong>${s.date}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left" style="font-weight:600; color:#fff;">${s.title}</td>
           <td>${s.field}</td>
           <td>${s.teacher}</td>
           <td>${s.place}</td>
           <td>${s.budget.toLocaleString()}원</td>
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
-          <td style="color:var(--text-muted);">${s.note}</td>
+          <td class="text-left" style="color:var(--text-muted);">${s.note}</td>
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (기능장 정식 풀네임+날짜 전체 노출)
+      // 4. 대원 명부 (2줄 명칭 헤더로 렌더링)
       renderFullMembersTable();
     }
 
+    // 2줄 헤더 렌더링 함수 (이름/날짜 분리)
     function renderFullMembersTable() {
       const thead = document.getElementById('full-members-thead');
       const tbody = document.getElementById('full-members-tbody');
@@ -921,10 +943,15 @@
           <th>번호</th>
           <th>소속</th>
           <th class="sticky-col">이름</th>
-          <th>출석일수</th>
+          <th>출석</th>
           <th>출석률</th>
-          <th>기능장</th>
-          ${honorStats.map(h => `<th>${h.name}</th>`).join('')}
+          <th>합계</th>
+          ${honorStats.map(h => `
+            <th>
+              <div class="honor-th-title">${h.title}</div>
+              <div class="honor-th-date">${h.date}</div>
+            </th>
+          `).join('')}
         </tr>
       `;
 
@@ -962,7 +989,7 @@
       const thead = `
         <tr>
           <th class="sticky-col">안식일</th>
-          <th>활동 주제 및 계획</th>
+          <th class="text-left">활동 주제 및 계획</th>
           <th>소요 예산</th>
           <th>집행 상태</th>
         </tr>
@@ -971,7 +998,7 @@
       const tbody = rawAnnual.map(s => `
         <tr>
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
-          <td style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left" style="font-weight:600; color:#fff;">${s.title}</td>
           <td style="color:var(--accent-gold); font-weight:bold;">${s.budget.toLocaleString()}원</td>
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
         </tr>
@@ -1003,15 +1030,19 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 전체 명부 모달 (기능장 정식 풀네임+날짜 전체 노출)
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
           <th>소속</th>
           <th class="sticky-col">이름</th>
-          <th>출석일수</th>
-          <th>기능장 합계</th>
-          ${honorStats.map(h => `<th>${h.name}</th>`).join('')}
+          <th>출석</th>
+          <th>합계</th>
+          ${honorStats.map(h => `
+            <th>
+              <div class="honor-th-title">${h.title}</div>
+              <div class="honor-th-date">${h.date}</div>
+            </th>
+          `).join('')}
         </tr>
       `;
 
@@ -1035,7 +1066,7 @@
           <th>No</th>
           <th class="sticky-col">안식일</th>
           <th>구분</th>
-          <th>활동 주제 및 세부 내용</th>
+          <th class="text-left">활동 주제 및 세부 내용</th>
           <th>담당 교사</th>
           <th>장소</th>
           <th>상태</th>
@@ -1047,7 +1078,7 @@
           <td>${s.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left" style="font-weight:600; color:#fff;">${s.title}</td>
           <td>${s.teacher}</td>
           <td>${s.place}</td>
           <td><span class="badge badge-done">완료</span></td>
@@ -1087,7 +1118,7 @@
         <tr>
           <th>No</th>
           <th class="sticky-col">안식일</th>
-          <th>활동 주제 및 세부 계획</th>
+          <th class="text-left">활동 주제 및 세부 계획</th>
           <th>담당 교사</th>
           <th>장소</th>
           <th>상태</th>
@@ -1098,7 +1129,7 @@
         <tr>
           <td>${item.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
-          <td style="font-weight:600; color:#fff;">${item.title}</td>
+          <td class="text-left" style="font-weight:600; color:#fff;">${item.title}</td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
           <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
@@ -1126,14 +1157,14 @@
           <td><span class="badge badge-plan">${formatWeekLabel(item.week)}</span></td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
           <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <td style="font-weight:600; color:#fff;">${item.title}</td>
+          <td class="text-left" style="font-weight:600; color:#fff;">${item.title}</td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
-          <td style="color:#cbd5e1; font-size:11px;">${item.prog}</td>
-          <td style="color:var(--text-muted); font-size:11px;">${item.mat}</td>
+          <td class="text-left" style="color:#cbd5e1; font-size:11px;">${item.prog}</td>
+          <td class="text-left" style="color:var(--text-muted); font-size:11px;">${item.mat}</td>
           <td>${item.budget.toLocaleString()}원</td>
           <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
-          <td style="color:var(--accent-gold); font-size:11px;">${item.memo}</td>
+          <td class="text-left" style="color:var(--accent-gold); font-size:11px;">${item.memo}</td>
         </tr>
       `).join('');
     }
