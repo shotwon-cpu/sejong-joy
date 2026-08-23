@@ -546,7 +546,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 월간 계획표 (당월 자동 표시) -->
+    <!-- TAB 2: 월간 계획표 (단축 포맷 적용) -->
     <div id="tab-monthly" class="tab-content">
       <div class="card">
         <div class="card-title">
@@ -695,7 +695,7 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 (배경 터치 또는 닫기 클릭 시 이전 화면 복귀) -->
+  <!-- 전체화면 모달 (배경 터치 또는 닫기 클릭 시 복귀) -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -716,7 +716,6 @@
   <script>
     const GOOGLE_SHEET_ID = "1nByeHcILPt1cr4HWNEiYF3gvRK0htpxt";
 
-    // 동적으로 확장 가능한 기능장 목록
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", count: 9, rate: "69.2%", cat: "어드/패파 공통" },
       { id: 1, name: "창조 (06.06)", count: 6, rate: "46.2%", cat: "정기 기능 교육" },
@@ -816,6 +815,29 @@
 
     let activeMonth = new Date().getMonth() + 1;
 
+    // 포맷 헬퍼 함수 (단축 표기)
+    function formatWeekLabel(weekStr) {
+      // "8월 1주차" -> "1주차"
+      const match = weekStr.match(/\d+주차/);
+      return match ? match[0] : weekStr;
+    }
+
+    function formatDateShort(dateStr) {
+      // "2026-08-01" -> "08-01"
+      if (dateStr && dateStr.length >= 10) {
+        return dateStr.substring(5);
+      }
+      return dateStr;
+    }
+
+    function formatCategoryShort(catStr) {
+      // 앞 2글자만 추출 (봉사활동 -> 봉사, 기능교육 -> 기능, 정기집회 -> 정기 등)
+      if (catStr && catStr.length >= 2) {
+        return catStr.substring(0, 2);
+      }
+      return catStr;
+    }
+
     function renderUI() {
       // 1. 기능장 요약
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
@@ -846,7 +868,7 @@
           <td>${s.no}</td>
           <td><strong>${s.date}</strong></td>
           <td>${s.q}</td>
-          <td><span class="badge badge-plan">${s.type}</span></td>
+          <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
           <td style="font-weight:600; color:#fff;">${s.title}</td>
           <td>${s.field}</td>
           <td>${s.teacher}</td>
@@ -857,7 +879,7 @@
         </tr>
       `).join('');
 
-      // 4. 대원 명부 (동적 기능장 열 헤더 및 바디 자동 생성)
+      // 4. 대원 명부
       renderFullMembersTable();
     }
 
@@ -890,7 +912,7 @@
       `).join('');
     }
 
-    // --- 모달 제어 함수 (배경 터치 또는 닫기 클릭 시 복귀) ---
+    // --- 모달 제어 함수 ---
     function openModal(title, theadHtml, tbodyHtml) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-thead').innerHTML = theadHtml;
@@ -908,7 +930,7 @@
       }
     }
 
-    // 1. 단일 기능장 취득 대원 목록 모달 (요청사항: 번호, 출석률 제거 완비)
+    // 1. 단일 기능장 취득 대원 목록 모달
     function showHonorMembers(honorIdx, honorName) {
       const earners = members.filter(m => m.honors[honorIdx] === 1);
       const thead = `
@@ -963,7 +985,7 @@
       const thead = `
         <tr>
           <th>No</th>
-          <th>일자(토)</th>
+          <th>일자</th>
           <th>구분</th>
           <th>활동 주제 및 세부 내용</th>
           <th>담당 교사</th>
@@ -975,8 +997,8 @@
       const tbody = completed.map(s => `
         <tr>
           <td>${s.no}</td>
-          <td><strong>${s.date}</strong></td>
-          <td><span class="badge badge-plan">${s.type}</span></td>
+          <td><strong>${formatDateShort(s.date)}</strong></td>
+          <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
           <td style="font-weight:600; color:#fff;">${s.title}</td>
           <td>${s.teacher}</td>
           <td>${s.place}</td>
@@ -1018,7 +1040,7 @@
       const thead = `
         <tr>
           <th>No</th>
-          <th>일자(토)</th>
+          <th>일자</th>
           <th>활동 주제 및 세부 계획</th>
           <th>담당 교사</th>
           <th>장소</th>
@@ -1029,7 +1051,7 @@
       const tbody = filtered.map(item => `
         <tr>
           <td>${item.no}</td>
-          <td><strong>${item.date}</strong></td>
+          <td><strong>${formatDateShort(item.date)}</strong></td>
           <td style="font-weight:600; color:#fff;">${item.title}</td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
@@ -1037,7 +1059,7 @@
         </tr>
       `).join('');
 
-      openModal(`📌 [${category}] 관련 52주 활동 일정 (${filtered.length}건)`, thead, tbody);
+      openModal(`📌 [${category}] 관련 활동 일정 (${filtered.length}건)`, thead, tbody);
     }
 
     function selectMonth(m) {
@@ -1048,6 +1070,7 @@
       renderMonthlyTable(m);
     }
 
+    // 월간 계획표 단축 렌더링
     function renderMonthlyTable(m) {
       document.getElementById('current-month-label').innerText = `${m}월`;
       const filtered = rawMonthly.filter(item => item.month === m);
@@ -1055,9 +1078,9 @@
       
       tbody.innerHTML = filtered.map(item => `
         <tr>
-          <td><span class="badge badge-plan">${item.week}</span></td>
-          <td><strong>${item.date}</strong></td>
-          <td><span class="badge badge-done">${item.type}</span></td>
+          <td><span class="badge badge-plan">${formatWeekLabel(item.week)}</span></td>
+          <td><strong>${formatDateShort(item.date)}</strong></td>
+          <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
           <td style="font-weight:600; color:#fff;">${item.title}</td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
