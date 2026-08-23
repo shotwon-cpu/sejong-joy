@@ -150,7 +150,7 @@
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 10px;
-      padding: 14px 12px;
+      padding: 14px 10px;
       margin-bottom: 14px;
       width: 100%;
     }
@@ -225,17 +225,18 @@
       text-align: left;
     }
 
+    /* 테이블 간격 슬림 최적화 */
     th {
       background: #0e1b32;
       color: var(--accent-gold);
       font-weight: 700;
-      padding: 10px 10px;
+      padding: 8px 6px;
       border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
     }
 
     td {
-      padding: 9px 10px;
+      padding: 8px 6px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       color: #e1e7f0;
       white-space: nowrap;
@@ -253,7 +254,7 @@
 
     .badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 2px 5px;
       border-radius: 10px;
       font-size: 10px;
       font-weight: 700;
@@ -263,12 +264,12 @@
     .badge-plan { background: rgba(41, 128, 185, 0.2); color: #3498db; border: 1px solid #2980b9; }
     .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
-    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
+    .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 5px; }
     .badge-none { color: #556885; }
 
     .filter-bar {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       margin-bottom: 10px;
       overflow-x: auto;
       padding-bottom: 4px;
@@ -281,7 +282,7 @@
       background: var(--card-inner);
       color: var(--text-muted);
       border: 1px solid var(--border-color);
-      padding: 5px 9px;
+      padding: 4px 8px;
       border-radius: 5px;
       font-size: 11px;
       cursor: pointer;
@@ -546,7 +547,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: 월간 계획표 (단축 포맷 적용) -->
+    <!-- TAB 2: 월간 계획표 (단축 포맷 & 간격 슬림 최적화) -->
     <div id="tab-monthly" class="tab-content">
       <div class="card">
         <div class="card-title">
@@ -558,7 +559,7 @@
             <thead>
               <tr>
                 <th>주차</th>
-                <th>일자(토)</th>
+                <th>안식일</th>
                 <th>구분</th>
                 <th>활동 주제</th>
                 <th>담당</th>
@@ -815,11 +816,11 @@
 
     let activeMonth = new Date().getMonth() + 1;
 
-    // 포맷 헬퍼 함수 (단축 표기)
+    // 포맷 헬퍼 함수
     function formatWeekLabel(weekStr) {
-      // "8월 1주차" -> "1주차"
-      const match = weekStr.match(/\d+주차/);
-      return match ? match[0] : weekStr;
+      // "8월 1주차" -> "1주"
+      const match = weekStr.match(/(\d+)주/);
+      return match ? `${match[1]}주` : weekStr;
     }
 
     function formatDateShort(dateStr) {
@@ -912,7 +913,6 @@
       `).join('');
     }
 
-    // --- 모달 제어 함수 ---
     function openModal(title, theadHtml, tbodyHtml) {
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-thead').innerHTML = theadHtml;
@@ -930,7 +930,6 @@
       }
     }
 
-    // 1. 단일 기능장 취득 대원 목록 모달
     function showHonorMembers(honorIdx, honorName) {
       const earners = members.filter(m => m.honors[honorIdx] === 1);
       const thead = `
@@ -954,7 +953,6 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 2. 기능장 9종 전체 명부 모달
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -979,7 +977,6 @@
       openModal("👥 대원 13명 기능장 전체 취득 명부", thead, tbody);
     }
 
-    // 3. 완료된 안식일 활동 모아보기 모달
     function showCompletedActivities() {
       const completed = rawAnnual.filter(s => s.status === '완료');
       const thead = `
@@ -1009,7 +1006,6 @@
       openModal(`✅ 진행 완료된 안식일 활동 (${completed.length}회)`, thead, tbody);
     }
 
-    // 4. 등록 대원 명부 모달
     function showAllMembersList() {
       const thead = `
         <tr>
@@ -1034,7 +1030,6 @@
       openModal("👥 2026 등록 대원 명부 (총 13명)", thead, tbody);
     }
 
-    // 5. 영역별 활동 일정 모달
     function showFieldDetails(category) {
       const filtered = rawAnnual.filter(s => s.type === category);
       const thead = `
@@ -1070,7 +1065,6 @@
       renderMonthlyTable(m);
     }
 
-    // 월간 계획표 단축 렌더링
     function renderMonthlyTable(m) {
       document.getElementById('current-month-label').innerText = `${m}월`;
       const filtered = rawMonthly.filter(item => item.month === m);
