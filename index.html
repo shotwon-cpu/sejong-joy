@@ -947,60 +947,74 @@
       { age: 10, dept: "패스파인더", name: "김예송", days: 31, rate: "91.2%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
     ];
 
-    let rawAnnual = [
-      { no: 1, date: "2026-01-03", q: "1분기", type: "정기집회", title: "시무식 및 신입대원 환영회", field: "정기집회", teacher: "부장교사", place: "패스파인더실", budget: 20000, status: "완료", note: "단복 및 기본 규정" },
-      { no: 2, date: "2026-01-10", q: "1분기", type: "기능교육", title: "기초 매듭법 1 (사각, 활줄, 옭매듭)", field: "기능교육", teacher: "김교사", place: "소예배실", budget: 15000, status: "완료", note: "로프 실습" },
-      { no: 3, date: "2026-01-17", q: "1분기", type: "영성훈련", title: "표어·서약 묵상 및 성경 골든벨", field: "영성훈련", teacher: "이교사", place: "소예배실", budget: 15000, status: "완료", note: "성경 퀴즈지" },
-      { no: 4, date: "2026-01-24", q: "1분기", type: "정기집회", title: "제식훈련 기초 (차렷, 열중쉬어, 경례)", field: "정기집회", teacher: "부장교사", place: "체육관", budget: 15000, status: "완료", note: "제식 기본 동작" },
-      { no: 5, date: "2026-01-31", q: "1분기", type: "기능교육", title: "응급처치 1단계 (상처 소독, 붕대법)", field: "기능교육", teacher: "박교사", place: "패스파인더실", budget: 20000, status: "완료", note: "구급함 점검" },
-      { no: 6, date: "2026-02-07", q: "1분기", type: "특별활동", title: "겨울철 실내 체육대회 및 팀빌딩", field: "특별활동", teacher: "전체교사", place: "체육관", budget: 30000, status: "완료", note: "대원 화합" },
-      { no: 7, date: "2026-02-14", q: "1분기", type: "기능교육", title: "독도법 기초 (지도 기호, 방위각)", field: "기능교육", teacher: "김교사", place: "소예배실", budget: 15000, status: "완료", note: "지도 읽기" },
-      { no: 8, date: "2026-02-21", q: "1분기", type: "영성훈련", title: "찬양 나눔 및 기도 짝 결연", field: "영성훈련", teacher: "이교사", place: "본당", budget: 15000, status: "완료", note: "기도제목 카드" },
-      { no: 9, date: "2026-02-28", q: "1분기", type: "기능교육", title: "복슬복슬 양 기능 교육 및 관찰", field: "기능교육", teacher: "정교사", place: "소예배실", budget: 25000, status: "완료", note: "기능장 취득 연계" },
-      { no: 10, date: "2026-03-07", q: "1분기", type: "봉사활동", title: "새봄맞이 환경정화(플로깅)", field: "봉사활동", teacher: "최교사", place: "교회 인근", budget: 20000, status: "완료", note: "봉투 및 집게" },
-      { no: 11, date: "2026-03-14", q: "1분기", type: "정기집회", title: "기국례 및 클럽기 다루기", field: "정기집회", teacher: "부장교사", place: "패스파인더실", budget: 15000, status: "완료", note: "기수단 훈련" },
-      { no: 12, date: "2026-03-21", q: "1분기", type: "기능교육", title: "캠핑 장비 기초 및 텐트 설치", field: "기능교육", teacher: "정교사", place: "교회마당", budget: 20000, status: "완료", note: "텐트 실습" },
-      { no: 13, date: "2026-03-28", q: "1분기", type: "진급식", title: "1분기 기능 이수 평가 및 단합회", field: "진급식", teacher: "부장/교사", place: "패스파인더실", budget: 40000, status: "완료", note: "1분기 평가" },
-      { no: 14, date: "2026-04-04", q: "2분기", type: "정기집회", title: "2분기 사역 개시 및 목표 수립", field: "정기집회", teacher: "부장교사", place: "소예배실", budget: 15000, status: "완료", note: "반별 활동" },
-      { no: 15, date: "2026-04-11", q: "2분기", type: "기능교육", title: "매듭법 심화 2 (두겹매듭, 감아매기)", field: "기능교육", teacher: "김교사", place: "소예배실", budget: 15000, status: "완료", note: "로프 심화" },
-      { no: 16, date: "2026-04-18", q: "2분기", type: "야외활동", title: "생태탐사 하이킹 및 독도법 실습", field: "야외활동", teacher: "전체교사", place: "근교 야산", budget: 50000, status: "완료", note: "도시락/구급약" },
-      { no: 17, date: "2026-04-25", q: "2분기", type: "영성훈련", title: "패스파인더 헌신예배 순서 주관", field: "영성훈련", teacher: "이교사", place: "대예배실", budget: 20000, status: "완료", note: "순서 주관" },
-      { no: 18, date: "2026-05-02", q: "2분기", type: "특별활동", title: "가정의 달 부모님 초청 열린 안식일", field: "특별활동", teacher: "여교사회", place: "식당", budget: 60000, status: "완료", note: "카네이션/다과" },
-      { no: 19, date: "2026-05-09", q: "2분기", type: "봉사활동", title: "이웃 사랑 나눔 키트 전달", field: "봉사활동", teacher: "최교사", place: "복지관", budget: 35000, status: "완료", note: "나눔 키트" },
-      { no: 20, date: "2026-05-16", q: "2분기", type: "기능교육", title: "심폐소생술(CPR) 및 AED 실습", field: "기능교육", teacher: "박교사", place: "소예배실", budget: 20000, status: "완료", note: "마네킹 실습" },
-      { no: 21, date: "2026-05-23", q: "2분기", type: "기능교육", title: "창조 기능 교육 (별자리/생태계)", field: "기능교육", teacher: "정교사", place: "야외공원", budget: 25000, status: "완료", note: "기능장 취득 연계" },
-      { no: 22, date: "2026-05-30", q: "2분기", type: "기능교육", title: "내 친구 예수 기능 교육", field: "기능교육", teacher: "이교사", place: "소예배실", budget: 25000, status: "완료", note: "기능장 취득 연계" },
-      { no: 23, date: "2026-06-06", q: "2분기", type: "기능교육", title: "지역사회 도우미 봉사 및 견학", field: "기능교육", teacher: "최교사", place: "지역사회", budget: 25000, status: "완료", note: "기능장 취득 연계" },
-      { no: 24, date: "2026-06-13", q: "2분기", type: "기능교육", title: "성경 친구들 1 기능 교육", field: "기능교육", teacher: "이교사", place: "소예배실", budget: 20000, status: "완료", note: "기능장 취득 연계" },
-      { no: 25, date: "2026-06-20", q: "2분기", type: "기능교육", title: "성경 친구들 2 기능 교육", field: "기능교육", teacher: "이교사", place: "소예배실", budget: 20000, status: "완료", note: "기능장 취득 연계" },
-      { no: 26, date: "2026-06-27", q: "2분기", type: "기능교육", title: "수영 1 수상안전 실습", field: "기능교육", teacher: "체육교사", place: "수영장", budget: 60000, status: "완료", note: "기능장 취득 연계" },
-      { no: 27, date: "2026-07-04", q: "3분기", type: "기능교육", title: "화재 안전 및 소화기 사용", field: "기능교육", teacher: "박교사", place: "교회마당", budget: 25000, status: "완료", note: "기능장 취득 연계" },
-      { no: 28, date: "2026-07-11", q: "3분기", type: "야외활동", title: "하계 패스파인더 캠포리", field: "야외활동", teacher: "전체교사", place: "캠핑장", budget: 150000, status: "완료", note: "전체 야영" },
-      { no: 29, date: "2026-07-18", q: "3분기", type: "영성훈련", title: "캠포리 은혜 나눔", field: "영성훈련", teacher: "이교사", place: "소예배실", budget: 20000, status: "완료", note: "소감문 나눔" },
-      { no: 30, date: "2026-07-25", q: "3분기", type: "기능교육", title: "천문관찰: 여름철 별자리 찾기", field: "기능교육", teacher: "김교사", place: "옥상/야외", budget: 20000, status: "완료", note: "별자리 도감" },
-      { no: 31, date: "2026-08-01", q: "3분기", type: "봉사활동", title: "교회 시설 정비 및 대청소", field: "봉사활동", teacher: "최교사", place: "교회 전체", budget: 15000, status: "완료", note: "환경 정돈" },
-      { no: 32, date: "2026-08-08", q: "3분기", type: "정기집회", title: "단복 및 제식 리마인드", field: "정기집회", teacher: "부장교사", place: "체육관", budget: 15000, status: "완료", note: "복장 점검" },
-      { no: 33, date: "2026-08-15", q: "3분기", type: "기능교육", title: "신호법 (모스 부호/깃발 신호)", field: "기능교육", teacher: "정교사", place: "소예배실", budget: 15000, status: "완료", note: "신호 실습" },
-      { no: 34, date: "2026-08-22", q: "3분기", type: "영성훈련", title: "기도회 및 대원 비전 나눔", field: "영성훈련", teacher: "이교사", place: "소예배실", budget: 15000, status: "완료", note: "비전 나눔" },
-      { no: 35, date: "2026-08-29", q: "3분기", type: "기능교육", title: "기초 가죽공예 / 수공예 실습", field: "기능교육", teacher: "김교사", place: "패스파인더실", budget: 30000, status: "예정", note: "사전 준비물 점검" },
-      { no: 36, date: "2026-09-05", q: "3분기", type: "야외활동", title: "초가을 숲 오리엔티어링", field: "야외활동", teacher: "전체교사", place: "수목원", budget: 40000, status: "예정", note: "야외 안전 유의" },
-      { no: 37, date: "2026-09-12", q: "3분기", type: "진급식", title: "3분기 우수자 시상", field: "진급식", teacher: "부장교사", place: "패스파인더실", budget: 35000, status: "예정", note: "수상자 명단 확인" },
-      { no: 38, date: "2026-09-19", q: "3분기", type: "정기집회", title: "4분기 활동 개시 준비", field: "정기집회", teacher: "부장교사", place: "소예배실", budget: 15000, status: "예정", note: "계획 공유" },
-      { no: 39, date: "2026-09-26", q: "3분기", type: "기능교육", title: "매듭법 총복습 및 건축물", field: "기능교육", teacher: "김교사", place: "체육관", budget: 20000, status: "예정", note: "로프 충분히 확보" },
-      { no: 40, date: "2026-10-03", q: "4분기", type: "영성훈련", title: "성경 퀴즈 왕중왕전", field: "영성훈련", teacher: "이교사", place: "본당", budget: 25000, status: "예정", note: "문제 출제" },
-      { no: 41, date: "2026-10-10", q: "4분기", type: "봉사활동", title: "사랑의 쌀 나눔", field: "봉사활동", teacher: "최교사", place: "마을 일대", budget: 30000, status: "예정", note: "대상 가구 확인" },
-      { no: 42, date: "2026-10-17", q: "4분기", type: "기능교육", title: "재난 대비 방재 안전", field: "기능교육", teacher: "박교사", place: "소예배실", budget: 20000, status: "예정", note: "대피로 점검" },
-      { no: 43, date: "2026-10-24", q: "4분기", type: "야외활동", title: "가을 단풍 트레킹", field: "야외활동", teacher: "전체교사", place: "국립공원", budget: 45000, status: "예정", note: "보온 의류 준비" },
-      { no: 44, date: "2026-10-31", q: "4분기", type: "정기집회", title: "활동 앨범 영상 상영", field: "정기집회", teacher: "미디어/부장", place: "패스파인더실", budget: 20000, status: "예정", note: "영상 편집" },
-      { no: 45, date: "2026-11-07", q: "4분기", type: "영성훈련", title: "추수감사 찬양제", field: "영성훈련", teacher: "이교사", place: "대예배실", budget: 30000, status: "예정", note: "찬양 선곡" },
-      { no: 46, date: "2026-11-14", q: "4분기", type: "기능교육", title: "겨울철 건강관리 교육", field: "기능교육", teacher: "박교사", place: "패스파인더실", budget: 15000, status: "예정", note: "체온계/소독제" },
-      { no: 47, date: "2026-11-21", q: "4분기", type: "특별활동", title: "패스파인더의 날 주관", field: "특별활동", teacher: "전체교사", place: "대예배실", budget: 50000, status: "예정", note: "단복 완비" },
-      { no: 48, date: "2026-11-28", q: "4분기", type: "봉사활동", title: "사랑의 연탄/방한용품 나눔", field: "봉사활동", teacher: "최교사", place: "소외이웃", budget: 50000, status: "예정", note: "방한 장갑 지참" },
-      { no: 49, date: "2026-12-05", q: "4분기", type: "진급식", title: "총결산 대수료식 & 진급식", field: "진급식", teacher: "담임목사/부장", place: "본당", budget: 60000, status: "예정", note: "수료증 준비" },
-      { no: 50, date: "2026-12-12", q: "4분기", type: "정기집회", title: "종무식 및 교사 사은회", field: "정기집회", teacher: "전체", place: "패스파인더실", budget: 40000, status: "예정", note: "감사패 준비" },
-      { no: 51, date: "2026-12-19", q: "4분기", type: "특별활동", title: "신년 계획 수립 및 멘토링", field: "특별활동", teacher: "전체교사", place: "패스파인더실", budget: 20000, status: "예정", note: "새해 목표지" },
-      { no: 52, date: "2026-12-26", q: "4분기", type: "정기집회", title: "연말 비품 정리", field: "정기집회", teacher: "부장교사", place: "패스파인더실", budget: 15000, status: "예정", note: "창고 정리" }
+    let rawMonthly = [
+      { month: 1, week: "1월 1주차", date: "2026-01-03", type: "정기집회", title: "시무식 및 신입대원 환영회", teacher: "부장교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 개회식/서약 실습 → 15:00 반별활동", mat: "단복 및 기본 규정", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 2주차", date: "2026-01-10", type: "기능교육", title: "기초 매듭법 1 (사각, 활줄, 옭매듭)", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 매듭 실습 → 15:00 반별활동", mat: "로프 실습", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 3주차", date: "2026-01-17", type: "영성훈련", title: "표어·서약 묵상 및 성경 골든벨", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 골든벨 → 15:00 말씀", mat: "성경 퀴즈지", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 4주차", date: "2026-01-24", type: "정기집회", title: "제식훈련 기초 (차렷, 열중쉬어, 경례)", teacher: "부장교사", place: "체육관", prog: "14:00 개회식 → 14:15 제식 동작 → 15:00 정렬", mat: "제식 기본 동작", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 1, week: "1월 5주차", date: "2026-01-31", type: "기능교육", title: "응급처치 1단계 (상처 소독, 붕대법)", teacher: "박교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 소독·붕대법 → 15:00 실습", mat: "구급함 점검", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 1주차", date: "2026-02-07", type: "특별활동", title: "겨울철 실내 체육대회 및 팀빌딩", teacher: "전체교사", place: "체육관", prog: "14:00 개회식 → 14:15 팀빌딩 → 15:00 체육경기", mat: "대원 화합", budget: 30000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 2주차", date: "2026-02-14", type: "기능교육", title: "독도법 기초 (지도 기호, 방위각)", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 지도 기호 → 15:00 나침반", mat: "지도 읽기", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 3주차", date: "2026-02-21", type: "영성훈련", title: "찬양 나눔 및 기도 짝 결연", teacher: "이교사", place: "본당", prog: "14:00 개회식 → 14:15 찬양 실습 → 15:00 기도 짝", mat: "기도제목 카드", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 2, week: "2월 4주차", date: "2026-02-28", type: "기능교육", title: "복슬복슬 양 기능 교육 및 관찰", teacher: "정교사", place: "소예배실", prog: "14:00 개회식 → 14:15 양 관찰 → 15:00 만들기", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 3, week: "3월 1주차", date: "2026-03-07", type: "봉사활동", title: "새봄맞이 환경정화(플로깅)", teacher: "최교사", place: "교회 인근", prog: "14:00 개회식 → 14:15 플로깅 → 15:00 분리수거", mat: "봉투 및 집게", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 3, week: "3월 2주차", date: "2026-03-14", type: "정기집회", title: "기국례 및 클럽기 다루기", teacher: "부장교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 기수단 실습 → 15:00 점검", mat: "기수단 훈련", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 3, week: "3월 3주차", date: "2026-03-21", type: "기능교육", title: "캠핑 장비 기초 및 텐트 설치", teacher: "정교사", place: "교회마당", prog: "14:00 개회식 → 14:15 텐트 설영 → 15:00 장비정리", mat: "텐트 실습", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 3, week: "3월 4주차", date: "2026-03-28", type: "진급식", title: "1분기 기능 이수 평가 및 단합회", teacher: "부장/교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 평가 → 15:00 기능장 수여", mat: "1분기 평가", budget: 40000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 1주차", date: "2026-04-04", type: "정기집회", title: "2분기 사역 개시 및 목표 수립", teacher: "부장교사", place: "소예배실", prog: "14:00 개회식 → 14:15 분기 목표 → 15:00 반별활동", mat: "반별 활동", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 2주차", date: "2026-04-11", type: "기능교육", title: "매듭법 심화 2 (두겹매듭, 감아매기)", teacher: "김교사", place: "소예배실", prog: "14:00 개회식 → 14:15 두겹매듭 → 15:00 응용", mat: "로프 심화", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 3주차", date: "2026-04-18", type: "야외활동", title: "생태탐사 하이킹 및 독도법 실습", teacher: "전체교사", place: "근교 야산", prog: "14:00 개회식 → 14:15 하이킹 → 15:00 미션", mat: "도시락/구급약", budget: 50000, status: "완료", memo: "출석 정상" },
+      { month: 4, week: "4월 4주차", date: "2026-04-25", type: "영성훈련", title: "패스파인더 헌신예배 순서 주관", teacher: "이교사", place: "대예배실", prog: "14:00 개회식 → 14:15 예배 준비 → 15:00 순서 진행", mat: "순서 주관", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 1주차", date: "2026-05-02", type: "특별활동", title: "가정의 달 부모님 초청 열린 안식일", teacher: "여교사회", place: "식당", prog: "14:00 개회식 → 14:15 어버이 은혜 → 15:00 다과", mat: "카네이션/다과", budget: 60000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 2주차", date: "2026-05-09", type: "봉사활동", title: "이웃 사랑 나눔 키트 전달", teacher: "최교사", place: "복지관", prog: "14:00 개회식 → 14:15 키트 포장 → 15:00 전달", mat: "나눔 키트", budget: 35000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 3주차", date: "2026-05-16", type: "기능교육", title: "심폐소생술(CPR) 및 AED 실습", teacher: "박교사", place: "소예배실", prog: "14:00 개회식 → 14:15 CPR 이론 → 15:00 마네킹 실습", mat: "마네킹 실습", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 4주차", date: "2026-05-23", type: "기능교육", title: "창조 기능 교육 (별자리/생태계)", teacher: "정교사", place: "야외공원", prog: "14:00 개회식 → 14:15 자연 관찰 → 15:00 표본", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 5, week: "5월 5주차", date: "2026-05-30", type: "기능교육", title: "내 친구 예수 기능 교육", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 말씀 나눔 → 15:00 활동지", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 6, week: "6월 1주차", date: "2026-06-06", type: "기능교육", title: "지역사회 도우미 봉사 및 견학", teacher: "최교사", place: "지역사회", prog: "14:00 개회식 → 14:15 소방서/파출소 → 15:00 봉사", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 6, week: "6월 2주차", date: "2026-06-13", type: "기능교육", title: "성경 친구들 1 기능 교육", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 성경 인물 → 15:00 퀴즈", mat: "기능장 취득 연계", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 6, week: "6월 3주차", date: "2026-06-20", type: "기능교육", title: "성경 친구들 2 기능 교육", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 성경 인물 2 → 15:00 암기", mat: "기능장 취득 연계", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 6, week: "6월 4주차", date: "2026-06-27", type: "기능교육", title: "수영 1 수상안전 실습", teacher: "체육교사", place: "수영장", prog: "14:00 개회식 → 14:15 수상 안전 → 15:00 수영 검정", mat: "기능장 취득 연계", budget: 60000, status: "완료", memo: "출석 정상" },
+      { month: 7, week: "7월 1주차", date: "2026-07-04", type: "기능교육", title: "화재 안전 및 소화기 사용", teacher: "박교사", place: "교회마당", prog: "14:00 개회식 → 14:15 화재 예방 → 15:00 소화기 분사", mat: "기능장 취득 연계", budget: 25000, status: "완료", memo: "출석 정상" },
+      { month: 7, week: "7월 2주차", date: "2026-07-11", type: "야외활동", title: "하계 패스파인더 캠포리", teacher: "전체교사", place: "캠핑장", prog: "14:00 개회식 → 14:15 텐트 설영 → 15:00 캠포리 순서", mat: "전체 야영", budget: 150000, status: "완료", memo: "출석 정상" },
+      { month: 7, week: "7월 3주차", date: "2026-07-18", type: "영성훈련", title: "캠포리 은혜 나눔", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 소감 나눔 → 15:00 말씀", mat: "소감문 나눔", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 7, week: "7월 4주차", date: "2026-07-25", type: "기능교육", title: "천문관찰: 여름철 별자리 찾기", teacher: "김교사", place: "옥상/야외", prog: "14:00 개회식 → 14:15 별자리 도감 → 15:00 관찰", mat: "별자리 도감", budget: 20000, status: "완료", memo: "출석 정상" },
+      { month: 8, week: "8월 1주차", date: "2026-08-01", type: "봉사활동", title: "교회 시설 정비 및 대청소", teacher: "최교사", place: "교회 전체", prog: "14:00 개회식 → 14:15 봉사활동 → 15:00 정돈", mat: "환경 정돈", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 8, week: "8월 2주차", date: "2026-08-08", type: "정기집회", title: "단복 및 제식 리마인드", teacher: "부장교사", place: "체육관", prog: "14:00 개회식 → 14:15 제식 훈련 → 15:00 단복 점검", mat: "복장 점검", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 8, week: "8월 3주차", date: "2026-08-15", type: "기능교육", title: "신호법 (모스 부호/깃발 신호)", teacher: "정교사", place: "소예배실", prog: "14:00 개회식 → 14:15 모스부호 → 15:00 송수신 실습", mat: "신호 실습", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 8, week: "8월 4주차", date: "2026-08-22", type: "영성훈련", title: "기도회 및 대원 비전 나눔", teacher: "이교사", place: "소예배실", prog: "14:00 개회식 → 14:15 비전 나눔 → 15:00 중보기도", mat: "비전 나눔", budget: 15000, status: "완료", memo: "출석 정상" },
+      { month: 8, week: "8월 5주차", date: "2026-08-29", type: "기능교육", title: "기초 가죽공예 / 수공예 실습", teacher: "김교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 공예 이론 → 15:00 작품 제작", mat: "공예 실습 재료", budget: 30000, status: "예정", memo: "사전 준비물 점검" },
+      { month: 9, week: "9월 1주차", date: "2026-09-05", type: "야외활동", title: "초가을 숲 오리엔티어링", teacher: "전체교사", place: "수목원", prog: "14:00 개회식 → 14:15 오리엔티어링 → 15:00 미션런", mat: "미션 런", budget: 40000, status: "예정", memo: "야외 안전 유의" },
+      { month: 9, week: "9월 2주차", date: "2026-09-12", type: "진급식", title: "3분기 우수자 시상", teacher: "부장교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 시상 → 15:00 격려", mat: "3분기 결산", budget: 35000, status: "예정", memo: "수상자 명단 확인" },
+      { month: 9, week: "9월 3주차", date: "2026-09-19", type: "정기집회", title: "4분기 활동 개시 준비", teacher: "부장교사", place: "소예배실", prog: "14:00 개회식 → 14:15 하반기 계획 → 15:00 반별", mat: "하반기 운영", budget: 15000, status: "예정", memo: "계획 공유" },
+      { month: 9, week: "9월 4주차", date: "2026-09-26", type: "기능교육", title: "매듭법 총복습 및 건축물", teacher: "김교사", place: "체육관", prog: "14:00 개회식 → 14:15 건축물 제작 → 15:00 점검", mat: "개척 매듭", budget: 20000, status: "예정", memo: "로프 충분히 확보" },
+      { month: 10, week: "10월 1주차", date: "2026-10-03", type: "영성훈련", title: "성경 퀴즈 왕중왕전", teacher: "이교사", place: "본당", prog: "14:00 개회식 → 14:15 퀴즈대회 → 15:00 시상", mat: "퀴즈 대회", budget: 25000, status: "예정", memo: "문제 출제" },
+      { month: 10, week: "10월 2주차", date: "2026-10-10", type: "봉사활동", title: "사랑의 쌀 나눔", teacher: "최교사", place: "마을 일대", prog: "14:00 개회식 → 14:15 쌀 포장 → 15:00 전달", mat: "이웃 돕기", budget: 30000, status: "예정", memo: "대상 가구 확인" },
+      { month: 10, week: "10월 3주차", date: "2026-10-17", type: "기능교육", title: "재난 대비 방재 안전", teacher: "박교사", place: "소예배실", prog: "14:00 개회식 → 14:15 대피 훈련 → 15:00 소방안전", mat: "안전 교육", budget: 20000, status: "예정", memo: "대피로 점검" },
+      { month: 10, week: "10월 4주차", date: "2026-10-24", type: "야외활동", title: "가을 단풍 트레킹", teacher: "전체교사", place: "국립공원", prog: "14:00 개회식 → 14:15 트레킹 → 15:00 묵상", mat: "자연 묵상", budget: 45000, status: "예정", memo: "보온 의류 준비" },
+      { month: 10, week: "10월 5주차", date: "2026-10-31", type: "정기집회", title: "활동 앨범 영상 상영", teacher: "미디어/부장", place: "패스파인더실", prog: "14:00 개회식 → 14:15 영상 시청 → 15:00 소감", mat: "추억 정리", budget: 20000, status: "예정", memo: "영상 편집" },
+      { month: 11, week: "11월 1주차", date: "2026-11-07", type: "영성훈련", title: "추수감사 찬양제", teacher: "이교사", place: "대예배실", prog: "14:00 개회식 → 14:15 찬양 연습 → 15:00 발표", mat: "찬양 발표", budget: 30000, status: "예정", memo: "찬양 선곡" },
+      { month: 11, week: "11월 2주차", date: "2026-11-14", type: "기능교육", title: "겨울철 건강관리 교육", teacher: "박교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 위생 수칙 → 15:00 건강체조", mat: "건강 생활", budget: 15000, status: "예정", memo: "체온계/소독제" },
+      { month: 11, week: "11월 3주차", date: "2026-11-21", type: "특별활동", title: "패스파인더의 날 주관", teacher: "전체교사", place: "대예배실", prog: "14:00 개회식 → 14:15 순서 주관 → 15:00 전교인 교제", mat: "전교인 안식일", budget: 50000, status: "예정", memo: "단복 완비" },
+      { month: 11, week: "11월 4주차", date: "2026-11-28", type: "봉사활동", title: "사랑의 연탄/방한용품 나눔", teacher: "최교사", place: "소외이웃", prog: "14:00 개회식 → 14:15 물품 배부 → 15:00 봉사", mat: "연말 봉사", budget: 50000, status: "예정", memo: "방한 장갑 지참" },
+      { month: 12, week: "12월 1주차", date: "2026-12-05", type: "진급식", title: "총결산 대수료식 & 진급식", teacher: "담임목사/부장", place: "본당", prog: "14:00 개회식 → 14:15 수료패 수여 → 15:00 진급", mat: "수료 뱃지", budget: 60000, status: "예정", memo: "수료증 준비" },
+      { month: 12, week: "12월 2주차", date: "2026-12-12", type: "정기집회", title: "종무식 및 교사 사은회", teacher: "전체", place: "패스파인더실", prog: "14:00 개회식 → 14:15 사은회 → 15:00 감사나눔", mat: "한해 마감", budget: 40000, status: "예정", memo: "감사패 준비" },
+      { month: 12, week: "12월 3주차", date: "2026-12-19", type: "특별활동", title: "신년 계획 수립 및 멘토링", teacher: "전체교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 비전 작성 → 15:00 멘토링", mat: "신년 준비", budget: 20000, status: "예정", memo: "새해 목표지" },
+      { month: 12, week: "12월 4주차", date: "2026-12-26", type: "정기집회", title: "연말 비품 정리", teacher: "부장교사", place: "패스파인더실", prog: "14:00 개회식 → 14:15 비품 대청소 → 15:00 폐회", mat: "비품 정리", budget: 15000, status: "예정", memo: "창고 정리" }
     ];
+
+    let rawAnnual = rawMonthly.map((m, idx) => ({
+      no: idx + 1,
+      date: m.date,
+      q: (m.month <= 3 ? "1분기" : (m.month <= 6 ? "2분기" : (m.month <= 9 ? "3분기" : "4분기"))),
+      type: m.type,
+      title: m.title,
+      field: m.type,
+      teacher: m.teacher,
+      place: m.place,
+      budget: m.budget,
+      status: m.status,
+      note: m.mat
+    }));
 
     let activeMonth = new Date().getMonth() + 1;
     let selectedRundownDate = "2026-08-29";
@@ -1443,7 +1457,7 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 완전 동기화 엔진
+    // Google 스프레드시트 실시간 동기화 엔진 (캐시 방지 적용)
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1627,13 +1641,14 @@
               const col0 = r[0] && r[0].v ? String(r[0].v).trim() : "";
               const col1 = r[1] && (r[1].f || r[1].v) ? String(r[1].f || r[1].v).trim() : "";
 
-              if (col0 === 'No' || col1.includes('일자')) {
+              // 헤더 행 찾기
+              if (col0 === 'No' || col0 === 'No.' || col1.includes('일자')) {
                 startRow = true;
                 continue;
               }
 
               if (startRow && col0 && !isNaN(parseInt(col0))) {
-                // 일자 추출
+                // 일자 추출 및 변환
                 let dateVal = "";
                 if (r[1]) {
                   if (r[1].f) {
@@ -1656,6 +1671,10 @@
                 if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
                   dateVal = "20" + dateVal;
                 }
+                const dParts = dateVal.split('-');
+                if (dParts.length === 3) {
+                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                }
 
                 const quarterVal = r[2] && r[2].v ? String(r[2].v).trim() : "";
                 const typeVal = r[3] && r[3].v ? String(r[3].v).trim() : "";
@@ -1663,12 +1682,15 @@
                 const fieldVal = r[5] && r[5].v ? String(r[5].v).trim() : typeVal;
                 const teacherVal = r[6] && r[6].v ? String(r[6].v).trim() : "";
                 const placeVal = r[7] && r[7].v ? String(r[7].v).trim() : "소예배실";
-                const budgetVal = r[8] && r[8].v ? (parseInt(r[8].v) || 20000) : 20000;
                 
-                // 오늘 날짜 기준 완료/예정 자동 판별 (또는 시트 상태)
+                // 예산 추출 (콤마 제거 후 변환)
+                const budgetVal = r[8] && r[8].v ? (parseInt(String(r[8].v).replace(/,/g, '')) || 0) : 0;
+                
+                // 오늘 날짜 기준 상태 자동 판별
                 const todayStr = new Date().toISOString().substring(0, 10);
                 const statusVal = dateVal <= todayStr ? "완료" : "예정";
-                const noteVal = r[9] && r[9].v ? String(r[9].v).trim() : (fieldVal || "-");
+                
+                const noteVal = r[9] && r[9].v ? String(r[9].v).trim() : "";
 
                 loadedAnnual.push({
                   no: parseInt(col0),
@@ -1688,6 +1710,28 @@
 
             if (loadedAnnual.length > 0) {
               rawAnnual = loadedAnnual;
+              
+              // 월간 계획표 데이터도 최신 연간 데이터로 일괄 덮어쓰기
+              rawMonthly = loadedAnnual.map(item => {
+                const monthNum = parseInt(item.date.substring(5, 7), 10) || 1;
+                const d = parseInt(item.date.substring(8, 10), 10) || 1;
+                const weekNum = Math.ceil(d / 7);
+                
+                return {
+                  month: monthNum,
+                  week: `${monthNum}월 ${weekNum}주차`,
+                  date: item.date,
+                  type: item.type,
+                  title: item.title,
+                  teacher: item.teacher,
+                  place: item.place,
+                  prog: item.field,
+                  mat: item.note,
+                  budget: item.budget,
+                  status: item.status,
+                  memo: ""
+                };
+              });
             }
           }
         } catch (ane) {
