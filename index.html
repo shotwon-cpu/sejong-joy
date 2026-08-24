@@ -958,7 +958,7 @@
     let totalAnnualBudget = 7000000;
 
     let activeMonth = new Date().getMonth() + 1;
-    let selectedRundownDate = "";
+    let selectedRundownDate = ""; 
 
     function formatWeekLabel(weekStr) {
       const match = weekStr.match(/(\d+)주/);
@@ -1593,21 +1593,6 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
-        if (APPS_SCRIPT_URL.startsWith("http")) {
-          try {
-            const appRes = await fetch(APPS_SCRIPT_URL);
-            const appData = await appRes.json();
-            if (appData.members && appData.members.length > 0) {
-              members = appData.members;
-            }
-            if (appData.honors && appData.honors.length > 0) {
-              honorStats = appData.honors;
-            }
-          } catch(appErr) {
-            console.log("웹앱 연동 오류:", appErr);
-          }
-        }
-
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -2004,7 +1989,6 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 🚨 5. 월간 상세계획표 (헤더 탐색 완전 폐기 및 칸 번호 하드코딩 직결)
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -2017,8 +2001,6 @@
             
             for (let r = 0; r < rows.length; r++) {
               const rCells = rows[r].c;
-              
-              // 1번 칸(B열)에 데이터가 없으면 무시
               if (!rCells || !rCells[1]) continue;
 
               let dateVal = "";
@@ -2033,19 +2015,16 @@
                 }
               }
 
-              // 날짜 데이터가 맞는지(기호 포함 여부) 확인
               if (dateVal && (dateVal.includes('-') || dateVal.includes('.') || dateVal.includes('/'))) {
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
                 if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
                 
-                // 🚨 제목줄 방어벽: 날짜 칸에 "일자"나 "날짜"라는 글자가 있으면 무조건 무시!
                 if (dateVal.includes("일자") || dateVal.includes("날짜")) continue;
 
                 const dParts = dateVal.split('-');
                 if (dParts.length >= 3) {
                   const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
                   
-                  // 🚨 6번칸(진행순서), 7번칸(준비물), 10번칸(교사메모) 고정 위치에서 쏙 빼옵니다!
                   monthlyDetails[fDate] = {
                     order: rCells[6] && rCells[6].v ? String(rCells[6].v).replace(/['"]/g, '`') : "-",
                     mat: rCells[7] && rCells[7].v ? String(rCells[7].v).replace(/['"]/g, '`') : "-",
@@ -2148,7 +2127,7 @@
           }
         } catch (re) { console.log("시간표 연동 오류:", re); }
 
-        if (isUserClick) {
+        if (isUserClick && APPS_SCRIPT_URL.startsWith("http")) {
           showToast("✨ 최신 데이터로 완벽하게 동기화되었습니다!");
         }
 
