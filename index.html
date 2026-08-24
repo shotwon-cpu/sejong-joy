@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>2026 세종 JOY 패스파인더 & 어드벤처러 운영 현황</title>
+  <title>2026 세종 JOY 클럽 운영 현황</title>
   <style>
     :root {
       --bg-color: #0b1528;
@@ -790,7 +790,7 @@
     <div id="tab-rundown" class="tab-content">
       <div class="card">
         <div class="card-title">
-          <span>📋 세종JOY클럽 주간 운영계획</span>
+          <span>📋 세종 JOY 클럽 주간 운영계획</span>
           <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 50%;"></div>
         </div>
 
@@ -840,14 +840,21 @@
               </tr>
             </thead>
             <tbody id="rundown-tbody">
-              <!-- 구글 시트 토요일_주간세부계획서 연동 기본값 -->
+              <tr>
+                <td><span class="badge badge-path">제식</span></td>
+                <td class="sticky-col" style="font-weight:bold;">12:00 ~ 12:15</td>
+                <td>15분</td>
+                <td class="text-left" style="font-weight:600; color:#fff;">제식활동(설교예배후 교회 본당에서)</td>
+                <td>이소연, 정돈구</td>
+                <td class="text-left">-</td>
+              </tr>
               <tr>
                 <td><span class="badge badge-plan">개회</span></td>
                 <td class="sticky-col" style="font-weight:bold;">13:00 ~ 13:30</td>
                 <td>30분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">개회식 (입장, 기국례, 서약 및 법 제창, 표어, 찬양, 개회기도)</td>
                 <td>인도자 / 기수</td>
-                <td class="text-left">클럽기, 태극기, 반주, 단복 정렬</td>
+                <td class="text-left">클럽기, 태극기, 반주, 단복 정렬 및 제식 점검</td>
               </tr>
               <tr>
                 <td><span class="badge badge-done">기능</span></td>
@@ -855,7 +862,7 @@
                 <td>30분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">기능 교육 (해당 주차 기능장 이론 및 실습)</td>
                 <td>기능교사</td>
-                <td class="text-left">교안, 실습 재료, 분반 지도</td>
+                <td class="text-left">교안, 실습 재료, 어드벤처러/패스파인더 분반</td>
               </tr>
               <tr>
                 <td><span class="badge badge-adv">활동</span></td>
@@ -863,7 +870,7 @@
                 <td>30분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">팀 빌딩 & 응용 신체활동 게임 (조별 협동 미션)</td>
                 <td>활동교사</td>
-                <td class="text-left">미션 카드, 타이머, 체육관</td>
+                <td class="text-left">미션 카드, 타이머, 안전사고 유의, 체육관</td>
               </tr>
               <tr>
                 <td><span class="badge badge-path">영성</span></td>
@@ -871,7 +878,7 @@
                 <td>15분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">영성 훈련 & 말씀 나눔 (성경 퀴즈 및 기도 짝 나눔)</td>
                 <td>영성교사</td>
-                <td class="text-left">성경 퀴즈지, 선물, 기도제목</td>
+                <td class="text-left">성경 퀴즈지, 선물, 대원별 기도제목 공유</td>
               </tr>
               <tr>
                 <td><span class="badge badge-plan">폐회</span></td>
@@ -879,7 +886,7 @@
                 <td>15분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">폐회식 & 공지사항 (클럽기 하강, 폐회기도, 간식 배부, 해산)</td>
                 <td>총괄부장</td>
-                <td class="text-left">간식(개별포장), 다음 주 안내</td>
+                <td class="text-left">간식(개별포장), 다음 주 준비물 안내</td>
               </tr>
             </tbody>
           </table>
@@ -1009,7 +1016,7 @@
     }));
 
     let activeMonth = new Date().getMonth() + 1;
-    let selectedRundownDate = "2026-08-29"; // 기본 선택일자
+    let selectedRundownDate = "2026-08-29";
 
     function formatWeekLabel(weekStr) {
       const match = weekStr.match(/(\d+)주/);
@@ -1158,9 +1165,7 @@
       `}).join('');
     }
 
-    // 활동시간표 상단 주간 세부 운영 개요 렌더링
     function renderRundownOverview() {
-      // 1. 주차 선택 버튼 바 렌더링 (최근 8~9월 일정 우선 배치)
       const dateSelector = document.getElementById('rundown-date-selector');
       if (dateSelector) {
         dateSelector.innerHTML = rawAnnual.slice(30, 42).map(item => `
@@ -1170,7 +1175,6 @@
         `).join('');
       }
 
-      // 2. 선택된 날짜의 월간 계획 데이터 찾기
       const curPlan = rawMonthly.find(m => m.date === selectedRundownDate) || rawMonthly[34];
 
       if (curPlan) {
@@ -1409,14 +1413,17 @@
       renderMonthlyTable(m);
     }
 
+    // Google 스프레드시트 실시간 동기화 엔진 (캐시 방지 적용)
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
 
+      const cacheBuster = `&_=${Date.now()}`;
+
       try {
         // 1. 대원출석_현황 파싱
         const attSheetName = encodeURIComponent("대원출석_현황");
-        const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json`;
+        const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
         const attRes = await fetch(attUrl);
         const attText = await attRes.text();
         const attJson = JSON.parse(attText.substr(47).slice(0, -2));
@@ -1470,7 +1477,7 @@
         // 2. 기능장_취득현황 파싱
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
-          const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
+          const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
           const honorRes = await fetch(honorUrl);
           const honorText = await honorRes.text();
           const honorJson = JSON.parse(honorText.substr(47).slice(0, -2));
@@ -1570,10 +1577,10 @@
           console.log("기능장 동적 시트 연동:", he);
         }
 
-        // 3. 활동계획서 파싱 (날짜 자동 표준화 적용)
+        // 3. 활동계획서 파싱
         try {
           const planSheetName = encodeURIComponent("활동계획서");
-          const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json`;
+          const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json${cacheBuster}`;
           const planRes = await fetch(planUrl);
           const planText = await planRes.text();
           const planJson = JSON.parse(planText.substr(47).slice(0, -2));
@@ -1637,10 +1644,10 @@
           console.log("활동계획서 시트 연동:", pe);
         }
 
-        // 4. 토요일_주간세부계획서 (활동시간표) 실시간 파싱
+        // 4. 토요일_주간세부계획서 파싱
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
-          const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json`;
+          const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
           const runRes = await fetch(runUrl);
           const runText = await runRes.text();
           const runJson = JSON.parse(runText.substr(47).slice(0, -2));
@@ -1669,10 +1676,11 @@
                   type: col0,
                   badge: badgeType,
                   time: r[1] && r[1].v ? String(r[1].v).trim() : "",
-                  duration: r[2] && r[2].v ? String(r[2].v).trim() + "분" : "",
+                  duration: r[2] && r[2].v ? String(r[2].v).trim() + (String(r[2].v).includes('분') ? '' : '분') : "",
                   content: r[3] && r[3].v ? String(r[3].v).trim() : "",
                   teacher: r[4] && r[4].v ? String(r[4].v).trim() : "",
-                  mat: r[5] && r[5].v ? String(r[5].v).trim() : ""
+                  mat: (r[5] && r[5].v ? String(r[5].v).trim() : "") + 
+                       (r[6] && r[6].v ? (r[5] && r[5].v ? ', ' : '') + String(r[6].v).trim() : "")
                 });
               }
             }
@@ -1687,7 +1695,7 @@
                     <td>${item.duration}</td>
                     <td class="text-left" style="font-weight:600; color:#fff;">${item.content}</td>
                     <td>${item.teacher}</td>
-                    <td class="text-left">${item.mat}</td>
+                    <td class="text-left">${item.mat || '-'}</td>
                   </tr>
                 `).join('');
               }
