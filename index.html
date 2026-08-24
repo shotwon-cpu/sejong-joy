@@ -672,7 +672,6 @@
   </header>
 
   <main>
-    <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
         <div class="kpi-card green" onclick="showCompletedActivities()">
@@ -954,7 +953,7 @@
     let totalAnnualBudget = 7000000;
 
     let activeMonth = new Date().getMonth() + 1;
-    let selectedRundownDate = "2026-08-29";
+    let selectedRundownDate = ""; // 🚨 2. 스마트 날짜 자동인식을 위해 비워둡니다.
 
     function formatWeekLabel(weekStr) {
       const match = weekStr.match(/(\d+)주/);
@@ -1211,7 +1210,10 @@
         document.getElementById('ov-place').innerText = curPlan.place || '세종 JOY 패스파인더실 & 소예배실';
         document.getElementById('ov-teacher').innerText = curPlan.teacher || '-';
         document.getElementById('ov-target').innerText = `어드벤처러 및 패스파인더 대원 ${members.length || 13}명`;
-        document.getElementById('ov-mat').innerText = curPlan.note || '단복 정렬 및 기본 준비물';
+        
+        // 🚨 월간 계획의 준비물을 가져와서 보여줌 (없으면 기본값)
+        const d_mat = monthlyDetails[curPlan.date] && monthlyDetails[curPlan.date].mat && monthlyDetails[curPlan.date].mat !== '-' ? monthlyDetails[curPlan.date].mat : '단복 정렬 및 기본 준비물';
+        document.getElementById('ov-mat').innerText = d_mat;
       }
     }
 
@@ -1457,6 +1459,21 @@
       renderMonthlyTable(m);
     }
 
+    // 🚨 1. 원격 출석체크 기존 데이터 연동 함수 추가
+    function updateModalCheckboxes() {
+      const select = document.getElementById('att-week-select');
+      const targetWeek = select.value; 
+      
+      members.forEach((m, idx) => {
+        const chk = document.getElementById(`att-input-${idx}`);
+        if(chk) {
+          // 기존에 구글 시트에 데이터가 있으면 그걸 반영하고, 아예 없으면 기본으로 체크
+          chk.checked = m.attHistory && m.attHistory.hasOwnProperty(targetWeek) ? m.attHistory[targetWeek] : true;
+          updateAttBoxStyle(idx);
+        }
+      });
+    }
+
     function openAttendanceModal() {
       const recentDates = rawAnnual.filter(item => {
         const m = parseInt(item.date.substring(5, 7));
@@ -1485,7 +1502,7 @@
         <div>
           <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center;">
             <label style="font-size:12px; color:var(--accent-gold); font-weight:bold; white-space:nowrap;">출석 주차:</label>
-            <select id="att-week-select" style="background:#0e1b33; color:#fff; border:1px solid #24385a; padding:6px 10px; border-radius:6px; flex:1; font-size:12px;">
+            <select id="att-week-select" onchange="updateModalCheckboxes()" style="background:#0e1b33; color:#fff; border:1px solid #24385a; padding:6px 10px; border-radius:6px; flex:1; font-size:12px;">
               ${optionsHtml}
             </select>
             <button class="filter-btn" onclick="toggleAllAttendance(true)">전체출석</button>
@@ -1501,6 +1518,8 @@
       `;
 
       openCustomModal("📝 안식일 대원 원격 출석체크", customHtml);
+      // 팝업 열릴 때, 선택된 날짜 기준으로 기존 출석 정보 세팅
+      setTimeout(updateModalCheckboxes, 50);
     }
 
     function toggleAttCheck(idx) {
@@ -1573,21 +1592,6 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
-        if (APPS_SCRIPT_URL.startsWith("http")) {
-          try {
-            const appRes = await fetch(APPS_SCRIPT_URL);
-            const appData = await appRes.json();
-            if (appData.members && appData.members.length > 0) {
-              members = appData.members;
-            }
-            if (appData.honors && appData.honors.length > 0) {
-              honorStats = appData.honors;
-            }
-          } catch(appErr) {
-            console.log("웹앱 연동 오류:", appErr);
-          }
-        }
-
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1629,6 +1633,245 @@
         } catch (je) { console.log("총예산 연동 오류:", je); }
 
         try {
+          const attSheetName = encodeURIComponent("대원출석_현황");
+          const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
+          const attRes = await fetch(attUrl);
+          const attText = await attRes.text();
+          const attJson = JSON.parse(attText.substr(47).slice(0, -2));
+
+          let updatedMembers = [];
+          if (attJson && attJson.table) {
+            const rows = attJson.table.rows;
+            let sumColIdx = -1;
+            let rateColIdx = -1;
+            let nameColIdx = 2; 
+
+            if (attJson.table.cols) {
+              for (let c = 0; c < attJson.table.cols.length; c++) {
+                if (attJson.table.cols[c] && attJson.table.cols[c].label) {
+                  const val = String(attJson.table.cols[c].label).replace(/\s/g, '');
+                  if (val.includes('출석주수') || val.includes('합계') || val === '출석') sumColIdx = c;
+                  if (val.includes('출석률') || val.includes('출석율')) rateColIdx = c;
+                  if (val === '이름' || val === '성명' || val === '대원명') nameColIdx = c;
+                }
+              }
+            }
+
+            let headerRow = -1;
+            if (sumColIdx === -1 || rateColIdx === -1) {
+              for (let r = 0; r < Math.min(5, rows.length); r++) {
+                const rCells = rows[r].c;
+                if (!rCells) continue;
+                for (let c = 0; c < rCells.length; c++) {
+                  if (rCells[c] && rCells[c].v) {
+                    const val = String(rCells[c].v).replace(/\s/g, '');
+                    if (sumColIdx === -1 && (val.includes('출석주수') || val.includes('합계') || val === '출석')) sumColIdx = c;
+                    if (rateColIdx === -1 && (val.includes('출석률') || val.includes('출석율'))) rateColIdx = c;
+                    if (val === '이름' || val === '성명' || val === '대원명') nameColIdx = c;
+                  }
+                }
+                if (sumColIdx !== -1 && rateColIdx !== -1) {
+                  headerRow = r;
+                  break;
+                }
+              }
+            }
+
+            // 🚨 출석 날짜 헤더 저장 (원격 출석체크 과거 기록 조회용)
+            let headerDates = [];
+            if (headerRow !== -1) {
+              for (let c = nameColIdx + 1; c < (sumColIdx !== -1 ? sumColIdx : rows[headerRow].c.length); c++) {
+                const cell = rows[headerRow].c[c];
+                headerDates.push(cell && cell.v ? String(cell.v).replace(/\s/g, '') : "");
+              }
+            }
+
+            for (let i = (headerRow !== -1 ? headerRow + 1 : 0); i < rows.length; i++) {
+              const r = rows[i].c;
+              if (!r) continue;
+
+              // 🚨 이름 매칭용 필터 추가 (스페이스바 무시)
+              let rawName = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).trim() : "";
+              let nameVal = rawName.replace(/\s/g, '');
+              let ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
+              let deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
+
+              if (!nameVal || nameVal === '이름' || nameVal === '합계' || nameVal.includes('출석률') || nameVal.includes('관리') || nameVal === '비중' || nameVal.includes('대원')) continue;
+
+              let parsedDays = 0;
+              let parsedRate = "";
+
+              if (sumColIdx !== -1 && r[sumColIdx] && r[sumColIdx].v !== null) {
+                parsedDays = parseInt(r[sumColIdx].v) || 0;
+              }
+              if (rateColIdx !== -1 && r[rateColIdx]) {
+                if (r[rateColIdx].v !== null && !isNaN(parseFloat(r[rateColIdx].v))) {
+                  const numVal = parseFloat(r[rateColIdx].v);
+                  parsedRate = (numVal <= 1 ? (numVal * 100).toFixed(1) : numVal.toFixed(1)) + "%";
+                } else if (r[rateColIdx].f) {
+                  parsedRate = String(r[rateColIdx].f).trim();
+                }
+              }
+
+              let attCount = 0;
+              let attHistory = {};
+              let dateIndex = 0;
+              
+              for (let cIdx = nameColIdx + 1; cIdx < (sumColIdx !== -1 ? sumColIdx : r.length); cIdx++) {
+                let isPresent = r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1');
+                if (isPresent) attCount++;
+                
+                if (headerDates[dateIndex]) {
+                   attHistory[headerDates[dateIndex]] = isPresent;
+                }
+                dateIndex++;
+              }
+              if (parsedDays === 0) parsedDays = attCount;
+
+              const fallback = members.find(m => m.name.replace(/\s/g, '') === nameVal);
+              
+              updatedMembers.push({
+                age: ageVal > 0 ? ageVal : (fallback ? fallback.age : 9),
+                dept: deptVal,
+                name: rawName, // 원래 이름 유지
+                days: parsedDays > 0 ? parsedDays : (fallback ? fallback.days : 30),
+                rate: parsedRate ? parsedRate : (fallback ? fallback.rate : "88.6%"),
+                hCount: fallback ? fallback.hCount : 0,
+                honors: fallback ? fallback.honors : [],
+                attHistory: attHistory // 🚨 원격 출석 체크용 기록 추가
+              });
+            }
+          }
+          if(updatedMembers.length > 0) members = updatedMembers;
+        } catch(e) { console.log("대원 출석 연동 오류:", e); }
+
+        try {
+          const honorSheetName = encodeURIComponent("기능장_취득현황");
+          const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
+          const honorRes = await fetch(honorUrl);
+          const honorText = await honorRes.text();
+          const honorJson = JSON.parse(honorText.substr(47).slice(0, -2));
+
+          if (honorJson && honorJson.table) {
+            const hRows = honorJson.table.rows || [];
+            let nameColIdx = -1;
+            let isHeaderInCols = false;
+            let dynamicHonors = [];
+
+            if (honorJson.table.cols) {
+              for (let c = 0; c < honorJson.table.cols.length; c++) {
+                if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
+                  const val = String(honorJson.table.cols[c].label).replace(/\s/g, '');
+                  if (val === '이름' || val === '성명' || val === '대원명') {
+                    nameColIdx = c;
+                    isHeaderInCols = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (isHeaderInCols && nameColIdx !== -1) {
+              for (let c = nameColIdx + 1; c < honorJson.table.cols.length; c++) {
+                if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
+                  const fullName = String(honorJson.table.cols[c].label).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`');
+                  const checkName = fullName.replace(/\s/g, '');
+                  if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
+
+                  const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
+                  dynamicHonors.push({
+                    colIdx: c,
+                    id: dynamicHonors.length,
+                    name: fullName,
+                    title: mMatch ? mMatch[1] : fullName,
+                    date: mMatch ? mMatch[2] : "",
+                    count: 0,
+                    rate: "0%"
+                  });
+                }
+              }
+            }
+
+            let headerRowIdx = -1;
+            if (!isHeaderInCols) {
+              for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
+                const r = hRows[rIdx].c;
+                if (!r) continue;
+                for (let cIdx = 0; cIdx < Math.min(5, r.length); cIdx++) {
+                  if (r[cIdx] && r[cIdx].v) {
+                    const val = String(r[cIdx].v).replace(/\s/g, '');
+                    if (val === '이름' || val === '성명' || val === '대원명') {
+                      headerRowIdx = rIdx;
+                      nameColIdx = cIdx;
+                      break;
+                    }
+                  }
+                }
+                if (headerRowIdx !== -1) break;
+              }
+
+              if (headerRowIdx !== -1 && nameColIdx !== -1) {
+                const headerRow = hRows[headerRowIdx].c;
+                for (let c = nameColIdx + 1; c < headerRow.length; c++) {
+                  if (headerRow[c] && headerRow[c].v) {
+                    const fullName = String(headerRow[c].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`');
+                    const checkName = fullName.replace(/\s/g, '');
+                    if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
+
+                    const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
+                    dynamicHonors.push({
+                      colIdx: c,
+                      id: dynamicHonors.length,
+                      name: fullName,
+                      title: mMatch ? mMatch[1] : fullName,
+                      date: mMatch ? mMatch[2] : "",
+                      count: 0,
+                      rate: "0%"
+                    });
+                  }
+                }
+              }
+            }
+
+            if (dynamicHonors.length > 0 && nameColIdx !== -1) {
+              const startRow = isHeaderInCols ? 0 : headerRowIdx + 1;
+              for (let i = startRow; i < hRows.length; i++) {
+                const r = hRows[i].c;
+                if (!r) continue;
+
+                let rowName = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).replace(/\s/g, '') : "";
+                if (!rowName || rowName === '합계' || rowName.includes('대원수') || rowName.includes('평균')) continue;
+
+                const mem = members.find(m => m.name.replace(/\s/g, '') === rowName);
+                if (mem) {
+                  let userH = [];
+                  let hCnt = 0;
+                  dynamicHonors.forEach((dHonor) => {
+                    const cell = r[dHonor.colIdx];
+                    const cellVal = cell && cell.v ? String(cell.v).trim().toUpperCase() : "";
+                    let isEarned = (cellVal === '취득' || cellVal === 'O' || cellVal === '〇' || cellVal === '○' || cellVal === '1' || cellVal === 'TRUE' || cellVal === 'V') ? 1 : 0;
+                    
+                    userH.push(isEarned);
+                    if (isEarned) {
+                      hCnt++;
+                      dHonor.count++;
+                    }
+                  });
+                  mem.honors = userH;
+                  mem.hCount = hCnt;
+                }
+              }
+
+              const totalMCount = members.length || 13;
+              dynamicHonors.forEach(dh => {
+                dh.rate = ((dh.count / totalMCount) * 100).toFixed(1) + "%";
+              });
+              honorStats = dynamicHonors;
+            }
+          }
+        } catch (he) { console.log("기능장 동적 파싱 실패:", he); }
+
+        try {
           const annualSheetName = encodeURIComponent("2026_연간_토요일_일정계획");
           const annualUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${annualSheetName}&tqx=out:json${cacheBuster}`;
           const annualRes = await fetch(annualUrl);
@@ -1654,8 +1897,6 @@
                         if (val.includes('장소')) placeCol = c;
                         if (val.includes('예산')) bdgCol = c;
                         if (val.includes('상태')) stCol = c;
-                        
-                        // 🚨 수정사항: '비고' 글자(ntCol)를 여기서 더 정확하게 찾도록 최우선 검사!
                         if (val === '비고' || val === '메모' || val === '특이사항') ntCol = c;
                     }
                 }
@@ -1674,8 +1915,6 @@
                   if (val.includes('장소')) { placeCol = c; isHeader = true; }
                   if (val.includes('예산')) { bdgCol = c; isHeader = true; }
                   if (val.includes('상태')) { stCol = c; isHeader = true; }
-                  
-                  // 🚨 수정사항: 여기서도 '비고'를 정확하게 찾기
                   if (val === '비고' || val === '메모' || val === '특이사항') { ntCol = c; isHeader = true; }
                 }
               }
@@ -1695,9 +1934,8 @@
               if (!isNaN(noVal) && noVal > 0 && noVal <= 100) {
                 let dateVal = "";
                 if (r[dCol]) {
-                  if (r[dCol].f) {
-                    dateVal = String(r[dCol].f).trim();
-                  } else if (r[dCol].v) {
+                  if (r[dCol].f) dateVal = String(r[dCol].f).trim();
+                  else if (r[dCol].v) {
                     dateVal = String(r[dCol].v).trim();
                     if (dateVal.startsWith("Date(")) {
                       const parts = dateVal.match(/\d+/g);
@@ -1707,15 +1945,10 @@
                     }
                   }
                 }
-
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
-                  dateVal = "20" + dateVal;
-                }
+                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
                 const dParts = dateVal.split('-');
-                if (dParts.length === 3) {
-                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
-                }
+                if (dParts.length === 3) dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
 
                 const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
                 const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
@@ -1731,31 +1964,29 @@
                      statusVal = String(r[stCol].v).trim().replace(/[\n\r]/g, '');
                 }
                 
-                // 🚨 여기서 방금 정확히 찾은 ntCol(비고란 위치) 데이터를 읽어옴!
                 const noteVal = r[ntCol] && r[ntCol].v ? String(r[ntCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
 
                 loadedAnnual.push({
-                  no: noVal,
-                  date: dateVal,
+                  no: noVal, date: dateVal,
                   q: quarterVal || (parseInt(dateVal.substring(5, 7)) <= 3 ? "1분기" : (parseInt(dateVal.substring(5, 7)) <= 6 ? "2분기" : (parseInt(dateVal.substring(5, 7)) <= 9 ? "3분기" : "4분기"))),
-                  type: typeVal,
-                  title: titleVal,
-                  field: fieldVal,
-                  teacher: teacherVal,
-                  place: placeVal,
-                  budget: budgetVal,
-                  status: statusVal,
-                  note: noteVal // 🚨 깨끗하게 파싱된 비고란 데이터 저장
+                  type: typeVal, title: titleVal, field: fieldVal, teacher: teacherVal,
+                  place: placeVal, budget: budgetVal, status: statusVal, note: noteVal
                 });
               }
             }
-
-            if (loadedAnnual.length > 0) {
-              rawAnnual = loadedAnnual;
+            if (loadedAnnual.length > 0) rawAnnual = loadedAnnual;
+            
+            // 🚨 2. 스마트 날짜 추적 기능 추가: 오늘 기준 다가오는 가장 가까운 일정으로 셋팅
+            if (!selectedRundownDate && rawAnnual.length > 0) {
+              const todayStr = new Date().toISOString().substring(0, 10);
+              const upcoming = rawAnnual.find(s => s.date >= todayStr);
+              selectedRundownDate = upcoming ? upcoming.date : rawAnnual[rawAnnual.length - 1].date;
             }
+
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
+        // 🚨 4. 월간상세계획표 버그 수정: 헤더 탐색을 위에서 딱 5줄까지만 하도록 제한
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -1768,6 +1999,7 @@
             let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
             let headerRow = -1;
             
+            // 데이터 교란 방지: 위에서 최대 5번째 줄까지만 제목줄인지 검사하고 멈춥니다!
             for (let r = 0; r < Math.min(5, rows.length); r++) {
               const rCells = rows[r].c;
               if (!rCells) continue;
