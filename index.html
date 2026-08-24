@@ -298,7 +298,13 @@
       text-overflow: ellipsis;
     }
 
-    /* 🚨 활동주제 2줄 말줄임 전용 CSS */
+    .wrap-text {
+      white-space: normal !important;
+      word-break: keep-all;
+      min-width: 180px; 
+      line-height: 1.4;
+    }
+
     .clamp-2 {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -363,7 +369,6 @@
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
     .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
     
-    /* 계획서 뱃지 수정 */
     .badge-doc { 
       background: rgba(229, 169, 59, 0.2); 
       color: var(--accent-gold); 
@@ -667,7 +672,6 @@
   </header>
 
   <main>
-    <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
         <div class="kpi-card green" onclick="showCompletedActivities()">
@@ -918,7 +922,6 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1091,7 +1094,6 @@
       updateFieldStats();
       renderMonthlyTable(activeMonth);
 
-      // 🚨 52주 일정 (활동주제 2줄 말줄임 적용)
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
         const hasPlan = activityPlans[s.date] && activityPlans[s.date].length > 0;
         return `
@@ -1161,7 +1163,6 @@
       });
       const tbody = document.getElementById('monthly-tbody');
       
-      // 🚨 월간 계획표 (활동주제 2줄 말줄임 적용)
       tbody.innerHTML = filtered.map((item, idx) => {
         const hasPlan = activityPlans[item.date] && activityPlans[item.date].length > 0;
         return `
@@ -1257,6 +1258,7 @@
       }
     }
 
+    // 🚨 활동계획서 모달: 다중 계획서일 경우에만 번호 표시, 1개일 땐 번호 생략
     function showActivityPlanModal(dateStr, title, teacher, place) {
       const plans = activityPlans[dateStr] || [];
       let contentHtml = "";
@@ -1271,12 +1273,14 @@
           </div>
         `;
       } else {
-        contentHtml = plans.map((p, idx) => `
+        contentHtml = plans.map((p, idx) => {
+          const indexLabel = plans.length > 1 ? ` (${idx + 1})` : "";
+          return `
           <div class="plan-card-box">
-            <div class="plan-card-title">📌 ${p.title || title} (${idx + 1})</div>
+            <div class="plan-card-title">📌 ${p.title || title}${indexLabel}</div>
             <div class="plan-text-content">${p.text}</div>
           </div>
-        `).join('');
+        `}).join('');
       }
 
       openCustomModal(`📝 활동계획서 - ${dateStr} [${teacher}]`, contentHtml);
@@ -1371,7 +1375,6 @@
         </tr>
       `;
 
-      // 🚨 완료된 활동 팝업 (활동주제 2줄 말줄임 적용)
       const tbody = completed.map(s => `
         <tr>
           <td>${s.no}</td>
@@ -1438,7 +1441,6 @@
         </tr>
       `;
 
-      // 🚨 영역별 일정 팝업 (활동주제 2줄 말줄임 적용)
       const tbody = filtered.map(item => `
         <tr>
           <td>${item.no}</td>
