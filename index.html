@@ -1074,14 +1074,18 @@
       document.getElementById('kpi-b-sub').innerText = `잔여 ${remBudget.toLocaleString()}원 (${budgetRate}%) (터치 시 내역)`;
       document.getElementById('kpi-b-bar').style.width = `${budgetRate}%`;
 
-      document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
-        <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
+      // 🚨 기능장 전체 취득 현황 (인라인 이벤트 안전 처리)
+      document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => {
+        // 이름에 포함된 특수문자, 줄바꿈, 따옴표를 모두 제거하여 안전한 클릭 이벤트 생성
+        const safeName = h.name.replace(/[\n\r]/g, ' ').replace(/['"]/g, '');
+        return `
+        <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${safeName}')">
           <td>${i+1}</td>
-          <td class="sticky-col text-left" style="font-weight:700; color:var(--accent-gold); text-decoration: underline;">${h.name} 👆</td>
+          <td class="sticky-col text-left" style="font-weight:700; color:var(--accent-gold); text-decoration: underline;">${h.name.replace(/[\n\r]/g, ' ')} 👆</td>
           <td><span class="badge badge-done">${h.count}명</span></td>
           <td>${h.rate}</td>
         </tr>
-      `).join('');
+      `}).join('');
 
       const monthBtnBox = document.getElementById('month-buttons');
       monthBtnBox.innerHTML = '';
@@ -1136,8 +1140,8 @@
           <th>합계</th>
           ${honorStats.map(h => `
             <th>
-              <div class="honor-th-title">${h.title}</div>
-              <div class="honor-th-date">${h.date}</div>
+              <div class="honor-th-title">${h.title.replace(/[\n\r]/g, ' ')}</div>
+              <div class="honor-th-date">${h.date.replace(/[\n\r]/g, ' ')}</div>
             </th>
           `).join('')}
         </tr>
@@ -1280,7 +1284,7 @@
         contentHtml = `
           <div style="padding: 30px 10px; text-align: center; color: var(--text-muted);">
             <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
-            <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 6px;">[${title}]</div>
+            <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 6px;">[${title.replace(/[\n\r]/g, ' ')}]</div>
             <div style="font-size: 12px;">등록된 교사 활동계획서가 아직 없습니다.</div>
             <div style="font-size: 11px; margin-top: 10px; color: var(--accent-gold);">💡 구글 시트 '활동계획서' 탭에 일자(${dateStr})와 내용을 추가하면 자동 연동됩니다.</div>
           </div>
@@ -1290,7 +1294,7 @@
           const indexLabel = plans.length > 1 ? ` (${idx + 1})` : "";
           return `
           <div class="plan-card-box">
-            <div class="plan-card-title">📌 ${p.title || title}${indexLabel}</div>
+            <div class="plan-card-title">📌 ${p.title || title.replace(/[\n\r]/g, ' ')}${indexLabel}</div>
             <div class="plan-text-content">${p.text}</div>
           </div>
         `}).join('');
@@ -1352,8 +1356,8 @@
           <th>합계</th>
           ${honorStats.map(h => `
             <th>
-              <div class="honor-th-title">${h.title}</div>
-              <div class="honor-th-date">${h.date}</div>
+              <div class="honor-th-title">${h.title.replace(/[\n\r]/g, ' ')}</div>
+              <div class="honor-th-date">${h.date.replace(/[\n\r]/g, ' ')}</div>
             </th>
           `).join('')}
         </tr>
@@ -1640,7 +1644,6 @@
           }
         } catch (je) { console.log("총예산 연동 오류:", je); }
 
-        // 🚨 1. 대원출석_현황 파싱
         try {
           const attSheetName = encodeURIComponent("대원출석_현황");
           const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
@@ -1737,7 +1740,7 @@
           if(updatedMembers.length > 0) members = updatedMembers;
         } catch(e) { console.log("대원 출석 연동 오류:", e); }
 
-        // 🚨 2. 기능장_취득현황 파싱 (무적 파싱 로직 적용!)
+        // 🚨 기능장 파싱 (이름 변수에 들어오는 무단 줄바꿈과 특수문자를 모두 공백 치환)
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
@@ -1751,7 +1754,6 @@
             let isHeaderInCols = false;
             let dynamicHonors = [];
 
-            // 1. 헤더가 cols에 분리되었는지 검사 (API가 헤더를 뺏어갔을 경우)
             if (honorJson.table.cols) {
               for (let c = 0; c < honorJson.table.cols.length; c++) {
                 if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
@@ -1768,7 +1770,8 @@
             if (isHeaderInCols && nameColIdx !== -1) {
               for (let c = nameColIdx + 1; c < honorJson.table.cols.length; c++) {
                 if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
-                  const fullName = String(honorJson.table.cols[c].label).trim();
+                  // 🚨 줄바꿈 기호와 작은따옴표를 모두 공백으로 안전하게 바꿈
+                  const fullName = String(honorJson.table.cols[c].label).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`');
                   const checkName = fullName.replace(/\s/g, '');
                   if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
 
@@ -1786,7 +1789,6 @@
               }
             }
 
-            // 2. cols에 없다면 rows에서 헤더 검사
             let headerRowIdx = -1;
             if (!isHeaderInCols) {
               for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
@@ -1809,7 +1811,8 @@
                 const headerRow = hRows[headerRowIdx].c;
                 for (let c = nameColIdx + 1; c < headerRow.length; c++) {
                   if (headerRow[c] && headerRow[c].v) {
-                    const fullName = String(headerRow[c].v).trim();
+                    // 🚨 여기서도 동일하게 필터링 적용
+                    const fullName = String(headerRow[c].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`');
                     const checkName = fullName.replace(/\s/g, '');
                     if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
 
@@ -1828,7 +1831,6 @@
               }
             }
 
-            // 3. 기능장 취득 여부 파싱 (대원별 O/X)
             if (dynamicHonors.length > 0 && nameColIdx !== -1) {
               const startRow = isHeaderInCols ? 0 : headerRowIdx + 1;
               for (let i = startRow; i < hRows.length; i++) {
@@ -1914,16 +1916,18 @@
                 }
 
                 const quarterVal = r[2] && r[2].v ? String(r[2].v).trim() : "";
+                
+                // 🚨 모든 문자열 파싱 구간에 특수문자/따옴표/줄바꿈 필터 적용
                 const typeVal = r[3] && r[3].v ? String(r[3].v).trim() : "";
-                const titleVal = r[4] && r[4].v ? String(r[4].v).trim() : "";
-                const fieldVal = r[5] && r[5].v ? String(r[5].v).trim() : typeVal;
-                const teacherVal = r[6] && r[6].v ? String(r[6].v).trim() : "";
-                const placeVal = r[7] && r[7].v ? String(r[7].v).trim() : "소예배실";
+                const titleVal = r[4] && r[4].v ? String(r[4].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                const fieldVal = r[5] && r[5].v ? String(r[5].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : typeVal;
+                const teacherVal = r[6] && r[6].v ? String(r[6].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                const placeVal = r[7] && r[7].v ? String(r[7].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "소예배실";
                 const budgetVal = r[8] && r[8].v ? (parseInt(String(r[8].v).replace(/,/g, '')) || 0) : 0;
                 
                 const todayStr = new Date().toISOString().substring(0, 10);
                 const statusVal = dateVal <= todayStr ? "완료" : "예정";
-                const noteVal = r[9] && r[9].v ? String(r[9].v).trim() : "";
+                const noteVal = r[9] && r[9].v ? String(r[9].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
 
                 loadedAnnual.push({
                   no: noVal,
@@ -1958,31 +1962,28 @@
             const rows = msJson.table.rows;
             let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
             
-            let headerRow = -1;
-            for (let r = 0; r < Math.min(5, rows.length); r++) {
-              if(!rows[r].c) continue;
-              for (let c = 0; c < rows[r].c.length; c++) {
-                if(rows[r].c[c] && rows[r].c[c].v) {
-                  const val = String(rows[r].c[c].v).replace(/\s/g, '');
-                  if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) dCol = c;
-                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) oCol = c;
-                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) mCol = c;
-                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항') || val.includes('평가'))) mmCol = c;
+            for (let r = 0; r < rows.length; r++) {
+              const rCells = rows[r].c;
+              if (!rCells) continue;
+
+              let isHeaderRow = false;
+              for (let c = 0; c < rCells.length; c++) {
+                if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
+                  const val = String(rCells[c].v).replace(/\s/g, '');
+                  if (val.includes('일자') || val.includes('안식일') || val === '날짜') { dCol = c; isHeaderRow = true; }
+                  if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { oCol = c; isHeaderRow = true; }
+                  if (val.includes('준비물') || val.includes('장비')) { mCol = c; isHeaderRow = true; }
+                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항') || val.includes('평가')) { mmCol = c; isHeaderRow = true; }
                 }
               }
-              if (dCol !== -1) { headerRow = r; break; }
-            }
 
-            if (dCol !== -1) {
-              for (let i = headerRow + 1; i < rows.length; i++) {
-                const r = rows[i].c;
-                if (!r || !r[dCol]) continue;
+              if (isHeaderRow) continue;
 
+              if (dCol !== -1 && rCells[dCol]) {
                 let dateVal = "";
-                if (r[dCol].f) {
-                  dateVal = String(r[dCol].f).trim();
-                } else if (r[dCol].v) {
-                  dateVal = String(r[dCol].v).trim();
+                if (rCells[dCol].f) dateVal = String(rCells[dCol].f).trim();
+                else if (rCells[dCol].v) {
+                  dateVal = String(rCells[dCol].v).trim();
                   if (dateVal.startsWith("Date(")) {
                     const parts = dateVal.match(/\d+/g);
                     if (parts && parts.length >= 3) {
@@ -1994,18 +1995,19 @@
                   }
                 }
 
-                if(!dateVal) continue;
-                dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
-                const dParts = dateVal.split('-');
-                if (dParts.length === 3) {
-                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
-                  
-                  monthlyDetails[dateVal] = {
-                    order: oCol !== -1 && r[oCol] && r[oCol].v ? String(r[oCol].v) : "",
-                    mat: mCol !== -1 && r[mCol] && r[mCol].v ? String(r[mCol].v) : "",
-                    memo: mmCol !== -1 && r[mmCol] && r[mmCol].v ? String(r[mmCol].v) : ""
-                  };
+                if (dateVal) {
+                  dateVal = dateVal.replace(/[./]/g, '-').trim();
+                  if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                  const dParts = dateVal.split('-');
+                  if (dParts.length >= 3) {
+                    const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
+                    
+                    monthlyDetails[fDate] = {
+                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v) : "-",
+                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v) : "-",
+                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v) : "-"
+                    };
+                  }
                 }
               }
             }
@@ -2053,7 +2055,8 @@
               const dParts = dateStr.split('-');
               if (dParts.length === 3) dateStr = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
 
-              const subTitle = r[1] && r[1].v ? String(r[1].v).trim() : "";
+              // 🚨 계획서 내에 들어있는 따옴표 치환
+              const subTitle = r[1] && r[1].v ? String(r[1].v).trim().replace(/'/g, '`') : "";
               const fullText = r[2] && r[2].v ? String(r[2].v).trim() : (r[1] && r[1].v ? String(r[1].v).trim() : "");
 
               if (fullText) {
