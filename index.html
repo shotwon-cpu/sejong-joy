@@ -644,7 +644,6 @@
 </head>
 <body>
 
-  <!-- 자동 소멸 토스트 알림창 -->
   <div id="toast-msg">✨ 최신 데이터로 동기화되었습니다!</div>
 
   <header>
@@ -675,7 +674,6 @@
   <main>
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
-        <!-- 1. 진행된 안식일 활동 -->
         <div class="kpi-card green" onclick="showCompletedActivities()">
           <div class="kpi-label">
             <span>진행된 안식일 활동</span>
@@ -686,7 +684,6 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-act-bar" style="width: 0%;"></div></div>
         </div>
 
-        <!-- 2. 등록 대원수 -->
         <div class="kpi-card blue" onclick="showAllMembersList()">
           <div class="kpi-label">
             <span>등록 대원수</span>
@@ -696,7 +693,6 @@
           <div class="kpi-sub" id="kpi-m-sub">어드 0명 / 패파 0명 (터치 시 명부)</div>
         </div>
 
-        <!-- 3. 기능장 취득 합계 -->
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
           <div class="kpi-label">
             <span>기능장 취득 합계</span>
@@ -706,7 +702,6 @@
           <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
         </div>
 
-        <!-- 4. 예산 집행 현황 (와이드 카드 디자인) -->
         <div class="kpi-card red" style="grid-column: 1 / -1;" onclick="showBudgetDetailModal()">
           <div class="kpi-label" style="border-bottom: 1px dashed rgba(231, 76, 60, 0.3); padding-bottom: 8px; margin-bottom: 10px;">
             <span style="font-size:13px; font-weight:bold; color:var(--accent-red);">💰 예산 집행 종합 현황</span>
@@ -741,7 +736,6 @@
         </div>
       </div>
 
-      <!-- 기능장 전체 취득 현황 -->
       <div class="card">
         <div class="card-title">
           <span>🎖️ 기능장 전체 취득 현황</span>
@@ -762,7 +756,6 @@
         </div>
       </div>
 
-      <!-- 2026 안식일활동 영역별 계획 및 비중 -->
       <div class="card">
         <div class="card-title">
           <span>📊 2026 안식일활동 영역별 계획 및 비중</span>
@@ -971,7 +964,7 @@
 
   <script>
     // ==============================================================================
-    // 🚨 1. 여기에 방금 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
+    // 🚨 1. 여기에 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
     // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
     
@@ -1063,7 +1056,6 @@
       const totalActivities = rawAnnual.length || 52;
       const actRate = ((doneActivities / totalActivities) * 100).toFixed(1);
 
-      // 예산 카드 동적 렌더링 로직
       const totalBudget = totalAnnualBudget > 0 ? totalAnnualBudget : 7000000;
       const plannedBudget = rawAnnual.reduce((sum, s) => sum + (s.budget || 0), 0);
       const spentBudget = rawAnnual.filter(s => s.status === '완료').reduce((sum, s) => sum + (s.budget || 0), 0);
@@ -1075,7 +1067,6 @@
       const planRate = totalBudget > 0 ? ((plannedBudget / totalBudget) * 100).toFixed(1) : 0;
       const execRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
 
-      // 상단 KPI 1, 2, 3 반영
       document.getElementById('kpi-act-done').innerText = doneActivities;
       document.getElementById('kpi-act-total').innerText = totalActivities;
       document.getElementById('kpi-act-sub').innerText = `진행률 ${actRate}% (터치 시 완료목록)`;
@@ -1086,7 +1077,6 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = members.length > 0 ? (totalH / members.length).toFixed(1) : 0;
 
-      // 와이드 예산 카드 데이터 반영
       document.getElementById('kpi-b-exec-rate').innerText = execRate;
       document.getElementById('kpi-b-spent').innerText = spentBudget.toLocaleString();
       document.getElementById('kpi-b-rem-total').innerText = remTotalBudget.toLocaleString();
@@ -1568,7 +1558,7 @@
 
     async function submitAttendance() {
       if(APPS_SCRIPT_URL === "여기에_새_웹앱_주소를_붙여넣으세요" || !APPS_SCRIPT_URL.startsWith("http")) {
-        alert("웹앱 주소(APPS_SCRIPT_URL)가 입력되지 않았습니다. 코드를 확인해주세요.");
+        alert("웹앱 주소가 입력되지 않았습니다. 깃허브 코드 상단을 확인해주세요.");
         return;
       }
 
@@ -1586,10 +1576,10 @@
       btn.innerText = "⏳ 구글 시트에 저장하는 중...";
 
       try {
-        await fetch(APPS_SCRIPT_URL, {
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
+          // 🚨 구글 CORS 보안 우회 🚨
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             week: targetWeek,
             attendance: attPayload
@@ -1601,6 +1591,7 @@
         setTimeout(() => fetchLiveSheetData(false), 1000);
       } catch (err) {
         alert("출석 저장 중 오류가 발생했습니다: " + err);
+      } finally {
         btn.disabled = false;
         btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
       }
