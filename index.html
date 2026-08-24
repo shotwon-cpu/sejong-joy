@@ -672,6 +672,7 @@
   </header>
 
   <main>
+    <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
         <div class="kpi-card green" onclick="showCompletedActivities()">
@@ -1090,7 +1091,9 @@
           <td>${s.place}</td>
           <td>${(s.budget || 0).toLocaleString()}원</td>
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
-          <td class="text-left" style="color:var(--text-muted);">${s.note}</td>
+          <td class="text-left wrap-text" style="color:var(--text-muted); font-size:11px; min-width:100px; max-width: 150px;">
+            <div class="clamp-2">${s.note}</div>
+          </td>
         </tr>
       `}).join('');
 
@@ -1636,7 +1639,6 @@
             const aRows = annualJson.table.rows;
             let loadedAnnual = [];
             
-            // 🚨 무적 동적 파싱 로직 장착 (열이 삭제되거나 순서가 바뀌어도 추적)
             let dCol = 1, qCol = 2, typeCol = 3, titleCol = 4, teacherCol = 6, placeCol = 7, bdgCol = 8, stCol = 9, ntCol = 10;
             let headerRow = -1;
 
@@ -1652,7 +1654,9 @@
                         if (val.includes('장소')) placeCol = c;
                         if (val.includes('예산')) bdgCol = c;
                         if (val.includes('상태')) stCol = c;
-                        if (val.includes('비고')) ntCol = c;
+                        
+                        // 🚨 수정사항: '비고' 글자(ntCol)를 여기서 더 정확하게 찾도록 최우선 검사!
+                        if (val === '비고' || val === '메모' || val === '특이사항') ntCol = c;
                     }
                 }
             }
@@ -1670,7 +1674,9 @@
                   if (val.includes('장소')) { placeCol = c; isHeader = true; }
                   if (val.includes('예산')) { bdgCol = c; isHeader = true; }
                   if (val.includes('상태')) { stCol = c; isHeader = true; }
-                  if (val.includes('비고')) { ntCol = c; isHeader = true; }
+                  
+                  // 🚨 수정사항: 여기서도 '비고'를 정확하게 찾기
+                  if (val === '비고' || val === '메모' || val === '특이사항') { ntCol = c; isHeader = true; }
                 }
               }
               if (isHeader) {
@@ -1689,8 +1695,9 @@
               if (!isNaN(noVal) && noVal > 0 && noVal <= 100) {
                 let dateVal = "";
                 if (r[dCol]) {
-                  if (r[dCol].f) dateVal = String(r[dCol].f).trim();
-                  else if (r[dCol].v) {
+                  if (r[dCol].f) {
+                    dateVal = String(r[dCol].f).trim();
+                  } else if (r[dCol].v) {
                     dateVal = String(r[dCol].v).trim();
                     if (dateVal.startsWith("Date(")) {
                       const parts = dateVal.match(/\d+/g);
@@ -1700,14 +1707,17 @@
                     }
                   }
                 }
+
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
+                  dateVal = "20" + dateVal;
+                }
                 const dParts = dateVal.split('-');
-                if (dParts.length === 3) dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                if (dParts.length === 3) {
+                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                }
 
                 const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
-                
-                // 🚨 수정사항: 무조건 '구분(D열)'에서 텍스트를 정확하게 추출하여 활동 영역 분류!
                 const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
                 const titleVal = r[titleCol] && r[titleCol].v ? String(r[titleCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
                 const fieldVal = typeVal; 
@@ -1717,22 +1727,32 @@
                 
                 const todayStr = new Date().toISOString().substring(0, 10);
                 let statusVal = dateVal <= todayStr ? "완료" : "예정";
-                if (r[stCol] && r[stCol].v) {
-                    statusVal = String(r[stCol].v).trim().replace(/[\n\r]/g, '');
+                if(r[stCol] && r[stCol].v) {
+                     statusVal = String(r[stCol].v).trim().replace(/[\n\r]/g, '');
                 }
                 
-                // 🚨 비고란(Note)도 정확하게 찾아서 파싱
+                // 🚨 여기서 방금 정확히 찾은 ntCol(비고란 위치) 데이터를 읽어옴!
                 const noteVal = r[ntCol] && r[ntCol].v ? String(r[ntCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
 
                 loadedAnnual.push({
-                  no: noVal, date: dateVal,
+                  no: noVal,
+                  date: dateVal,
                   q: quarterVal || (parseInt(dateVal.substring(5, 7)) <= 3 ? "1분기" : (parseInt(dateVal.substring(5, 7)) <= 6 ? "2분기" : (parseInt(dateVal.substring(5, 7)) <= 9 ? "3분기" : "4분기"))),
-                  type: typeVal, title: titleVal, field: fieldVal, teacher: teacherVal,
-                  place: placeVal, budget: budgetVal, status: statusVal, note: noteVal
+                  type: typeVal,
+                  title: titleVal,
+                  field: fieldVal,
+                  teacher: teacherVal,
+                  place: placeVal,
+                  budget: budgetVal,
+                  status: statusVal,
+                  note: noteVal // 🚨 깨끗하게 파싱된 비고란 데이터 저장
                 });
               }
             }
-            if (loadedAnnual.length > 0) rawAnnual = loadedAnnual;
+
+            if (loadedAnnual.length > 0) {
+              rawAnnual = loadedAnnual;
+            }
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
@@ -1746,22 +1766,28 @@
           if (msJson && msJson.table && msJson.table.rows) {
             const rows = msJson.table.rows;
             let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
+            let headerRow = -1;
             
-            for (let r = 0; r < rows.length; r++) {
+            for (let r = 0; r < Math.min(5, rows.length); r++) {
               const rCells = rows[r].c;
               if (!rCells) continue;
-              let isHeaderRow = false;
+              let found = false;
               for (let c = 0; c < rCells.length; c++) {
                 if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
                   const val = String(rCells[c].v).replace(/\s/g, '');
-                  if (val.includes('일자') || val.includes('안식일') || val === '날짜') { dCol = c; isHeaderRow = true; }
-                  if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { oCol = c; isHeaderRow = true; }
-                  if (val.includes('준비물') || val.includes('장비')) { mCol = c; isHeaderRow = true; }
-                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항')) { mmCol = c; isHeaderRow = true; }
+                  if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) { dCol = c; found = true; }
+                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) { oCol = c; found = true; }
+                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) { mCol = c; found = true; }
+                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항'))) { mmCol = c; found = true; }
                 }
               }
-              if (isHeaderRow) continue;
+              if (found) { headerRow = r; break; } 
+            }
 
+            for (let r = headerRow !== -1 ? headerRow + 1 : 0; r < rows.length; r++) {
+              const rCells = rows[r].c;
+              if (!rCells) continue;
+              
               if (dCol !== -1 && rCells[dCol]) {
                 let dateVal = "";
                 if (rCells[dCol].f) dateVal = String(rCells[dCol].f).trim();
