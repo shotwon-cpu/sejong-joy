@@ -1490,13 +1490,13 @@
               const r = pRows[i].c;
               if (!r) continue;
 
-              // A열 날짜 추출 (문자열 또는 Google Date 객체 처리)
+                            // A열 날짜 추출 및 자동 표준화 (26-08-29 -> 2026-08-29)
               let dateStr = "";
               if (r[0]) {
                 if (r[0].f) {
-                  dateStr = r[0].f;
+                  dateStr = String(r[0].f).trim();
                 } else if (r[0].v) {
-                  dateStr = String(r[0].v);
+                  dateStr = String(r[0].v).trim();
                   if (dateStr.startsWith("Date(")) {
                     const parts = dateStr.match(/\d+/g);
                     if (parts && parts.length >= 3) {
@@ -1510,10 +1510,27 @@
               }
 
               if (!dateStr || dateStr.includes("일자") || dateStr.includes("날짜")) continue;
-              dateStr = dateStr.trim().substring(0, 10);
+
+              // 구분자 통일 (.이나 /를 -로 변경)
+              dateStr = dateStr.replace(/[./]/g, '-').trim();
+
+              // 26-08-29 형태일 경우 2026-08-29로 변환
+              if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
+                dateStr = "20" + dateStr;
+              }
+
+              // 2026-8-29 같은 한자리 월/일을 2026-08-29로 맞춤
+              const dParts = dateStr.split('-');
+              if (dParts.length === 3) {
+                const y = dParts[0];
+                const m = dParts[1].padStart(2, '0');
+                const d = dParts[2].padStart(2, '0');
+                dateStr = `${y}-${m}-${d}`;
+              }
 
               const subTitle = r[1] && r[1].v ? String(r[1].v).trim() : "";
               const fullText = r[2] && r[2].v ? String(r[2].v).trim() : (r[1] && r[1].v ? String(r[1].v).trim() : "");
+
 
               if (fullText) {
                 if (!loadedPlans[dateStr]) loadedPlans[dateStr] = [];
