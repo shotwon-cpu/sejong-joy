@@ -702,6 +702,7 @@
           <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
         </div>
 
+        <!-- 원래 원하시던 '작은 예산 카드' -->
         <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
             <span>예산 집행 (총 <span id="kpi-b-total">700만</span>)</span>
@@ -940,7 +941,12 @@
   </div>
 
   <script>
+    // ==============================================================================
+    // 🚨 1. 여기에 방금 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
+    // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
+    
+    // 2. 기존 구글 시트 ID (그대로 유지)
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let activityPlans = {};
@@ -1523,9 +1529,10 @@
       });
     }
 
+    // 🚨 핵심 수정: mode: 'no-cors' 및 text/plain 설정으로 브라우저 보안 에러 완벽 해결
     async function submitAttendance() {
       if(!APPS_SCRIPT_URL.startsWith("http")) {
-        alert("웹앱 주소(APPS_SCRIPT_URL)를 확인해주세요.");
+        alert("웹앱 주소가 입력되지 않았습니다. 깃허브 코드 상단을 확인해주세요.");
         return;
       }
 
@@ -1543,9 +1550,9 @@
       btn.innerText = "⏳ 구글 시트에 저장하는 중...";
 
       try {
-        // 🚨 핵심 수정: 구글 해킹 차단(CORS)을 피하기 위해 text/plain 규격 사용
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
+          mode: "no-cors", 
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             week: targetWeek,
@@ -1555,7 +1562,7 @@
 
         showToast(`✅ [${targetWeek}] 출석이 성공적으로 저장되었습니다!`);
         closeModal();
-        setTimeout(() => fetchLiveSheetData(false), 1000);
+        setTimeout(() => fetchLiveSheetData(false), 1500); 
       } catch (err) {
         alert("출석 저장 중 오류가 발생했습니다: " + err);
       } finally {
