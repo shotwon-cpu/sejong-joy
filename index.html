@@ -298,10 +298,15 @@
       text-overflow: ellipsis;
     }
 
-    .wrap-text {
+    /* 🚨 활동주제 2줄 말줄임 전용 CSS */
+    .clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: normal !important;
       word-break: keep-all;
-      min-width: 180px; 
       line-height: 1.4;
     }
 
@@ -357,7 +362,18 @@
     .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
     .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
-    .badge-doc { background: rgba(229, 169, 59, 0.2); color: var(--accent-gold); border: 1px solid var(--accent-gold); font-size: 9px; margin-left: 4px; border-radius: 4px; padding: 1px 4px; }
+    
+    /* 계획서 뱃지 수정 */
+    .badge-doc { 
+      background: rgba(229, 169, 59, 0.2); 
+      color: var(--accent-gold); 
+      border: 1px solid var(--accent-gold); 
+      font-size: 9px; 
+      border-radius: 4px; 
+      padding: 1px 4px; 
+      display: inline-block;
+    }
+    
     .badge-none { color: #556885; }
 
     .honor-th-title {
@@ -805,7 +821,6 @@
         <div class="table-container" style="max-height: 550px; overflow-y: auto;">
           <table>
             <thead>
-              <!-- 🚨 52주 일정 헤더에서 "영역" 삭제 반영 -->
               <tr>
                 <th>No</th>
                 <th class="sticky-col">일자</th>
@@ -903,6 +918,7 @@
     </div>
   </main>
 
+  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1075,7 +1091,7 @@
       updateFieldStats();
       renderMonthlyTable(activeMonth);
 
-      // 🚨 52주 일정 탭 - 년도 삭제, 영역 삭제, 교사 이름 자동 줄바꿈 적용
+      // 🚨 52주 일정 (활동주제 2줄 말줄임 적용)
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
         const hasPlan = activityPlans[s.date] && activityPlans[s.date].length > 0;
         return `
@@ -1084,9 +1100,9 @@
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">
-            ${s.title}
-            ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
+          <td class="text-left" style="min-width: 140px; max-width: 200px;">
+            <div class="clamp-2" style="font-weight:600; color:#fff;">${s.title}</div>
+            ${hasPlan ? '<div style="margin-top: 3px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
           </td>
           <td style="white-space: normal; word-break: keep-all; min-width: 60px; line-height: 1.3;">${s.teacher}</td>
           <td>${s.place}</td>
@@ -1145,6 +1161,7 @@
       });
       const tbody = document.getElementById('monthly-tbody');
       
+      // 🚨 월간 계획표 (활동주제 2줄 말줄임 적용)
       tbody.innerHTML = filtered.map((item, idx) => {
         const hasPlan = activityPlans[item.date] && activityPlans[item.date].length > 0;
         return `
@@ -1152,9 +1169,9 @@
           <td><span class="badge badge-plan">${idx + 1}주</span></td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
           <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">
-            ${item.title}
-            ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
+          <td class="text-left" style="min-width: 120px; max-width: 180px;">
+            <div class="clamp-2" style="font-weight:600; color:#fff;">${item.title}</div>
+            ${hasPlan ? '<div style="margin-top: 3px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
           </td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
@@ -1354,12 +1371,15 @@
         </tr>
       `;
 
+      // 🚨 완료된 활동 팝업 (활동주제 2줄 말줄임 적용)
       const tbody = completed.map(s => `
         <tr>
           <td>${s.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left" style="min-width: 140px; max-width: 200px;">
+            <div class="clamp-2" style="font-weight:600; color:#fff;">${s.title}</div>
+          </td>
           <td>${s.teacher}</td>
           <td>${s.place}</td>
           <td><span class="badge badge-done">완료</span></td>
@@ -1418,11 +1438,14 @@
         </tr>
       `;
 
+      // 🚨 영역별 일정 팝업 (활동주제 2줄 말줄임 적용)
       const tbody = filtered.map(item => `
         <tr>
           <td>${item.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
-          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">${item.title}</td>
+          <td class="text-left" style="min-width: 140px; max-width: 200px;">
+            <div class="clamp-2" style="font-weight:600; color:#fff;">${item.title}</div>
+          </td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
           <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
