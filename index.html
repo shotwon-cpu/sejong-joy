@@ -291,7 +291,6 @@
       text-align: left;
     }
     
-    /* 팝업 등에서 텍스트 말줄임 처리용 */
     .truncate-text {
       max-width: 140px; 
       white-space: nowrap;
@@ -299,11 +298,10 @@
       text-overflow: ellipsis;
     }
 
-    /* 긴 텍스트 자동 줄바꿈 처리용 (완료된 활동, 영역별 일정 등) */
     .wrap-text {
       white-space: normal !important;
       word-break: keep-all;
-      min-width: 180px; /* 모바일에서 너무 좁아지지 않도록 최소 너비 보장 */
+      min-width: 180px; 
       line-height: 1.4;
     }
 
@@ -444,7 +442,6 @@
     .field-stat { font-size: 13px; font-weight: bold; color: var(--accent-gold); margin: 4px 0; text-align: left; }
     .field-click-tip { font-size: 9px; color: #8fa0be; margin-top: 4px; text-align: right; }
 
-    /* 주간 세부 운영 개요 박스 */
     .overview-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -821,6 +818,7 @@
           </div>
           <div class="overview-item">
             <span class="overview-label">참석 대상</span>
+            <!-- 🚨 대원 수 실시간 연동 (하드코딩 제거) -->
             <span class="overview-val" id="ov-target">어드벤처러 및 패스파인더 대원 13명</span>
           </div>
           <div class="overview-item">
@@ -854,6 +852,7 @@
     </div>
   </main>
 
+  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -905,6 +904,8 @@
 
     let rawAnnual = [];
     let rawMonthly = [];
+    // 🚨 세종_JOY 메인 탭에서 가져올 총예산 기본값
+    let totalAnnualBudget = 1490000; 
 
     let activeMonth = new Date().getMonth() + 1;
     let selectedRundownDate = "2026-08-29";
@@ -982,7 +983,8 @@
       const totalActivities = rawAnnual.length || 52;
       const actRate = ((doneActivities / totalActivities) * 100).toFixed(1);
 
-      const totalBudget = rawAnnual.reduce((sum, s) => sum + (s.budget || 0), 0);
+      // 🚨 총 예산 (세종_JOY 시트에서 파싱된 값 적용)
+      const totalBudget = totalAnnualBudget > 0 ? totalAnnualBudget : 1490000;
       const spentBudget = rawAnnual.filter(s => s.status === '완료').reduce((sum, s) => sum + (s.budget || 0), 0);
       const remBudget = totalBudget - spentBudget;
       const budgetRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
@@ -997,7 +999,8 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = members.length > 0 ? (totalH / members.length).toFixed(1) : 0;
 
-      document.getElementById('kpi-b-total').innerText = `${Math.round(totalBudget / 10000)}만`;
+      // 🚨 예산 KPI 카드 텍스트 업데이트
+      document.getElementById('kpi-b-total').innerText = `${Math.floor(totalBudget / 10000).toLocaleString()}만`;
       document.getElementById('kpi-b-spent').innerText = spentBudget.toLocaleString();
       document.getElementById('kpi-b-sub').innerText = `잔여 ${remBudget.toLocaleString()}원 (${budgetRate}%) (터치 시 내역)`;
       document.getElementById('kpi-b-bar').style.width = `${budgetRate}%`;
@@ -1148,7 +1151,10 @@
 
         document.getElementById('ov-place').innerText = curPlan.place || '세종 JOY 패스파인더실 & 소예배실';
         document.getElementById('ov-teacher').innerText = curPlan.teacher || '-';
-        document.getElementById('ov-target').innerText = '어드벤처러 및 패스파인더 대원 13명';
+        
+        // 🚨 참석 대상 실시간 연동 (하드코딩 제거)
+        document.getElementById('ov-target').innerText = `어드벤처러 및 패스파인더 대원 ${members.length || 13}명`;
+        
         document.getElementById('ov-mat').innerText = curPlan.note || '단복 정렬 및 기본 준비물';
       }
     }
@@ -1233,7 +1239,8 @@
         </tr>
       `).join('');
 
-      openModal("💰 2026 연간 예산 집행 세부 내역", thead, tbody);
+      // 🚨 예산 팝업 타이틀에 총 예산 금액 표시
+      openModal(`💰 2026 연간 예산 집행 세부 내역 (총 ${Math.floor((totalAnnualBudget > 0 ? totalAnnualBudget : 1490000) / 10000).toLocaleString()}만)`, thead, tbody);
     }
 
     function showHonorMembers(honorIdx, honorName) {
@@ -1286,7 +1293,7 @@
         </tr>
       `).join('');
 
-      openModal("👥 대원 13명 기능장 전체 취득 명부", thead, tbody);
+      openModal("👥 대원 기능장 전체 취득 명부", thead, tbody);
     }
 
     function showCompletedActivities() {
@@ -1389,6 +1396,7 @@
       renderMonthlyTable(m);
     }
 
+    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1396,6 +1404,45 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
+        // 🚨 0. 세종_JOY 탭 (연간총편성예산) 실시간 파싱
+        try {
+          const joySheetName = encodeURIComponent("세종_JOY");
+          const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
+          const joyRes = await fetch(joyUrl);
+          const joyText = await joyRes.text();
+          const joyJson = JSON.parse(joyText.substr(47).slice(0, -2));
+
+          if (joyJson && joyJson.table && joyJson.table.rows) {
+            let foundBudget = false;
+            for (let i = 0; i < joyJson.table.rows.length; i++) {
+              const r = joyJson.table.rows[i].c;
+              if (!r) continue;
+              
+              for (let j = 0; j < r.length; j++) {
+                if (r[j] && r[j].v && typeof r[j].v === 'string') {
+                  const text = r[j].v.replace(/\s/g, '');
+                  if (text.includes('연간총편성예산') || text.includes('총편성예산') || text.includes('편성예산')) {
+                    // 오른쪽으로 이동하며 숫자 데이터(예산) 찾기
+                    for (let k = j + 1; k < r.length; k++) {
+                      if (r[k] && r[k].v !== null) {
+                        const valStr = String(r[k].v).replace(/,/g, '').replace(/원/g, '');
+                        const valNum = parseInt(valStr);
+                        if (!isNaN(valNum) && valNum > 10000) {
+                          totalAnnualBudget = valNum;
+                          foundBudget = true;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+                if (foundBudget) break;
+              }
+              if (foundBudget) break;
+            }
+          }
+        } catch (je) { console.log("총예산 연동 오류:", je); }
+
         // 1. 대원출석_현황 파싱
         try {
           const attSheetName = encodeURIComponent("대원출석_현황");
