@@ -290,7 +290,7 @@
     td.text-left, th.text-left {
       text-align: left;
     }
-    
+
     .truncate-text {
       max-width: 140px; 
       white-space: nowrap;
@@ -702,14 +702,37 @@
           <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
         </div>
 
-        <div class="kpi-card red" onclick="showBudgetDetailModal()">
-          <div class="kpi-label">
-            <span>예산 집행 (총 <span id="kpi-b-total">700만</span>)</span>
-            <span class="click-hint">내역보기 👆</span>
+        <div class="kpi-card red" style="grid-column: 1 / -1;" onclick="showBudgetDetailModal()">
+          <div class="kpi-label" style="border-bottom: 1px dashed rgba(231, 76, 60, 0.3); padding-bottom: 8px; margin-bottom: 10px;">
+            <span style="font-size:13px; font-weight:bold; color:var(--accent-red);">💰 예산 집행 종합 현황</span>
+            <span class="click-hint">상세 내역보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-b-spent">0</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
-          <div class="kpi-sub" id="kpi-b-sub">잔여 0원 (0%) (터치 시 내역)</div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-b-bar" style="width: 0%;"></div></div>
+
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom:4px;">현재 집행액 <span style="color:var(--accent-red);">(집행률 <span id="kpi-b-exec-rate">0</span>%)</span></div>
+              <div class="kpi-value"><span id="kpi-b-spent">0</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 12px; font-weight: bold; color: var(--accent-gold);">잔여 예산: <span id="kpi-b-rem-total">0</span> 원</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">계획 대비 잔여: <span id="kpi-b-rem-plan">0</span> 원</div>
+            </div>
+          </div>
+
+          <div class="progress-bar-wrap" style="height: 6px; background:#1a0f14;">
+            <div class="progress-bar-fill" id="kpi-b-bar" style="width: 0%; background: linear-gradient(90deg, #e74c3c, #c0392b);"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px;">
+            <div style="font-size: 11px; color: #cbd5e1; line-height: 1.6;">
+              <div><span style="color:#8fa0be; display:inline-block; width:65px;">배정 예산:</span> <span id="kpi-b-total" style="font-weight:bold; color:#fff;">0</span> 원</div>
+              <div><span style="color:#8fa0be; display:inline-block; width:65px;">여유분:</span> <span id="kpi-b-buffer">0</span> 원 (예비비)</div>
+            </div>
+            <div style="font-size: 11px; color: #cbd5e1; text-align: right; line-height: 1.6;">
+              <div><span style="color:#8fa0be;">계획 예산 (52주):</span> <span id="kpi-b-planned" style="font-weight:bold; color:#fff;">0</span> 원</div>
+              <div><span style="color:#8fa0be;">계획 예산 비중:</span> 전체의 <span id="kpi-b-plan-rate">0</span>%</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -941,7 +964,7 @@
 
   <script>
     // ==============================================================================
-    // 🚨 1. 여기에 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
+    // 🚨 1. 여기에 방금 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
     // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
     
@@ -982,7 +1005,7 @@
       setTimeout(() => { toast.classList.remove('show'); }, 1500);
     }
 
-    // 🚨 핵심 수정 부분: 올바른 '구분' 값을 기준으로 정확히 분류합니다.
+    // 🚨 엑셀의 '구분' 값을 기준으로 영역별 통계를 정확히 계산합니다.
     function updateFieldStats() {
       let counts = { skill: 0, regular: 0, spirit: 0, outdoor: 0, service: 0, special: 0 };
       let total = 0;
@@ -1029,9 +1052,15 @@
       const actRate = ((doneActivities / totalActivities) * 100).toFixed(1);
 
       const totalBudget = totalAnnualBudget > 0 ? totalAnnualBudget : 7000000;
+      const plannedBudget = rawAnnual.reduce((sum, s) => sum + (s.budget || 0), 0);
       const spentBudget = rawAnnual.filter(s => s.status === '완료').reduce((sum, s) => sum + (s.budget || 0), 0);
-      const remBudget = totalBudget - spentBudget;
-      const budgetRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
+      
+      const remTotalBudget = totalBudget - spentBudget;
+      const remPlanBudget = plannedBudget - spentBudget;
+      const bufferBudget = totalBudget - plannedBudget;
+      
+      const planRate = totalBudget > 0 ? ((plannedBudget / totalBudget) * 100).toFixed(1) : 0;
+      const execRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
 
       document.getElementById('kpi-act-done').innerText = doneActivities;
       document.getElementById('kpi-act-total').innerText = totalActivities;
@@ -1043,10 +1072,15 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = members.length > 0 ? (totalH / members.length).toFixed(1) : 0;
 
-      document.getElementById('kpi-b-total').innerText = `${Math.floor(totalBudget / 10000).toLocaleString()}만`;
+      document.getElementById('kpi-b-exec-rate').innerText = execRate;
       document.getElementById('kpi-b-spent').innerText = spentBudget.toLocaleString();
-      document.getElementById('kpi-b-sub').innerText = `잔여 ${remBudget.toLocaleString()}원 (${budgetRate}%) (터치 시 내역)`;
-      document.getElementById('kpi-b-bar').style.width = `${budgetRate}%`;
+      document.getElementById('kpi-b-rem-total').innerText = remTotalBudget.toLocaleString();
+      document.getElementById('kpi-b-rem-plan').innerText = remPlanBudget.toLocaleString();
+      document.getElementById('kpi-b-bar').style.width = `${execRate}%`;
+      document.getElementById('kpi-b-total').innerText = totalBudget.toLocaleString();
+      document.getElementById('kpi-b-buffer').innerText = bufferBudget.toLocaleString();
+      document.getElementById('kpi-b-planned').innerText = plannedBudget.toLocaleString();
+      document.getElementById('kpi-b-plan-rate').innerText = planRate;
 
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => {
         const safeName = h.name.replace(/[\n\r]/g, ' ').replace(/['"]/g, '');
@@ -1287,7 +1321,7 @@
       openModal(`👥 등록 대원 명부`, thead, tbody);
     }
 
-    // 🚨 핵심 수정 부분: 올바른 '구분' 값을 기준으로 정확히 필터링합니다.
+    // 🚨 핵심 수정: 엑셀의 '구분' 항목을 정확히 필터링합니다.
     function showFieldDetails(category) {
       const filtered = rawAnnual.filter(s => {
          const f = (s.type || "").replace(/\s/g, '');
@@ -1417,6 +1451,7 @@
       }
     }
 
+    // 🚨 엑셀의 열을 완벽하게 고정 인덱스로 다시 읽어오는 로직 적용 (버그 제로 패치)
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1484,43 +1519,13 @@
           } catch(e) {}
         }
 
-        // 🚨 핵심 수정 부분: 엑셀 표에서 '구분', '장소' 글자를 직접 찾아 매핑하는 동적 시스템 추가
         if (annualText) {
           try {
             const annualJson = JSON.parse(annualText.substr(47).slice(0, -2));
             if (annualJson && annualJson.table && annualJson.table.rows) {
               const aRows = annualJson.table.rows;
               let loadedAnnual = [];
-              
-              let qCol = 2, typeCol = 3, titleCol = 4, teacherCol = 5, placeCol = 6, budgetCol = 7, noteCol = 8;
-              let headerRow = -1;
-
-              for (let r = 0; r < Math.min(6, aRows.length); r++) {
-                if (!aRows[r].c) continue;
-                for (let c = 0; c < aRows[r].c.length; c++) {
-                  let val = aRows[r].c[c] && aRows[r].c[c].v ? String(aRows[r].c[c].v).replace(/\s/g, '') : "";
-                  if (val.includes("활동주제") || val === "구분") {
-                    headerRow = r; break;
-                  }
-                }
-                if (headerRow !== -1) {
-                  for (let c = 0; c < aRows[r].c.length; c++) {
-                    let val = aRows[r].c[c] && aRows[r].c[c].v ? String(aRows[r].c[c].v).replace(/\s/g, '') : "";
-                    if (val.includes("분기")) qCol = c;
-                    if (val === "구분" || val === "영역") typeCol = c;
-                    if (val.includes("활동주제") || val === "주제") titleCol = c;
-                    if (val.includes("담당")) teacherCol = c;
-                    if (val.includes("장소")) placeCol = c;
-                    if (val.includes("예산")) budgetCol = c;
-                    if (val.includes("비고") || val.includes("메모") || val.includes("전달사항")) noteCol = c;
-                  }
-                  break;
-                }
-              }
-
-              let startIdx = headerRow !== -1 ? headerRow + 1 : 0;
-
-              for (let i = startIdx; i < aRows.length; i++) {
+              for (let i = 0; i < aRows.length; i++) {
                 const r = aRows[i].c;
                 if (!r) continue;
 
@@ -1546,28 +1551,28 @@
                   const dParts = dateVal.split('-');
                   if (dParts.length === 3) dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
 
-                  const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
-                  const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
-                  const titleVal = r[titleCol] && r[titleCol].v ? String(r[titleCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
-                  const teacherVal = r[teacherCol] && r[teacherCol].v ? String(r[teacherCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
-                  const placeVal = r[placeCol] && r[placeCol].v ? String(r[placeCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "소예배실";
-                  const budgetVal = r[budgetCol] && r[budgetCol].v ? (parseInt(String(r[budgetCol].v).replace(/,/g, '')) || 0) : 0;
-                  const noteVal = r[noteCol] && r[noteCol].v ? String(r[noteCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
-                  
+                  const quarterVal = r[2] && r[2].v ? String(r[2].v).trim() : "";
+                  const typeVal = r[3] && r[3].v ? String(r[3].v).trim() : "";
+                  const titleVal = r[4] && r[4].v ? String(r[4].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                  const fieldVal = r[5] && r[5].v ? String(r[5].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : typeVal;
+                  const teacherVal = r[6] && r[6].v ? String(r[6].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                  const placeVal = r[7] && r[7].v ? String(r[7].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "소예배실";
+                  const budgetVal = r[8] && r[8].v ? (parseInt(String(r[8].v).replace(/,/g, '')) || 0) : 0;
                   const todayStr = new Date().toISOString().substring(0, 10);
                   const statusVal = dateVal <= todayStr ? "완료" : "예정";
+                  const noteVal = r[9] && r[9].v ? String(r[9].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
 
                   loadedAnnual.push({
                     no: noVal, date: dateVal,
                     q: quarterVal || (parseInt(dateVal.substring(5, 7)) <= 3 ? "1분기" : (parseInt(dateVal.substring(5, 7)) <= 6 ? "2분기" : (parseInt(dateVal.substring(5, 7)) <= 9 ? "3분기" : "4분기"))),
-                    type: typeVal, title: titleVal, field: typeVal, teacher: teacherVal,
+                    type: typeVal, title: titleVal, field: fieldVal, teacher: teacherVal,
                     place: placeVal, budget: budgetVal, status: statusVal, note: noteVal
                   });
                 }
               }
               if (loadedAnnual.length > 0) rawAnnual = loadedAnnual;
             }
-          } catch(e) { console.log("연간 일정 파싱 오류:", e); }
+          } catch(e) {}
         }
 
         if (msText) {
@@ -1584,9 +1589,9 @@
                   if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
                     const val = String(rCells[c].v).replace(/\s/g, '');
                     if (val.includes('일자') || val.includes('안식일') || val === '날짜') { dCol = c; isHeaderRow = true; }
-                    if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서')) { oCol = c; isHeaderRow = true; }
+                    if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { oCol = c; isHeaderRow = true; }
                     if (val.includes('준비물') || val.includes('장비')) { mCol = c; isHeaderRow = true; }
-                    if (val.includes('메모') || val.includes('비고') || val.includes('전달사항')) { mmCol = c; isHeaderRow = true; }
+                    if (val.includes('메모') || val.includes('비고') || val.includes('전달사항') || val.includes('평가')) { mmCol = c; isHeaderRow = true; }
                   }
                 }
                 if (isHeaderRow) continue;
