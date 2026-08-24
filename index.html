@@ -291,6 +291,14 @@
       text-align: left;
     }
 
+    /* 팝업 등에서 텍스트 말줄임 처리용 */
+    .truncate-text {
+      max-width: 140px; /* 모바일 기준 적정 길이 */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     tbody tr:nth-child(even) {
       background-color: var(--row-even);
     }
@@ -599,9 +607,9 @@
             <span>진행된 안식일 활동</span>
             <span class="click-hint">목록보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-act-done">34</span> <span style="font-size:12px;color:var(--text-muted);">/ <span id="kpi-act-total">52</span>회</span></div>
-          <div class="kpi-sub" id="kpi-act-sub">진행률 65.4% (터치 시 완료목록)</div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-act-bar" style="width: 65.4%;"></div></div>
+          <div class="kpi-value"><span id="kpi-act-done">0</span> <span style="font-size:12px;color:var(--text-muted);">/ <span id="kpi-act-total">52</span>회</span></div>
+          <div class="kpi-sub" id="kpi-act-sub">진행률 0% (터치 시 완료목록)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-act-bar" style="width: 0%;"></div></div>
         </div>
 
         <div class="kpi-card blue" onclick="showAllMembersList()">
@@ -609,8 +617,8 @@
             <span>등록 대원수</span>
             <span class="click-hint">명부보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-m-total">13</span> <span style="font-size:12px;color:var(--text-muted);">명</span></div>
-          <div class="kpi-sub" id="kpi-m-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
+          <div class="kpi-value"><span id="kpi-m-total">0</span> <span style="font-size:12px;color:var(--text-muted);">명</span></div>
+          <div class="kpi-sub" id="kpi-m-sub">어드 0명 / 패파 0명 (터치 시 명부)</div>
         </div>
 
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
@@ -618,18 +626,18 @@
             <span>기능장 취득 합계</span>
             <span class="click-hint">명부보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-h-total">51</span> <span style="font-size:12px;color:var(--text-muted);">건</span></div>
-          <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">3.9</span>개 (터치 시 전체명부)</div>
+          <div class="kpi-value"><span id="kpi-h-total">0</span> <span style="font-size:12px;color:var(--text-muted);">건</span></div>
+          <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
         </div>
 
         <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
-            <span>예산 집행 (총 <span id="kpi-b-total">149만</span>)</span>
+            <span>예산 집행 (총 <span id="kpi-b-total">0만</span>)</span>
             <span class="click-hint">내역보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-b-spent">930,000</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
-          <div class="kpi-sub" id="kpi-b-sub">잔여 560,000원 (62.4%) (터치 시 내역)</div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-b-bar" style="width: 62.4%;"></div></div>
+          <div class="kpi-value"><span id="kpi-b-spent">0</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
+          <div class="kpi-sub" id="kpi-b-sub">잔여 0원 (0%) (터치 시 내역)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-b-bar" style="width: 0%;"></div></div>
         </div>
       </div>
 
@@ -654,53 +662,47 @@
         </div>
       </div>
 
-      <!-- 2026 안식일활동 영역별 계획 및 비중 -->
+      <!-- 2026 안식일활동 영역별 계획 및 비중 (동적 연동) -->
       <div class="card">
         <div class="card-title">
-          <span>📊 2026 안식일활동 영역별 계획 및 비중 (총 52회)</span>
+          <span>📊 2026 안식일활동 영역별 계획 및 비중</span>
           <span style="font-size:10px; color:#8fa0be; font-weight:normal;">카드 터치 시 일정 확인 👆</span>
         </div>
         <div class="field-grid">
-          <div class="field-card" onclick="showFieldDetails('기능교육')">
-            <div class="field-name">🎯 기능교육</div>
-            <div class="field-stat">20회 (38.5%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 38.5%;"></div></div>
+          <div class="field-card" onclick="showFieldDetails('기능')">
+            <div class="field-name">🎯 기능(Honor) 교육</div>
+            <div class="field-stat" id="stat-skill">0회 (0%)</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-skill" style="width: 0%;"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card" onclick="showFieldDetails('정기집회')">
-            <div class="field-name">🏛️ 정기집회</div>
-            <div class="field-stat">9회 (17.3%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 17.3%; background:var(--accent-blue);"></div></div>
+          <div class="field-card" onclick="showFieldDetails('정기')">
+            <div class="field-name">🏛️ 정기집회 & 제식</div>
+            <div class="field-stat" id="stat-regular">0회 (0%)</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-regular" style="width: 0%; background:var(--accent-blue);"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card" onclick="showFieldDetails('영성훈련')">
-            <div class="field-name">🙏 영성훈련</div>
-            <div class="field-stat">7회 (13.5%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 13.5%; background:var(--accent-purple);"></div></div>
+          <div class="field-card" onclick="showFieldDetails('영성')">
+            <div class="field-name">🙏 영성 훈련 / 예배</div>
+            <div class="field-stat" id="stat-spirit">0회 (0%)</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-spirit" style="width: 0%; background:var(--accent-purple);"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card" onclick="showFieldDetails('봉사활동')">
-            <div class="field-name">🤝 봉사활동</div>
-            <div class="field-stat">5회 (9.6%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 9.6%; background:var(--accent-orange);"></div></div>
+          <div class="field-card" onclick="showFieldDetails('야외')">
+            <div class="field-name">⛺ 야외 & 탐사활동</div>
+            <div class="field-stat" id="stat-outdoor">0회 (0%)</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-outdoor" style="width: 0%; background:var(--accent-teal);"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card" onclick="showFieldDetails('야외활동')">
-            <div class="field-name">⛺ 야외활동</div>
-            <div class="field-stat">4회 (7.7%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 7.7%; background:var(--accent-teal);"></div></div>
+          <div class="field-card" onclick="showFieldDetails('봉사')">
+            <div class="field-name">🤝 봉사 & 이웃사랑</div>
+            <div class="field-stat" id="stat-service">0회 (0%)</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-service" style="width: 0%; background:var(--accent-orange);"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
           </div>
-          <div class="field-card" onclick="showFieldDetails('특별활동')">
-            <div class="field-name">🎉 특별활동</div>
-            <div class="field-stat">4회 (7.7%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 7.7%; background:#e67e22;"></div></div>
-            <div class="field-click-tip">일정 보기 ➔</div>
-          </div>
-          <div class="field-card" onclick="showFieldDetails('진급식')">
-            <div class="field-name">🎖️ 진급/수료</div>
-            <div class="field-stat">3회 (5.8%)</div>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 5.8%; background:#95a5a6;"></div></div>
+          <div class="field-card" onclick="showFieldDetails('특별')">
+            <div class="field-name">🎉 특별/진급/휴식</div>
+            <div class="field-stat" id="stat-special">0회 (0%)</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="bar-special" style="width: 0%; background:#e67e22;"></div></div>
             <div class="field-click-tip">일정 보기 ➔</div>
           </div>
         </div>
@@ -794,7 +796,7 @@
           <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 48%;"></div>
         </div>
 
-        <!-- 1. 주간 세부 운영 개요 카드 -->
+        <!-- 주간 세부 운영 개요 카드 -->
         <div class="overview-grid">
           <div class="overview-item">
             <span class="overview-label">일시</span>
@@ -827,7 +829,7 @@
           ■ 안식일 오후 표준 타임테이블 (Run-down)
         </div>
 
-        <!-- 2. 표준 타임테이블 -->
+        <!-- 표준 타임테이블 -->
         <div class="table-container">
           <table>
             <thead>
@@ -934,6 +936,43 @@
       }, 1500);
     }
 
+    // 🚨 활동 영역별 실시간 통계 계산 함수
+    function updateFieldStats() {
+      let counts = { skill: 0, regular: 0, spirit: 0, outdoor: 0, service: 0, special: 0 };
+      let total = 0;
+
+      rawAnnual.forEach(s => {
+        const f = (s.field || "").replace(/\s/g, ''); // 공백 제거 후 분석
+        if (!f || f === '-') return;
+
+        if (f.includes('기능')) counts.skill++;
+        else if (f.includes('정기') || f.includes('제식') || f.includes('기율')) counts.regular++;
+        else if (f.includes('영성') || f.includes('예배')) counts.spirit++;
+        else if (f.includes('야외') || f.includes('탐사')) counts.outdoor++;
+        else if (f.includes('봉사') || f.includes('이웃')) counts.service++;
+        else counts.special++; // 특별행사, 수료, 진급, 휴식 등 나머지 전부
+        
+        total++;
+      });
+
+      if(total === 0) total = 1;
+
+      const setStat = (id, count) => {
+        const pct = ((count / total) * 100).toFixed(1);
+        const elStat = document.getElementById(`stat-${id}`);
+        const elBar = document.getElementById(`bar-${id}`);
+        if(elStat) elStat.innerText = `${count}회 (${pct}%)`;
+        if(elBar) elBar.style.width = `${pct}%`;
+      };
+
+      setStat('skill', counts.skill);
+      setStat('regular', counts.regular);
+      setStat('spirit', counts.spirit);
+      setStat('outdoor', counts.outdoor);
+      setStat('service', counts.service);
+      setStat('special', counts.special);
+    }
+
     function renderUI() {
       const advCount = members.filter(m => m.dept === '어드벤처러').length;
       const pathCount = members.filter(m => m.dept === '패스파인더').length;
@@ -981,6 +1020,9 @@
         btn.onclick = () => selectMonth(m);
         monthBtnBox.appendChild(btn);
       }
+      
+      // 🚨 활동 영역 비중 실시간 업데이트 호출
+      updateFieldStats();
       renderMonthlyTable(activeMonth);
 
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
@@ -1080,7 +1122,7 @@
       if (dateSelector && rawAnnual.length > 0) {
         const targetDates = rawAnnual.filter(item => {
           const m = parseInt(item.date.substring(5, 7));
-          return m === 8 || m === 9 || m === 10; // 8~10월 데이터 노출
+          return m >= 8 && m <= 10;
         });
 
         dateSelector.innerHTML = targetDates.map(item => `
@@ -1106,7 +1148,6 @@
         };
 
         document.getElementById('ov-place').innerText = curPlan.place || '세종 JOY 패스파인더실 & 소예배실';
-        // 🚨 괄호(총괄 인도) 텍스트 제거 반영
         document.getElementById('ov-teacher').innerText = curPlan.teacher || '-';
         document.getElementById('ov-target').innerText = '어드벤처러 및 패스파인더 대원 13명';
         document.getElementById('ov-mat').innerText = curPlan.note || '단복 정렬 및 기본 준비물';
@@ -1174,20 +1215,21 @@
       openCustomModal(`📝 활동계획서 - ${dateStr} [${teacher}]`, contentHtml);
     }
 
+    // 🚨 예산 집행 세부 내역 (활동주제 말줄임 처리 적용)
     function showBudgetDetailModal() {
       const thead = `
         <tr>
           <th class="sticky-col">안식일</th>
-          <th class="text-left">활동 주제 및 계획</th>
+          <th class="text-left">활동 주제</th>
           <th>소요 예산</th>
-          <th>집행 상태</th>
+          <th>상태</th>
         </tr>
       `;
 
       const tbody = rawAnnual.map(s => `
         <tr>
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left truncate-text" style="font-weight:600; color:#fff;" title="${s.title}">${s.title}</td>
           <td style="color:var(--accent-gold); font-weight:bold;">${(s.budget || 0).toLocaleString()}원</td>
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
         </tr>
@@ -1304,8 +1346,19 @@
       openModal(`👥 2026 등록 대원 명부 (총 ${members.length}명)`, thead, tbody);
     }
 
+    // 🚨 활동 영역 모달 팝업 조건식 보강
     function showFieldDetails(category) {
-      const filtered = rawAnnual.filter(s => s.type === category || s.field === category);
+      const filtered = rawAnnual.filter(s => {
+         const f = (s.field || "").replace(/\s/g, '');
+         if(category === '기능') return f.includes('기능');
+         if(category === '정기') return f.includes('정기') || f.includes('제식') || f.includes('기율');
+         if(category === '영성') return f.includes('영성') || f.includes('예배');
+         if(category === '야외') return f.includes('야외') || f.includes('탐사');
+         if(category === '봉사') return f.includes('봉사') || f.includes('이웃');
+         if(category === '특별') return !(f.includes('기능') || f.includes('정기') || f.includes('제식') || f.includes('기율') || f.includes('영성') || f.includes('예배') || f.includes('야외') || f.includes('탐사') || f.includes('봉사') || f.includes('이웃') || f === '-');
+         return false;
+      });
+
       const thead = `
         <tr>
           <th>No</th>
@@ -1328,7 +1381,7 @@
         </tr>
       `).join('');
 
-      openModal(`📌 [${category}] 관련 활동 일정 (${filtered.length}건)`, thead, tbody);
+      openModal(`📌 관련 활동 일정 (${filtered.length}건)`, thead, tbody);
     }
 
     function selectMonth(m) {
@@ -1339,7 +1392,7 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 완전 동기화 엔진 (파싱 무적 방어 적용)
+    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1638,7 +1691,7 @@
           activityPlans = loadedPlans;
         } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
-        // 🚨 5. 토요일_주간세부계획서 파싱 (절대 고장 안나게 방어 로직 강화)
+        // 🚨 5. 토요일_주간세부계획서 (타임테이블 완벽 보호 로직)
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
           const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
@@ -1657,15 +1710,15 @@
               const col0 = r[0] && r[0].v ? String(r[0].v).trim() : "";
               const col1 = r[1] && r[1].v ? String(r[1].v).trim() : "";
               
-              // 헤더("구분" 등) 통과, 시간이 포함된 진짜 데이터 줄만 담기
-              if (!col0 || col0 === '구분' || col0.includes('구 분')) continue;
+              // 시간표 데이터 판단: 2번째 열(시간)에 콜론(:)이 있으면 무조건 타임테이블 데이터로 긁어옵니다.
+              if (!col1.includes(':')) continue;
 
               const badgeType = col0.includes('개회') || col0.includes('폐회') ? 'badge-plan' : 
                                (col0.includes('기능') ? 'badge-done' : 
                                (col0.includes('활동') ? 'badge-adv' : 'badge-path'));
 
               loadedRundown.push({
-                type: col0,
+                type: col0 || '일정',
                 badge: badgeType,
                 time: col1,
                 duration: r[2] && r[2].v ? String(r[2].v).trim() + (String(r[2].v).includes('분') ? '' : '분') : "",
@@ -1676,7 +1729,6 @@
               });
             }
 
-            // 시트에서 데이터를 하나도 못 찾았다면, 화면이 깨지지 않게 기본 시간표 강제 주입
             if (loadedRundown.length === 0) {
               loadedRundown = [
                 { badge: 'badge-path', type: '제식', time: '12:00 ~ 12:15', duration: '15분', content: '제식활동(설교예배후 교회 본당에서)', teacher: '이소연, 정돈구', mat: '-' },
