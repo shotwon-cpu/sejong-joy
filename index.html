@@ -702,37 +702,14 @@
           <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
         </div>
 
-        <div class="kpi-card red" style="grid-column: 1 / -1;" onclick="showBudgetDetailModal()">
-          <div class="kpi-label" style="border-bottom: 1px dashed rgba(231, 76, 60, 0.3); padding-bottom: 8px; margin-bottom: 10px;">
-            <span style="font-size:13px; font-weight:bold; color:var(--accent-red);">💰 예산 집행 종합 현황</span>
-            <span class="click-hint">상세 내역보기 👆</span>
+        <div class="kpi-card red" onclick="showBudgetDetailModal()">
+          <div class="kpi-label">
+            <span>예산 집행 (총 <span id="kpi-b-total">700만</span>)</span>
+            <span class="click-hint">내역보기 👆</span>
           </div>
-
-          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
-            <div>
-              <div style="font-size: 11px; color: var(--text-muted); margin-bottom:4px;">현재 집행액 <span style="color:var(--accent-red);">(집행률 <span id="kpi-b-exec-rate">0</span>%)</span></div>
-              <div class="kpi-value"><span id="kpi-b-spent">0</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-size: 12px; font-weight: bold; color: var(--accent-gold);">잔여 예산: <span id="kpi-b-rem-total">0</span> 원</div>
-              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">계획 대비 잔여: <span id="kpi-b-rem-plan">0</span> 원</div>
-            </div>
-          </div>
-
-          <div class="progress-bar-wrap" style="height: 6px; background:#1a0f14;">
-            <div class="progress-bar-fill" id="kpi-b-bar" style="width: 0%; background: linear-gradient(90deg, #e74c3c, #c0392b);"></div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px;">
-            <div style="font-size: 11px; color: #cbd5e1; line-height: 1.6;">
-              <div><span style="color:#8fa0be; display:inline-block; width:65px;">배정 예산:</span> <span id="kpi-b-total" style="font-weight:bold; color:#fff;">0</span> 원</div>
-              <div><span style="color:#8fa0be; display:inline-block; width:65px;">여유분:</span> <span id="kpi-b-buffer">0</span> 원 (예비비)</div>
-            </div>
-            <div style="font-size: 11px; color: #cbd5e1; text-align: right; line-height: 1.6;">
-              <div><span style="color:#8fa0be;">계획 예산 (52주):</span> <span id="kpi-b-planned" style="font-weight:bold; color:#fff;">0</span> 원</div>
-              <div><span style="color:#8fa0be;">계획 예산 비중:</span> 전체의 <span id="kpi-b-plan-rate">0</span>%</div>
-            </div>
-          </div>
+          <div class="kpi-value"><span id="kpi-b-spent">0</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
+          <div class="kpi-sub" id="kpi-b-sub">잔여 0원 (0%) (터치 시 내역)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-b-bar" style="width: 0%;"></div></div>
         </div>
       </div>
 
@@ -964,7 +941,8 @@
 
   <script>
     // ==============================================================================
-    // 🚨 1. 여기에 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
+    // 🚨 1. 여기에 방금 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
+    // (이 주소를 넣어야 기능장/대원 명부가 완벽히 연동됩니다)
     // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
     
@@ -1057,15 +1035,9 @@
       const actRate = ((doneActivities / totalActivities) * 100).toFixed(1);
 
       const totalBudget = totalAnnualBudget > 0 ? totalAnnualBudget : 7000000;
-      const plannedBudget = rawAnnual.reduce((sum, s) => sum + (s.budget || 0), 0);
       const spentBudget = rawAnnual.filter(s => s.status === '완료').reduce((sum, s) => sum + (s.budget || 0), 0);
-      
-      const remTotalBudget = totalBudget - spentBudget;
-      const remPlanBudget = plannedBudget - spentBudget;
-      const bufferBudget = totalBudget - plannedBudget;
-      
-      const planRate = totalBudget > 0 ? ((plannedBudget / totalBudget) * 100).toFixed(1) : 0;
-      const execRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
+      const remBudget = totalBudget - spentBudget;
+      const budgetRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
 
       document.getElementById('kpi-act-done').innerText = doneActivities;
       document.getElementById('kpi-act-total').innerText = totalActivities;
@@ -1077,15 +1049,10 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = members.length > 0 ? (totalH / members.length).toFixed(1) : 0;
 
-      document.getElementById('kpi-b-exec-rate').innerText = execRate;
+      document.getElementById('kpi-b-total').innerText = `${Math.floor(totalBudget / 10000).toLocaleString()}만`;
       document.getElementById('kpi-b-spent').innerText = spentBudget.toLocaleString();
-      document.getElementById('kpi-b-rem-total').innerText = remTotalBudget.toLocaleString();
-      document.getElementById('kpi-b-rem-plan').innerText = remPlanBudget.toLocaleString();
-      document.getElementById('kpi-b-bar').style.width = `${execRate}%`;
-      document.getElementById('kpi-b-total').innerText = totalBudget.toLocaleString();
-      document.getElementById('kpi-b-buffer').innerText = bufferBudget.toLocaleString();
-      document.getElementById('kpi-b-planned').innerText = plannedBudget.toLocaleString();
-      document.getElementById('kpi-b-plan-rate').innerText = planRate;
+      document.getElementById('kpi-b-sub').innerText = `잔여 ${remBudget.toLocaleString()}원 (${budgetRate}%) (터치 시 내역)`;
+      document.getElementById('kpi-b-bar').style.width = `${budgetRate}%`;
 
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => {
         const safeName = h.name.replace(/[\n\r]/g, ' ').replace(/['"]/g, '');
@@ -1166,7 +1133,10 @@
           <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${(m.honors || []).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${honorStats.map((h, i) => {
+            const isEarned = m.honors && m.honors[i] === 1;
+            return `<td><span class="${isEarned ? 'badge-honor' : 'badge-none'}">${isEarned ? '취득' : '-'}</span></td>`;
+          }).join('')}
         </tr>
       `).join('');
     }
@@ -1376,7 +1346,10 @@
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff;">${m.name}</td>
           <td><span class="badge badge-done">${m.hCount}개</span></td>
-          ${(m.honors || []).map(h => `<td><span class="${h ? 'badge-honor' : 'badge-none'}">${h ? '취득' : '-'}</span></td>`).join('')}
+          ${honorStats.map((h, i) => {
+            const isEarned = m.honors && m.honors[i] === 1;
+            return `<td><span class="${isEarned ? 'badge-honor' : 'badge-none'}">${isEarned ? '취득' : '-'}</span></td>`;
+          }).join('')}
         </tr>
       `).join('');
 
@@ -1431,7 +1404,7 @@
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
-          <td>${m.days}일 / 34일</td>
+          <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개 취득</span></td>
         </tr>
@@ -1558,7 +1531,7 @@
 
     async function submitAttendance() {
       if(APPS_SCRIPT_URL === "여기에_새_웹앱_주소를_붙여넣으세요" || !APPS_SCRIPT_URL.startsWith("http")) {
-        alert("웹앱 주소가 입력되지 않았습니다. 깃허브 코드 상단을 확인해주세요.");
+        alert("웹앱 주소(APPS_SCRIPT_URL)가 입력되지 않았습니다. 코드를 확인해주세요.");
         return;
       }
 
@@ -1576,10 +1549,10 @@
       btn.innerText = "⏳ 구글 시트에 저장하는 중...";
 
       try {
-        const response = await fetch(APPS_SCRIPT_URL, {
+        await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          // 🚨 구글 CORS 보안 우회 🚨
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             week: targetWeek,
             attendance: attPayload
@@ -1591,18 +1564,23 @@
         setTimeout(() => fetchLiveSheetData(false), 1000);
       } catch (err) {
         alert("출석 저장 중 오류가 발생했습니다: " + err);
-      } finally {
         btn.disabled = false;
         btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
       }
     }
 
+    // =========================================================================
+    // 💡 [핵심 연동 엔진]
+    // - 대원 명부 / 기능장 데이터: 튼튼한 Apps Script 웹앱에서 읽어옵니다.
+    // - 연간/월간/시간표 등: 기존 GViz로 병행해서 읽어옵니다.
+    // =========================================================================
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
+        // [1] 가장 말썽이었던 대원 명부 & 기능장 데이터 ➔ 똑똑한 웹앱(Apps Script)에서 안정적으로 받아오기!
         if (APPS_SCRIPT_URL.startsWith("http")) {
           try {
             const appRes = await fetch(APPS_SCRIPT_URL);
@@ -1614,10 +1592,11 @@
               honorStats = appData.honors;
             }
           } catch(appErr) {
-            console.log("웹앱 연동 오류:", appErr);
+            console.log("웹앱 연동 오류 (구글 시트 코드를 확인해주세요):", appErr);
           }
         }
 
+        // [2] 나머지 일정표 데이터 ➔ 구조가 단순해서 기존 방식(GViz)으로도 잘 작동하므로 그대로 둡니다.
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1731,7 +1710,6 @@
             for (let r = 0; r < rows.length; r++) {
               const rCells = rows[r].c;
               if (!rCells) continue;
-
               let isHeaderRow = false;
               for (let c = 0; c < rCells.length; c++) {
                 if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
@@ -1739,10 +1717,9 @@
                   if (val.includes('일자') || val.includes('안식일') || val === '날짜') { dCol = c; isHeaderRow = true; }
                   if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { oCol = c; isHeaderRow = true; }
                   if (val.includes('준비물') || val.includes('장비')) { mCol = c; isHeaderRow = true; }
-                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항') || val.includes('평가')) { mmCol = c; isHeaderRow = true; }
+                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항')) { mmCol = c; isHeaderRow = true; }
                 }
               }
-
               if (isHeaderRow) continue;
 
               if (dCol !== -1 && rCells[dCol]) {
@@ -1753,21 +1730,16 @@
                   if (dateVal.startsWith("Date(")) {
                     const parts = dateVal.match(/\d+/g);
                     if (parts && parts.length >= 3) {
-                      const y = parts[0];
-                      const m = String(parseInt(parts[1]) + 1).padStart(2, '0');
-                      const d = String(parts[2]).padStart(2, '0');
-                      dateVal = `${y}-${m}-${d}`;
+                      dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
                     }
                   }
                 }
-
                 if (dateVal) {
                   dateVal = dateVal.replace(/[./]/g, '-').trim();
                   if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
                   const dParts = dateVal.split('-');
                   if (dParts.length >= 3) {
                     const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
-                    
                     monthlyDetails[fDate] = {
                       order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v) : "-",
                       mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v) : "-",
@@ -1778,7 +1750,7 @@
               }
             }
           }
-        } catch (me) { console.log("월간 상세계획표 연동 오류:", me); }
+        } catch (me) { console.log("월간 상세 연동 오류:", me); }
 
         try {
           const planSheetName = encodeURIComponent("활동계획서");
@@ -1788,42 +1760,33 @@
           const planJson = JSON.parse(planText.substr(47).slice(0, -2));
 
           let loadedPlans = {};
-
           if (planJson && planJson.table && planJson.table.rows) {
             const pRows = planJson.table.rows;
             for (let i = 0; i < pRows.length; i++) {
               const r = pRows[i].c;
               if (!r) continue;
-
               let dateStr = "";
               if (r[0]) {
-                if (r[0].f) {
-                  dateStr = String(r[0].f).trim();
-                } else if (r[0].v) {
+                if (r[0].f) dateStr = String(r[0].f).trim();
+                else if (r[0].v) {
                   dateStr = String(r[0].v).trim();
                   if (dateStr.startsWith("Date(")) {
                     const parts = dateStr.match(/\d+/g);
                     if (parts && parts.length >= 3) {
-                      const y = parts[0];
-                      const m = String(parseInt(parts[1]) + 1).padStart(2, '0');
-                      const d = String(parts[2]).padStart(2, '0');
-                      dateStr = `${y}-${m}-${d}`;
+                      dateStr = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
                     }
                   }
                 }
               }
-
               if (!dateStr || dateStr.includes("일자") || dateStr.includes("날짜")) continue;
 
               dateStr = dateStr.replace(/[./]/g, '-').trim();
               if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateStr)) dateStr = "20" + dateStr;
-
               const dParts = dateStr.split('-');
               if (dParts.length === 3) dateStr = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
 
               const subTitle = r[1] && r[1].v ? String(r[1].v).trim().replace(/'/g, '`') : "";
               const fullText = r[2] && r[2].v ? String(r[2].v).trim() : (r[1] && r[1].v ? String(r[1].v).trim() : "");
-
               if (fullText) {
                 if (!loadedPlans[dateStr]) loadedPlans[dateStr] = [];
                 loadedPlans[dateStr].push({ title: subTitle, text: fullText });
@@ -1831,7 +1794,7 @@
             }
           }
           activityPlans = loadedPlans;
-        } catch (pe) { console.log("활동계획서 연동 오류:", pe); }
+        } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
@@ -1843,14 +1806,11 @@
           if (runJson && runJson.table && runJson.table.rows) {
             const rRows = runJson.table.rows;
             let loadedRundown = [];
-
             for (let i = 0; i < rRows.length; i++) {
               const r = rRows[i].c;
               if (!r) continue;
-
               const col0 = r[0] && r[0].v ? String(r[0].v).trim() : "";
               const col1 = r[1] && r[1].v ? String(r[1].v).trim() : "";
-              
               if (!col1.includes(':')) continue;
 
               const badgeType = col0.includes('개회') || col0.includes('폐회') ? 'badge-plan' : 
@@ -1858,17 +1818,13 @@
                                (col0.includes('활동') ? 'badge-adv' : 'badge-path'));
 
               loadedRundown.push({
-                type: col0 || '일정',
-                badge: badgeType,
-                time: col1,
+                type: col0 || '일정', badge: badgeType, time: col1,
                 duration: r[2] && r[2].v ? String(r[2].v).trim() + (String(r[2].v).includes('분') ? '' : '분') : "",
                 content: r[3] && r[3].v ? String(r[3].v).trim() : "",
                 teacher: r[4] && r[4].v ? String(r[4].v).trim() : "",
-                mat: (r[5] && r[5].v ? String(r[5].v).trim() : "") + 
-                     (r[6] && r[6].v ? (r[5] && r[5].v ? ', ' : '') + String(r[6].v).trim() : "")
+                mat: (r[5] && r[5].v ? String(r[5].v).trim() : "") + (r[6] && r[6].v ? (r[5] && r[5].v ? ', ' : '') + String(r[6].v).trim() : "")
               });
             }
-
             if (loadedRundown.length > 0) {
               const rTbody = document.getElementById('rundown-tbody');
               if (rTbody) {
