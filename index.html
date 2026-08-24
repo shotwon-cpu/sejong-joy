@@ -489,7 +489,6 @@
       flex: 1;
     }
 
-    /* 활동계획서 뷰 스타일 */
     .plan-card-box {
       background: #0c1628;
       border: 1px solid #24385a;
@@ -528,10 +527,10 @@
       <div class="logo-badge">
         <div class="logo-text">
           <h1>
-            <!-- 패스파인더 로고 앞 -->
+            <!-- 패스파인더 로고 앞 (왼쪽) -->
             <img src="1787532102855.png" alt="패스파인더" class="title-logo">
             세종 JOY 패스파인더
-            <!-- 어드벤처러 로고 뒤 -->
+            <!-- 어드벤처러 로고 뒤 (오른쪽) -->
             <img src="1787532102945.png" alt="어드벤처러" class="title-logo">
           </h1>
           <p>Google 시트 실시간 연동 운영 시스템</p>
@@ -749,7 +748,7 @@
     <!-- TAB 5: 활동시간표 -->
     <div id="tab-rundown" class="tab-content">
       <div class="card">
-        <div class="card-title">⏱️ 안식일 오후 표준 활동시간표 (14:00~16:30)</div>
+        <div class="card-title" id="rundown-title">⏱️ 안식일 오후 표준 활동시간표</div>
         <div class="table-container">
           <table>
             <thead>
@@ -763,11 +762,12 @@
                 <th class="text-left">비고</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="rundown-tbody">
+              <!-- 구글 시트 '토요일_주간세부계획서' 탭에서 실시간 연동 -->
               <tr>
                 <td><span class="badge badge-plan">개회</span></td>
-                <td class="sticky-col" style="font-weight:bold;">14:00~14:15</td>
-                <td>15분</td>
+                <td class="sticky-col" style="font-weight:bold;">13:00~13:30</td>
+                <td>30분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">개회식 (입장, 기국례, 서약/법, 표어, 찬양, 기도)</td>
                 <td>인도자/기수</td>
                 <td class="text-left">클럽기, 태극기, 반주</td>
@@ -775,8 +775,8 @@
               </tr>
               <tr>
                 <td><span class="badge badge-done">기능</span></td>
-                <td class="sticky-col" style="font-weight:bold;">14:15~15:00</td>
-                <td>45분</td>
+                <td class="sticky-col" style="font-weight:bold;">13:30~14:00</td>
+                <td>30분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">기능 교육 (해당 주차 기능장 이론 및 실습)</td>
                 <td>기능교사</td>
                 <td class="text-left">교안, 실습 재료</td>
@@ -784,8 +784,8 @@
               </tr>
               <tr>
                 <td><span class="badge badge-adv">활동</span></td>
-                <td class="sticky-col" style="font-weight:bold;">15:00~15:45</td>
-                <td>45분</td>
+                <td class="sticky-col" style="font-weight:bold;">14:00~14:30</td>
+                <td>30분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">팀 빌딩 & 응용 신체활동 게임 (조별 협동 미션)</td>
                 <td>활동교사</td>
                 <td class="text-left">미션 카드, 타이머</td>
@@ -793,8 +793,8 @@
               </tr>
               <tr>
                 <td><span class="badge badge-path">영성</span></td>
-                <td class="sticky-col" style="font-weight:bold;">15:45~16:15</td>
-                <td>30분</td>
+                <td class="sticky-col" style="font-weight:bold;">14:30~14:45</td>
+                <td>15분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">영성 훈련 & 말씀 나눔 (성경 퀴즈 및 기도 짝)</td>
                 <td>영성교사</td>
                 <td class="text-left">성경 퀴즈지, 선물</td>
@@ -802,7 +802,7 @@
               </tr>
               <tr>
                 <td><span class="badge badge-plan">폐회</span></td>
-                <td class="sticky-col" style="font-weight:bold;">16:15~16:30</td>
+                <td class="sticky-col" style="font-weight:bold;">14:45~15:00</td>
                 <td>15분</td>
                 <td class="text-left" style="font-weight:600; color:#fff;">폐회식 & 공지사항 (클럽기 하강, 간식 배부)</td>
                 <td>총괄부장</td>
@@ -837,7 +837,6 @@
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
-    // 활동계획서 캐시 객체 { '2026-09-12': [{ title: '...', text: '...' }] }
     let activityPlans = {};
 
     let honorStats = [
@@ -977,7 +976,6 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = (totalH / (members.length || 1)).toFixed(1);
 
-      // 1. 기능장 요약 표
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -987,7 +985,6 @@
         </tr>
       `).join('');
 
-      // 2. 월 선택 버튼
       const monthBtnBox = document.getElementById('month-buttons');
       monthBtnBox.innerHTML = '';
       for (let m = 1; m <= 12; m++) {
@@ -999,7 +996,6 @@
       }
       renderMonthlyTable(activeMonth);
 
-      // 3. 연간 계획표 (활동계획서 등록 시 배지 표시 및 클릭 연동)
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
         const hasPlan = activityPlans[s.date] && activityPlans[s.date].length > 0;
         return `
@@ -1021,7 +1017,6 @@
         </tr>
       `}).join('');
 
-      // 4. 대원 출석·기능장 명부 탭
       renderFullMembersTable();
     }
 
@@ -1089,7 +1084,6 @@
       `}).join('');
     }
 
-    // 모달 공통 함수
     function openModal(title, theadHtml, tbodyHtml) {
       document.getElementById('modal-title').innerText = title;
       const bodyContainer = document.getElementById('modal-body-container');
@@ -1121,7 +1115,6 @@
       }
     }
 
-    // 📄 활동계획서 모달 팝업
     function showActivityPlanModal(dateStr, title, teacher, place) {
       const plans = activityPlans[dateStr] || [];
       let contentHtml = "";
@@ -1312,7 +1305,6 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1474,7 +1466,7 @@
           console.log("기능장 동적 시트 연동:", he);
         }
 
-        // 3. 📄 활동계획서 탭 파싱 (A열: 일자, B열: 구분, C열: 계획서전문)
+        // 3. 활동계획서 파싱 (날짜 자동 표준화 적용)
         try {
           const planSheetName = encodeURIComponent("활동계획서");
           const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json`;
@@ -1490,7 +1482,6 @@
               const r = pRows[i].c;
               if (!r) continue;
 
-                            // A열 날짜 추출 및 자동 표준화 (26-08-29 -> 2026-08-29)
               let dateStr = "";
               if (r[0]) {
                 if (r[0].f) {
@@ -1511,15 +1502,12 @@
 
               if (!dateStr || dateStr.includes("일자") || dateStr.includes("날짜")) continue;
 
-              // 구분자 통일 (.이나 /를 -로 변경)
               dateStr = dateStr.replace(/[./]/g, '-').trim();
 
-              // 26-08-29 형태일 경우 2026-08-29로 변환
               if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
                 dateStr = "20" + dateStr;
               }
 
-              // 2026-8-29 같은 한자리 월/일을 2026-08-29로 맞춤
               const dParts = dateStr.split('-');
               if (dParts.length === 3) {
                 const y = dParts[0];
@@ -1530,7 +1518,6 @@
 
               const subTitle = r[1] && r[1].v ? String(r[1].v).trim() : "";
               const fullText = r[2] && r[2].v ? String(r[2].v).trim() : (r[1] && r[1].v ? String(r[1].v).trim() : "");
-
 
               if (fullText) {
                 if (!loadedPlans[dateStr]) loadedPlans[dateStr] = [];
@@ -1544,6 +1531,68 @@
           activityPlans = loadedPlans;
         } catch (pe) {
           console.log("활동계획서 시트 연동:", pe);
+        }
+
+        // 4. 토요일_주간세부계획서 (활동시간표) 실시간 파싱
+        try {
+          const runSheetName = encodeURIComponent("토요일_주간세부계획서");
+          const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json`;
+          const runRes = await fetch(runUrl);
+          const runText = await runRes.text();
+          const runJson = JSON.parse(runText.substr(47).slice(0, -2));
+
+          if (runJson && runJson.table && runJson.table.rows) {
+            const rRows = runJson.table.rows;
+            let loadedRundown = [];
+            let headerFound = false;
+
+            for (let i = 0; i < rRows.length; i++) {
+              const r = rRows[i].c;
+              if (!r) continue;
+
+              const col0 = r[0] && r[0].v ? String(r[0].v).trim() : "";
+              if (col0 === '구분') {
+                headerFound = true;
+                continue;
+              }
+
+              if (headerFound && col0) {
+                const badgeType = col0.includes('개회') || col0.includes('폐회') ? 'badge-plan' : 
+                                 (col0.includes('기능') ? 'badge-done' : 
+                                 (col0.includes('활동') ? 'badge-adv' : 'badge-path'));
+
+                loadedRundown.push({
+                  type: col0,
+                  badge: badgeType,
+                  time: r[1] && r[1].v ? String(r[1].v).trim() : "",
+                  duration: r[2] && r[2].v ? String(r[2].v).trim() + "분" : "",
+                  content: r[3] && r[3].v ? String(r[3].v).trim() : "",
+                  teacher: r[4] && r[4].v ? String(r[4].v).trim() : "",
+                  mat: r[5] && r[5].v ? String(r[5].v).trim() : "",
+                  note: r[6] && r[6].v ? String(r[6].v).trim() : ""
+                });
+              }
+            }
+
+            if (loadedRundown.length > 0) {
+              const rTbody = document.getElementById('rundown-tbody');
+              if (rTbody) {
+                rTbody.innerHTML = loadedRundown.map(item => `
+                  <tr>
+                    <td><span class="badge ${item.badge}">${item.type}</span></td>
+                    <td class="sticky-col" style="font-weight:bold;">${item.time}</td>
+                    <td>${item.duration}</td>
+                    <td class="text-left" style="font-weight:600; color:#fff;">${item.content}</td>
+                    <td>${item.teacher}</td>
+                    <td class="text-left">${item.mat}</td>
+                    <td class="text-left">${item.note}</td>
+                  </tr>
+                `).join('');
+              }
+            }
+          }
+        } catch (re) {
+          console.log("시간표 시트 연동:", re);
         }
 
         if (updatedMembers.length > 0) {
@@ -1586,7 +1635,6 @@
       });
     }
 
-    // 접속 시 자동 로드
     fetchLiveSheetData(false);
   </script>
 </body>
