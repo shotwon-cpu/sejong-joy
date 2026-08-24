@@ -566,7 +566,6 @@
       color: #e1e7f0;
     }
 
-    /* 원격 출석체크 전용 스타일 */
     .att-check-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -694,7 +693,6 @@
         </div>
       </div>
 
-      <!-- 기능장 전체 취득 현황 -->
       <div class="card">
         <div class="card-title">
           <span>🎖️ 기능장 전체 취득 현황</span>
@@ -715,7 +713,6 @@
         </div>
       </div>
 
-      <!-- 2026 안식일활동 영역별 계획 및 비중 -->
       <div class="card">
         <div class="card-title">
           <span>📊 2026 안식일활동 영역별 계획 및 비중</span>
@@ -906,7 +903,6 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -926,7 +922,6 @@
 
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
-    // 🚨 반드시 방금 발급받은 선생님의 웹 앱 URL을 붙여넣으세요!
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
 
     let activityPlans = {};
@@ -943,19 +938,19 @@
     ];
 
     let members = [
-      { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
-      { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
-      { age: 8, dept: "어드벤처러", name: "박봄", days: 29, rate: "85.3%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
-      { age: 8, dept: "어드벤처러", name: "최고은", days: 31, rate: "91.2%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
-      { age: 9, dept: "어드벤처러", name: "최시우", days: 31, rate: "91.2%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
-      { age: 10, dept: "어드벤처러", name: "신동주", days: 32, rate: "94.1%", hCount: 7, honors: [1,1,0,0,1,1,1,1,1] },
-      { age: 11, dept: "패스파인더", name: "황예찬", days: 31, rate: "91.2%", hCount: 6, honors: [1,1,1,1,1,0,0,0,1] },
-      { age: 11, dept: "패스파인더", name: "성민수", days: 31, rate: "91.2%", hCount: 5, honors: [1,1,1,1,0,0,0,1,0] },
-      { age: 12, dept: "패스파인더", name: "최시은", days: 28, rate: "82.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
-      { age: 14, dept: "패스파인더", name: "황예림", days: 30, rate: "88.2%", hCount: 4, honors: [1,0,0,0,1,0,0,1,1] },
-      { age: 15, dept: "패스파인더", name: "차한규", days: 26, rate: "76.5%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
-      { age: 10, dept: "패스파인더", name: "강나래", days: 30, rate: "88.2%", hCount: 3, honors: [0,0,0,0,1,0,0,1,1] },
-      { age: 10, dept: "패스파인더", name: "김예송", days: 31, rate: "91.2%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
+      { age: 7, dept: "어드벤처러", name: "정우호", days: 28, rate: "77.8%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
+      { age: 7, dept: "어드벤처러", name: "최하람", days: 31, rate: "88.6%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
+      { age: 8, dept: "어드벤처러", name: "박봄", days: 30, rate: "85.7%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { age: 8, dept: "어드벤처러", name: "최고은", days: 32, rate: "91.4%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
+      { age: 9, dept: "어드벤처러", name: "최시우", days: 32, rate: "91.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { age: 10, dept: "어드벤처러", name: "신동주", days: 33, rate: "94.3%", hCount: 7, honors: [1,1,0,0,1,1,1,1,1] },
+      { age: 11, dept: "패스파인더", name: "황예찬", days: 32, rate: "91.4%", hCount: 6, honors: [1,1,1,1,1,0,0,0,1] },
+      { age: 11, dept: "패스파인더", name: "성민수", days: 31, rate: "88.6%", hCount: 5, honors: [1,1,1,1,0,0,0,1,0] },
+      { age: 12, dept: "패스파인더", name: "최시은", days: 28, rate: "80.0%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { age: 14, dept: "패스파인더", name: "황예림", days: 30, rate: "85.7%", hCount: 4, honors: [1,0,0,0,1,0,0,1,1] },
+      { age: 15, dept: "패스파인더", name: "차한규", days: 27, rate: "77.1%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { age: 10, dept: "패스파인더", name: "강나래", days: 31, rate: "88.6%", hCount: 3, honors: [0,0,0,0,1,0,0,1,1] },
+      { age: 10, dept: "패스파인더", name: "김예송", days: 32, rate: "91.4%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
     ];
 
     let rawAnnual = [];
@@ -1391,7 +1386,7 @@
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
-          <td>${m.days}일 / 34일</td>
+          <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개 취득</span></td>
         </tr>
@@ -1454,8 +1449,8 @@
       let optionsHtml = recentDates.map(item => {
         const m = parseInt(item.date.substring(5, 7));
         const d = parseInt(item.date.substring(8, 10));
-        const weekLabel = `${m}월 ${Math.ceil(d/7)}주차`;
-        return `<option value="${item.date}" data-label="${weekLabel}" ${item.date === selectedRundownDate ? 'selected' : ''}>${weekLabel} (${item.date})</option>`;
+        const weekLabel = `${m}월 ${Math.ceil(d/7)}주차 (${item.date})`;
+        return `<option value="${m}월 ${Math.ceil(d/7)}주차" ${item.date === selectedRundownDate ? 'selected' : ''}>${weekLabel}</option>`;
       }).join('');
 
       let checkListHtml = members.map((m, idx) => `
@@ -1471,7 +1466,7 @@
       const customHtml = `
         <div>
           <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center;">
-            <label style="font-size:12px; color:var(--accent-gold); font-weight:bold; white-space:nowrap;">출석 안식일:</label>
+            <label style="font-size:12px; color:var(--accent-gold); font-weight:bold; white-space:nowrap;">출석 주차:</label>
             <select id="att-week-select" style="background:#0e1b33; color:#fff; border:1px solid #24385a; padding:6px 10px; border-radius:6px; flex:1; font-size:12px;">
               ${optionsHtml}
             </select>
@@ -1513,51 +1508,42 @@
       });
     }
 
-    // 🚨 체크 해제 시 "X"로 전송하도록 수정 완료
     async function submitAttendance() {
       const btn = document.getElementById('btn-submit-att');
       const select = document.getElementById('att-week-select');
-      const targetDate = select.value;
-      const targetWeek = select.options[select.selectedIndex].getAttribute('data-label');
+      const targetWeek = select.value;
 
       let attPayload = {};
       members.forEach((m, idx) => {
         const chk = document.getElementById(`att-input-${idx}`);
-        attPayload[m.name] = chk && chk.checked ? "O" : "X"; 
+        attPayload[m.name] = chk && chk.checked ? "O" : "";
       });
 
       btn.disabled = true;
       btn.innerText = "⏳ 구글 시트에 저장하는 중...";
 
       try {
-        const response = await fetch(APPS_SCRIPT_URL, {
+        await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            date: targetDate, 
             week: targetWeek,
             attendance: attPayload
           })
         });
-        
-        const result = await response.json();
-        
-        if (result.result === "success") {
-          showToast(`✅ [${targetDate}] 출석이 성공적으로 저장되었습니다!`);
-          closeModal();
-          setTimeout(() => fetchLiveSheetData(false), 1000);
-        } else {
-          alert("❌ 구글 시트 거부 오류: " + result.message);
-          btn.disabled = false;
-          btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
-        }
+
+        showToast(`✅ [${targetWeek}] 출석이 성공적으로 저장되었습니다!`);
+        closeModal();
+        setTimeout(() => fetchLiveSheetData(false), 1000);
       } catch (err) {
-        alert("❌ 전송 실패 (URL 주소나 인터넷 연결을 확인하세요): " + err);
+        alert("출석 저장 중 오류가 발생했습니다: " + err);
         btn.disabled = false;
         btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
       }
     }
 
+    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1565,6 +1551,7 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
+        // 0. 세종_JOY 탭 (연간총편성예산) 실시간 파싱
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1616,6 +1603,7 @@
           }
         } catch (je) { console.log("총예산 연동 오류:", je); }
 
+        // 1. 대원출석_현황 파싱 (출석주수 합계 및 출석률 직접 연동)
         try {
           const attSheetName = encodeURIComponent("대원출석_현황");
           const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
@@ -1626,42 +1614,70 @@
           let updatedMembers = [];
           if (attJson && attJson.table && attJson.table.rows) {
             const rows = attJson.table.rows;
-            for (let i = 0; i < rows.length; i++) {
+            let headerRow = null;
+            let sumColIdx = -1;
+            let rateColIdx = -1;
+            let nameColIdx = 2;
+
+            for (let r = 0; r < Math.min(5, rows.length); r++) {
+              const rCells = rows[r].c;
+              if (!rCells) continue;
+              for (let c = 0; c < rCells.length; c++) {
+                if (rCells[c] && rCells[c].v) {
+                  const val = String(rCells[c].v).replace(/\s/g, '');
+                  if (val.includes('출석주수') || val.includes('합계') || val === '출석') sumColIdx = c;
+                  if (val.includes('출석률') || val.includes('출석율')) rateColIdx = c;
+                  if (val === '이름' || val === '성명') nameColIdx = c;
+                }
+              }
+              if (sumColIdx !== -1) {
+                headerRow = r;
+                break;
+              }
+            }
+
+            for (let i = (headerRow !== null ? headerRow + 1 : 0); i < rows.length; i++) {
               const r = rows[i].c;
               if (!r) continue;
 
-              let nameVal = "";
-              let ageVal = 0;
-              let deptVal = "어드벤처러";
-
-              if (r[2] && r[2].v) {
-                nameVal = String(r[2].v).trim();
-                ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
-                deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
-              } else if (r[1] && r[1].v && !String(r[1].v).includes('소속')) {
-                nameVal = String(r[1].v).trim();
-                ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
-              }
+              let nameVal = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).trim() : "";
+              let ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
+              let deptVal = r[1] ? String(r[1].v).trim() : "어드벤처러";
 
               if (!nameVal || nameVal === '이름' || nameVal === '합계' || nameVal.includes('출석률') || nameVal.includes('관리') || nameVal === '비중' || nameVal.includes('대원')) continue;
 
-              let attCount = 0;
-              for (let cIdx = 3; cIdx < r.length; cIdx++) {
-                if (r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1')) {
-                  attCount++;
+              let parsedDays = 0;
+              let parsedRate = "";
+
+              if (sumColIdx !== -1 && r[sumColIdx] && r[sumColIdx].v !== null) {
+                parsedDays = parseInt(r[sumColIdx].v) || 0;
+              }
+              if (rateColIdx !== -1 && r[rateColIdx]) {
+                if (r[rateColIdx].f) parsedRate = String(r[rateColIdx].f).trim();
+                else if (r[rateColIdx].v !== null) {
+                  const numVal = parseFloat(r[rateColIdx].v);
+                  parsedRate = numVal <= 1 ? (numVal * 100).toFixed(1) + "%" : numVal.toFixed(1) + "%";
                 }
               }
 
-              const totalSabbaths = 34;
-              const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
+              if (parsedDays === 0) {
+                let attCount = 0;
+                for (let cIdx = nameColIdx + 1; cIdx < (sumColIdx !== -1 ? sumColIdx : r.length); cIdx++) {
+                  if (r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1')) {
+                    attCount++;
+                  }
+                }
+                parsedDays = attCount;
+              }
+
               const fallback = members.find(m => m.name === nameVal);
               
               updatedMembers.push({
                 age: ageVal > 0 ? ageVal : (fallback ? fallback.age : 9),
                 dept: deptVal,
                 name: nameVal,
-                days: attCount > 0 ? attCount : (fallback ? fallback.days : 30),
-                rate: attCount > 0 ? rateVal : (fallback ? fallback.rate : "88.2%"),
+                days: parsedDays > 0 ? parsedDays : (fallback ? fallback.days : 30),
+                rate: parsedRate ? parsedRate : (fallback ? fallback.rate : "88.6%"),
                 hCount: fallback ? fallback.hCount : 0,
                 honors: fallback ? fallback.honors : []
               });
@@ -1670,6 +1686,7 @@
           if(updatedMembers.length > 0) members = updatedMembers;
         } catch(e) { console.log("대원 출석 연동 오류:", e); }
 
+        // 2. 기능장_취득현황 파싱
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
@@ -1770,6 +1787,7 @@
           }
         } catch (he) { console.log("기능장 동적 파싱 실패:", he); }
 
+        // 3. 52주 연간 일정 시트 파싱
         try {
           const annualSheetName = encodeURIComponent("2026_연간_토요일_일정계획");
           const annualUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${annualSheetName}&tqx=out:json${cacheBuster}`;
@@ -1850,6 +1868,7 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
+        // 4. 활동계획서 파싱
         try {
           const planSheetName = encodeURIComponent("활동계획서");
           const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json${cacheBuster}`;
@@ -1903,6 +1922,7 @@
           activityPlans = loadedPlans;
         } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
+        // 5. 토요일_주간세부계획서 파싱
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
           const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
