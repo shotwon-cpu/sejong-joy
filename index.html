@@ -713,26 +713,7 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">
-          <span>🎖️ 기능장 전체 취득 현황</span>
-          <span style="font-size:10px; color:#8fa0be; font-weight:normal;">기능장 이름 클릭 시 취득 대원 확인 👆</span>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 15%;">No</th>
-                <th class="sticky-col text-left" style="width: 50%;">기능장 명칭 (클릭)</th>
-                <th style="width: 17%;">취득 인원</th>
-                <th style="width: 18%;">취득률</th>
-              </tr>
-            </thead>
-            <tbody id="honor-summary-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
+      <!-- 🚨 요청하신 위치 변경 반영: 영역별 비중을 위로, 기능장 현황을 아래로 -->
       <div class="card">
         <div class="card-title">
           <span>📊 2026 안식일활동 영역별 계획 및 비중</span>
@@ -777,6 +758,27 @@
           </div>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🎖️ 기능장 전체 취득 현황</span>
+          <span style="font-size:10px; color:#8fa0be; font-weight:normal;">기능장 이름 클릭 시 취득 대원 확인 👆</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 15%;">No</th>
+                <th class="sticky-col text-left" style="width: 50%;">기능장 명칭 (클릭)</th>
+                <th style="width: 17%;">취득 인원</th>
+                <th style="width: 18%;">취득률</th>
+              </tr>
+            </thead>
+            <tbody id="honor-summary-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
     <!-- TAB 2: 월간 계획표 -->
@@ -1185,7 +1187,6 @@
     function renderRundownOverview() {
       const dateSelector = document.getElementById('rundown-date-selector');
       if (dateSelector && rawAnnual.length > 0) {
-        // 🚨 3개월(8~10월) 제한을 해제하고 모든 일정을 보여주도록 변경했습니다.
         const targetDates = rawAnnual.filter(item => item.date && item.date.includes('-'));
 
         dateSelector.innerHTML = targetDates.map(item => `
@@ -1468,7 +1469,6 @@
       members.forEach((m, idx) => {
         const chk = document.getElementById(`att-input-${idx}`);
         if(chk) {
-          // 🚨 과거 출석 데이터 덮어쓰기 방지: attHistory에 데이터가 있으면 그대로 보여주고 없으면 모두 체크
           chk.checked = m.attHistory && m.attHistory.hasOwnProperty(targetWeek) ? m.attHistory[targetWeek] : true;
           updateAttBoxStyle(idx);
         }
@@ -1476,7 +1476,6 @@
     }
 
     function openAttendanceModal() {
-      // 🚨 3개월 제한을 지우고, 일자가 있는 모든 주간 데이터를 드롭다운에 추가합니다.
       const recentDates = rawAnnual.filter(item => item.date && item.date.includes('-'));
 
       let optionsHtml = recentDates.map(item => {
@@ -1640,7 +1639,9 @@
           let updatedMembers = [];
           if (attJson && attJson.table) {
             const rows = attJson.table.rows;
-            let sumColIdx = -1, rateColIdx = -1, nameColIdx = 2; 
+            let sumColIdx = -1;
+            let rateColIdx = -1;
+            let nameColIdx = 2; 
 
             if (attJson.table.cols) {
               for (let c = 0; c < attJson.table.cols.length; c++) {
@@ -1673,7 +1674,6 @@
               }
             }
 
-            // 🚨 출석 날짜 헤더 저장 시, 포맷 불일치 폭탄 제거 완료!
             let headerDates = [];
             if (headerRow !== -1) {
               for (let c = nameColIdx + 1; c < (sumColIdx !== -1 ? sumColIdx : rows[headerRow].c.length); c++) {
@@ -1694,7 +1694,6 @@
                 headerDates.push(dateStr.replace(/\s/g, ''));
               }
             } else if (attJson.table.cols) {
-              // 🚨 헤더가 열(cols) 속성에 숨어있는 경우 추출
               for (let c = nameColIdx + 1; c < (sumColIdx !== -1 ? sumColIdx : attJson.table.cols.length); c++) {
                 const col = attJson.table.cols[c];
                 let dateStr = col && col.label ? String(col.label).trim().replace(/\s/g, '') : "";
@@ -1706,7 +1705,6 @@
               const r = rows[i].c;
               if (!r) continue;
 
-              // 🚨 이름 띄어쓰기(스페이스바) 불일치 철벽 방어 완료!
               let rawName = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).trim() : "";
               let nameVal = rawName.replace(/\s/g, '');
               let ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
@@ -1714,7 +1712,8 @@
 
               if (!nameVal || nameVal === '이름' || nameVal === '합계' || nameVal.includes('출석률') || nameVal.includes('관리') || nameVal === '비중' || nameVal.includes('대원')) continue;
 
-              let parsedDays = 0, parsedRate = "";
+              let parsedDays = 0;
+              let parsedRate = "";
 
               if (sumColIdx !== -1 && r[sumColIdx] && r[sumColIdx].v !== null) {
                 parsedDays = parseInt(r[sumColIdx].v) || 0;
@@ -1735,6 +1734,7 @@
               for (let cIdx = nameColIdx + 1; cIdx < (sumColIdx !== -1 ? sumColIdx : r.length); cIdx++) {
                 let isPresent = r[cIdx] && (String(r[cIdx].v).toUpperCase() === 'O' || String(r[cIdx].v) === '1');
                 if (isPresent) attCount++;
+                
                 if (headerDates[dateIndex]) {
                    attHistory[headerDates[dateIndex]] = isPresent;
                 }
@@ -1768,14 +1768,18 @@
 
           if (honorJson && honorJson.table) {
             const hRows = honorJson.table.rows || [];
-            let nameColIdx = -1, isHeaderInCols = false, dynamicHonors = [];
+            let nameColIdx = -1;
+            let isHeaderInCols = false;
+            let dynamicHonors = [];
 
             if (honorJson.table.cols) {
               for (let c = 0; c < honorJson.table.cols.length; c++) {
                 if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
                   const val = String(honorJson.table.cols[c].label).replace(/\s/g, '');
                   if (val === '이름' || val === '성명' || val === '대원명') {
-                    nameColIdx = c; isHeaderInCols = true; break;
+                    nameColIdx = c;
+                    isHeaderInCols = true;
+                    break;
                   }
                 }
               }
@@ -1787,10 +1791,16 @@
                   const fullName = String(honorJson.table.cols[c].label).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`');
                   const checkName = fullName.replace(/\s/g, '');
                   if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
+
                   const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
                   dynamicHonors.push({
-                    colIdx: c, id: dynamicHonors.length, name: fullName, title: mMatch ? mMatch[1] : fullName,
-                    date: mMatch ? mMatch[2] : "", count: 0, rate: "0%"
+                    colIdx: c,
+                    id: dynamicHonors.length,
+                    name: fullName,
+                    title: mMatch ? mMatch[1] : fullName,
+                    date: mMatch ? mMatch[2] : "",
+                    count: 0,
+                    rate: "0%"
                   });
                 }
               }
@@ -1805,7 +1815,9 @@
                   if (r[cIdx] && r[cIdx].v) {
                     const val = String(r[cIdx].v).replace(/\s/g, '');
                     if (val === '이름' || val === '성명' || val === '대원명') {
-                      headerRowIdx = rIdx; nameColIdx = cIdx; break;
+                      headerRowIdx = rIdx;
+                      nameColIdx = cIdx;
+                      break;
                     }
                   }
                 }
@@ -1819,10 +1831,16 @@
                     const fullName = String(headerRow[c].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`');
                     const checkName = fullName.replace(/\s/g, '');
                     if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
+
                     const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
                     dynamicHonors.push({
-                      colIdx: c, id: dynamicHonors.length, name: fullName, title: mMatch ? mMatch[1] : fullName,
-                      date: mMatch ? mMatch[2] : "", count: 0, rate: "0%"
+                      colIdx: c,
+                      id: dynamicHonors.length,
+                      name: fullName,
+                      title: mMatch ? mMatch[1] : fullName,
+                      date: mMatch ? mMatch[2] : "",
+                      count: 0,
+                      rate: "0%"
                     });
                   }
                 }
@@ -1834,24 +1852,34 @@
               for (let i = startRow; i < hRows.length; i++) {
                 const r = hRows[i].c;
                 if (!r) continue;
+
                 let rowName = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).replace(/\s/g, '') : "";
                 if (!rowName || rowName === '합계' || rowName.includes('대원수') || rowName.includes('평균')) continue;
 
                 const mem = members.find(m => m.name.replace(/\s/g, '') === rowName);
                 if (mem) {
-                  let userH = []; let hCnt = 0;
+                  let userH = [];
+                  let hCnt = 0;
                   dynamicHonors.forEach((dHonor) => {
                     const cell = r[dHonor.colIdx];
                     const cellVal = cell && cell.v ? String(cell.v).trim().toUpperCase() : "";
                     let isEarned = (cellVal === '취득' || cellVal === 'O' || cellVal === '〇' || cellVal === '○' || cellVal === '1' || cellVal === 'TRUE' || cellVal === 'V') ? 1 : 0;
+                    
                     userH.push(isEarned);
-                    if (isEarned) { hCnt++; dHonor.count++; }
+                    if (isEarned) {
+                      hCnt++;
+                      dHonor.count++;
+                    }
                   });
-                  mem.honors = userH; mem.hCount = hCnt;
+                  mem.honors = userH;
+                  mem.hCount = hCnt;
                 }
               }
+
               const totalMCount = members.length || 13;
-              dynamicHonors.forEach(dh => { dh.rate = ((dh.count / totalMCount) * 100).toFixed(1) + "%"; });
+              dynamicHonors.forEach(dh => {
+                dh.rate = ((dh.count / totalMCount) * 100).toFixed(1) + "%";
+              });
               honorStats = dynamicHonors;
             }
           }
@@ -1904,7 +1932,10 @@
                   if (val === '비고' || val === '메모' || val === '특이사항') { ntCol = c; isHeader = true; }
                 }
               }
-              if (isHeader) { headerRow = r; break; }
+              if (isHeader) {
+                headerRow = r;
+                break;
+              }
             }
 
             for (let i = headerRow !== -1 ? headerRow + 1 : 0; i < aRows.length; i++) {
@@ -1931,9 +1962,13 @@
                 }
 
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
+                  dateVal = "20" + dateVal;
+                }
                 const dParts = dateVal.split('-');
-                if (dParts.length === 3) dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                if (dParts.length === 3) {
+                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                }
 
                 const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
                 const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
@@ -1960,7 +1995,6 @@
             }
             if (loadedAnnual.length > 0) rawAnnual = loadedAnnual;
             
-            // 🚨 2번. 활동시간표 날짜 '8/29' 고정 오류 수정 완료!
             if (!selectedRundownDate && rawAnnual.length > 0) {
               const todayStr = new Date().toISOString().substring(0, 10);
               const upcoming = rawAnnual.find(s => s.date >= todayStr);
@@ -1979,38 +2013,53 @@
 
           if (msJson && msJson.table && msJson.table.rows) {
             const rows = msJson.table.rows;
+            let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
+            let headerRow = -1;
             
-            for (let r = 0; r < rows.length; r++) {
+            for (let r = 0; r < Math.min(5, rows.length); r++) {
               const rCells = rows[r].c;
-              if (!rCells || !rCells[1]) continue;
-
-              let dateVal = "";
-              if (rCells[1].f) dateVal = String(rCells[1].f).trim();
-              else if (rCells[1].v) {
-                dateVal = String(rCells[1].v).trim();
-                if (dateVal.startsWith("Date(")) {
-                  const parts = dateVal.match(/\d+/g);
-                  if (parts && parts.length >= 3) {
-                    dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-                  }
+              if (!rCells) continue;
+              let found = false;
+              for (let c = 0; c < rCells.length; c++) {
+                if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
+                  const val = String(rCells[c].v).replace(/\s/g, '');
+                  if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) { dCol = c; found = true; }
+                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) { oCol = c; found = true; }
+                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) { mCol = c; found = true; }
+                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항'))) { mmCol = c; found = true; }
                 }
               }
+              if (found) { headerRow = r; break; } 
+            }
 
-              if (dateVal && (dateVal.includes('-') || dateVal.includes('.') || dateVal.includes('/'))) {
-                dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
-                
-                if (dateVal.includes("일자") || dateVal.includes("날짜")) continue;
-
-                const dParts = dateVal.split('-');
-                if (dParts.length >= 3) {
-                  const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
-                  
-                  monthlyDetails[fDate] = {
-                    order: rCells[6] && rCells[6].v ? String(rCells[6].v).replace(/['"]/g, '`') : "-",
-                    mat: rCells[7] && rCells[7].v ? String(rCells[7].v).replace(/['"]/g, '`') : "-",
-                    memo: rCells[10] && rCells[10].v ? String(rCells[10].v).replace(/['"]/g, '`') : "-"
-                  };
+            for (let r = headerRow !== -1 ? headerRow + 1 : 0; r < rows.length; r++) {
+              const rCells = rows[r].c;
+              if (!rCells) continue;
+              
+              if (dCol !== -1 && rCells[dCol]) {
+                let dateVal = "";
+                if (rCells[dCol].f) dateVal = String(rCells[dCol].f).trim();
+                else if (rCells[dCol].v) {
+                  dateVal = String(rCells[dCol].v).trim();
+                  if (dateVal.startsWith("Date(")) {
+                    const parts = dateVal.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                      dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                    }
+                  }
+                }
+                if (dateVal) {
+                  dateVal = dateVal.replace(/[./]/g, '-').trim();
+                  if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                  const dParts = dateVal.split('-');
+                  if (dParts.length >= 3) {
+                    const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
+                    monthlyDetails[fDate] = {
+                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v).replace(/['"]/g, '`') : "-",
+                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v).replace(/['"]/g, '`') : "-",
+                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v).replace(/['"]/g, '`') : "-"
+                    };
+                  }
                 }
               }
             }
@@ -2108,7 +2157,7 @@
           }
         } catch (re) { console.log("시간표 연동 오류:", re); }
 
-        if (isUserClick && APPS_SCRIPT_URL.startsWith("http")) {
+        if (isUserClick) {
           showToast("✨ 최신 데이터로 완벽하게 동기화되었습니다!");
         }
 
