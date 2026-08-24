@@ -566,6 +566,56 @@
       color: #e1e7f0;
     }
 
+    /* 원격 출석체크 전용 스타일 */
+    .att-check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .att-check-item {
+      background: #0e1b33;
+      border: 1px solid #24385a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .att-check-item.checked {
+      background: rgba(39, 174, 96, 0.15);
+      border-color: #27ae60;
+    }
+    .att-check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #27ae60;
+      cursor: pointer;
+    }
+    .att-submit-btn {
+      width: 100%;
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .att-submit-btn:disabled {
+      background: #556885;
+      cursor: not-allowed;
+    }
+
     @keyframes modalScale {
       from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
@@ -665,7 +715,7 @@
         </div>
       </div>
 
-      <!-- 2026 안식일활동 영역별 계획 및 비중 (동적 연동) -->
+      <!-- 2026 안식일활동 영역별 계획 및 비중 -->
       <div class="card">
         <div class="card-title">
           <span>📊 2026 안식일활동 영역별 계획 및 비중</span>
@@ -781,7 +831,13 @@
     <!-- TAB 4: 대원 출석 및 기능장 -->
     <div id="tab-members" class="tab-content">
       <div class="card">
-        <div class="card-title">👥 대원 출석 및 기능장 명부</div>
+        <div class="card-title">
+          <span>👥 대원 출석 및 기능장 명부</span>
+          <!-- 📝 원격 출석체크 버튼 -->
+          <button class="sync-btn" style="background:#27ae60; border-color:#2ecc71;" onclick="openAttendanceModal()">
+            📝 원격 출석체크
+          </button>
+        </div>
         <div class="table-container">
           <table>
             <thead id="full-members-thead"></thead>
@@ -818,7 +874,6 @@
           </div>
           <div class="overview-item">
             <span class="overview-label">참석 대상</span>
-            <!-- 🚨 대원 수 실시간 연동 -->
             <span class="overview-val" id="ov-target">어드벤처러 및 패스파인더 대원 13명</span>
           </div>
           <div class="overview-item">
@@ -852,6 +907,7 @@
     </div>
   </main>
 
+  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -871,6 +927,8 @@
 
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
+    // 🚨 Google Apps Script 원격 웹앱 API URL 연결
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
 
     let activityPlans = {};
     let honorStats = [
@@ -903,8 +961,7 @@
 
     let rawAnnual = [];
     let rawMonthly = [];
-    // 🚨 세종_JOY 메인 탭에서 가져올 총예산 (안전장치 700만)
-    let totalAnnualBudget = 7000000; 
+    let totalAnnualBudget = 7000000;
 
     let activeMonth = new Date().getMonth() + 1;
     let selectedRundownDate = "2026-08-29";
@@ -982,7 +1039,6 @@
       const totalActivities = rawAnnual.length || 52;
       const actRate = ((doneActivities / totalActivities) * 100).toFixed(1);
 
-      // 🚨 총 예산 (세종_JOY 시트에서 파싱된 값 적용)
       const totalBudget = totalAnnualBudget > 0 ? totalAnnualBudget : 7000000;
       const spentBudget = rawAnnual.filter(s => s.status === '완료').reduce((sum, s) => sum + (s.budget || 0), 0);
       const remBudget = totalBudget - spentBudget;
@@ -998,7 +1054,6 @@
       document.getElementById('kpi-h-total').innerText = totalH;
       document.getElementById('kpi-h-avg').innerText = members.length > 0 ? (totalH / members.length).toFixed(1) : 0;
 
-      // 🚨 예산 KPI 카드 텍스트 업데이트
       document.getElementById('kpi-b-total').innerText = `${Math.floor(totalBudget / 10000).toLocaleString()}만`;
       document.getElementById('kpi-b-spent').innerText = spentBudget.toLocaleString();
       document.getElementById('kpi-b-sub').innerText = `잔여 ${remBudget.toLocaleString()}원 (${budgetRate}%) (터치 시 내역)`;
@@ -1150,10 +1205,7 @@
 
         document.getElementById('ov-place').innerText = curPlan.place || '세종 JOY 패스파인더실 & 소예배실';
         document.getElementById('ov-teacher').innerText = curPlan.teacher || '-';
-        
-        // 🚨 참석 대상 실시간 연동
         document.getElementById('ov-target').innerText = `어드벤처러 및 패스파인더 대원 ${members.length || 13}명`;
-        
         document.getElementById('ov-mat').innerText = curPlan.note || '단복 정렬 및 기본 준비물';
       }
     }
@@ -1238,7 +1290,6 @@
         </tr>
       `).join('');
 
-      // 🚨 예산 팝업 타이틀 총 예산 금액 표시
       openModal(`💰 2026 연간 예산 집행 세부 내역 (총 ${Math.floor((totalAnnualBudget > 0 ? totalAnnualBudget : 7000000) / 10000).toLocaleString()}만)`, thead, tbody);
     }
 
@@ -1395,6 +1446,112 @@
       renderMonthlyTable(m);
     }
 
+    // 🚨 원격 출석체크 모달 생성 및 처리 함수
+    function openAttendanceModal() {
+      // 최근 8~10월 주차 목록 옵션 생성
+      const recentDates = rawAnnual.filter(item => {
+        const m = parseInt(item.date.substring(5, 7));
+        return m >= 8 && m <= 10;
+      });
+
+      let optionsHtml = recentDates.map(item => {
+        const m = parseInt(item.date.substring(5, 7));
+        const d = parseInt(item.date.substring(8, 10));
+        const weekLabel = `${m}월 ${Math.ceil(d/7)}주차 (${item.date})`;
+        return `<option value="${m}월 ${Math.ceil(d/7)}주차" ${item.date === selectedRundownDate ? 'selected' : ''}>${weekLabel}</option>`;
+      }).join('');
+
+      let checkListHtml = members.map((m, idx) => `
+        <div class="att-check-item checked" id="att-box-${idx}" onclick="toggleAttCheck(${idx})">
+          <div style="text-align:left;">
+            <div style="font-size:11px; color:var(--text-muted);">${m.dept}</div>
+            <div style="font-size:13px; font-weight:bold; color:#fff;">${m.name}</div>
+          </div>
+          <input type="checkbox" id="att-input-${idx}" data-name="${m.name}" checked onclick="event.stopPropagation(); updateAttBoxStyle(${idx});">
+        </div>
+      `).join('');
+
+      const customHtml = `
+        <div>
+          <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center;">
+            <label style="font-size:12px; color:var(--accent-gold); font-weight:bold; white-space:nowrap;">출석 주차:</label>
+            <select id="att-week-select" style="background:#0e1b33; color:#fff; border:1px solid #24385a; padding:6px 10px; border-radius:6px; flex:1; font-size:12px;">
+              ${optionsHtml}
+            </select>
+            <button class="filter-btn" onclick="toggleAllAttendance(true)">전체출석</button>
+            <button class="filter-btn" onclick="toggleAllAttendance(false)">전체해제</button>
+          </div>
+          <div class="att-check-grid">
+            ${checkListHtml}
+          </div>
+          <button id="btn-submit-att" class="att-submit-btn" onclick="submitAttendance()">
+            🚀 구글 시트에 출석 일괄 저장하기
+          </button>
+        </div>
+      `;
+
+      openCustomModal("📝 안식일 대원 원격 출석체크", customHtml);
+    }
+
+    function toggleAttCheck(idx) {
+      const chk = document.getElementById(`att-input-${idx}`);
+      chk.checked = !chk.checked;
+      updateAttBoxStyle(idx);
+    }
+
+    function updateAttBoxStyle(idx) {
+      const chk = document.getElementById(`att-input-${idx}`);
+      const box = document.getElementById(`att-box-${idx}`);
+      if (chk.checked) box.classList.add('checked');
+      else box.classList.remove('checked');
+    }
+
+    function toggleAllAttendance(status) {
+      members.forEach((m, idx) => {
+        const chk = document.getElementById(`att-input-${idx}`);
+        if(chk) {
+          chk.checked = status;
+          updateAttBoxStyle(idx);
+        }
+      });
+    }
+
+    async function submitAttendance() {
+      const btn = document.getElementById('btn-submit-att');
+      const select = document.getElementById('att-week-select');
+      const targetWeek = select.value;
+
+      let attPayload = {};
+      members.forEach((m, idx) => {
+        const chk = document.getElementById(`att-input-${idx}`);
+        attPayload[m.name] = chk && chk.checked ? "O" : "";
+      });
+
+      btn.disabled = true;
+      btn.innerText = "⏳ 구글 시트에 저장하는 중...";
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            week: targetWeek,
+            attendance: attPayload
+          })
+        });
+
+        showToast(`✅ [${targetWeek}] 출석이 성공적으로 저장되었습니다!`);
+        closeModal();
+        // 저장 후 최신 데이터 재동기화
+        setTimeout(() => fetchLiveSheetData(false), 1000);
+      } catch (err) {
+        alert("출석 저장 중 오류가 발생했습니다: " + err);
+        btn.disabled = false;
+        btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
+      }
+    }
+
     // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
@@ -1403,7 +1560,7 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
-        // 🚨 0. 세종_JOY 탭 (연간총편성예산) 실시간 파싱 - 바로 아랫줄 검색 적용
+        // 0. 세종_JOY 탭 (연간총편성예산) 실시간 파싱
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1421,8 +1578,6 @@
                 if (r[j] && r[j].v && typeof r[j].v === 'string') {
                   const text = r[j].v.replace(/\s/g, '');
                   if (text.includes('연간총편성예산') || text.includes('총편성예산') || text.includes('편성예산')) {
-                    
-                    // 1순위: 바로 아래 줄(행)의 같은 열(칸)에서 예산 금액 찾기
                     if (i + 1 < joyJson.table.rows.length) {
                       const nextRow = joyJson.table.rows[i+1].c;
                       if (nextRow && nextRow[j] && nextRow[j].v !== null) {
@@ -1435,7 +1590,6 @@
                         }
                       }
                     }
-                    // 2순위: 혹시 같은 줄 오른쪽에 있다면 (방어 로직)
                     if (!foundBudget) {
                       for (let k = j + 1; k < r.length; k++) {
                         if (r[k] && r[k].v !== null) {
