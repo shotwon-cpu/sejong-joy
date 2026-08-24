@@ -944,7 +944,6 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
 
     let activityPlans = {};
-    // 🚨 월간_상세계획표 데이터를 담아둘 전역 변수 초기화
     let monthlyDetails = {};
 
     let honorStats = [
@@ -1170,7 +1169,6 @@
       
       tbody.innerHTML = filtered.map((item, idx) => {
         const hasPlan = activityPlans[item.date] && activityPlans[item.date].length > 0;
-        // 🚨 시트에서 파싱된 상세계획표(세부진행순서, 준비물, 메모) 데이터를 매칭하여 꺼내옴
         const details = monthlyDetails[item.date] || { order: '-', mat: '-', memo: '-' };
 
         return `
@@ -1186,17 +1184,16 @@
             <div class="clamp-2">${item.teacher}</div>
           </td>
           <td>${item.place}</td>
-          <!-- 🚨 찾은 상세 데이터 삽입 & 2줄 말줄임(clamp-2) 처리 -->
           <td class="text-left wrap-text" style="color:#cbd5e1; font-size:11px; min-width:120px; max-width: 180px;">
-             <div class="clamp-2">${details.order}</div>
+             <div class="clamp-2">${details.order || '-'}</div>
           </td>
           <td class="text-left wrap-text" style="color:#cbd5e1; font-size:11px; min-width:100px; max-width: 150px;">
-             <div class="clamp-2">${details.mat}</div>
+             <div class="clamp-2">${details.mat || '-'}</div>
           </td>
           <td>${(item.budget || 0).toLocaleString()}원</td>
           <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
           <td class="text-left wrap-text" style="color:var(--accent-gold); font-size:11px; min-width:100px; max-width: 150px;">
-             <div class="clamp-2">${details.memo}</div>
+             <div class="clamp-2">${details.memo || '-'}</div>
           </td>
         </tr>
       `}).join('');
@@ -1396,7 +1393,7 @@
           <td>${s.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left wrap-text" style="min-width: 140px; max-width: 200px;">
+          <td class="text-left" style="min-width: 140px; max-width: 200px;">
             <div class="clamp-2" style="font-weight:600; color:#fff;">${s.title}</div>
           </td>
           <td>${s.teacher}</td>
@@ -1461,7 +1458,7 @@
         <tr>
           <td>${item.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
-          <td class="text-left wrap-text" style="min-width: 140px; max-width: 200px;">
+          <td class="text-left" style="min-width: 140px; max-width: 200px;">
             <div class="clamp-2" style="font-weight:600; color:#fff;">${item.title}</div>
           </td>
           <td>${item.teacher}</td>
@@ -1643,6 +1640,7 @@
           }
         } catch (je) { console.log("총예산 연동 오류:", je); }
 
+        // 🚨 1. 대원출석_현황 파싱
         try {
           const attSheetName = encodeURIComponent("대원출석_현황");
           const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
@@ -1739,6 +1737,7 @@
           if(updatedMembers.length > 0) members = updatedMembers;
         } catch(e) { console.log("대원 출석 연동 오류:", e); }
 
+        // 🚨 2. 기능장_취득현황 파싱 (무적 파싱 로직 적용!)
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
@@ -1746,39 +1745,36 @@
           const honorText = await honorRes.text();
           const honorJson = JSON.parse(honorText.substr(47).slice(0, -2));
 
-          if (honorJson && honorJson.table && honorJson.table.rows) {
-            const hRows = honorJson.table.rows;
-            let headerRow = null;
-            let headerRowIdx = -1;
+          if (honorJson && honorJson.table) {
+            const hRows = honorJson.table.rows || [];
             let nameColIdx = -1;
-            
-            for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
-              const r = hRows[rIdx].c;
-              if (!r) continue;
-              for (let cIdx = 0; cIdx < Math.min(5, r.length); cIdx++) {
-                if (r[cIdx] && r[cIdx].v) {
-                  const val = String(r[cIdx].v).replace(/\s/g, ''); 
+            let isHeaderInCols = false;
+            let dynamicHonors = [];
+
+            // 1. 헤더가 cols에 분리되었는지 검사 (API가 헤더를 뺏어갔을 경우)
+            if (honorJson.table.cols) {
+              for (let c = 0; c < honorJson.table.cols.length; c++) {
+                if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
+                  const val = String(honorJson.table.cols[c].label).replace(/\s/g, '');
                   if (val === '이름' || val === '성명' || val === '대원명') {
-                    headerRow = r;
-                    headerRowIdx = rIdx;
-                    nameColIdx = cIdx;
+                    nameColIdx = c;
+                    isHeaderInCols = true;
                     break;
                   }
                 }
               }
-              if (headerRow) break;
             }
 
-            let dynamicHonors = [];
-            if (headerRow && nameColIdx !== -1) {
-              for (let colIdx = nameColIdx + 1; colIdx < headerRow.length; colIdx++) {
-                if (headerRow[colIdx] && headerRow[colIdx].v) {
-                  const fullName = String(headerRow[colIdx].v).trim();
-                  if (!fullName || fullName === '합계' || fullName.includes('취득률') || fullName.includes('구분')) continue;
+            if (isHeaderInCols && nameColIdx !== -1) {
+              for (let c = nameColIdx + 1; c < honorJson.table.cols.length; c++) {
+                if (honorJson.table.cols[c] && honorJson.table.cols[c].label) {
+                  const fullName = String(honorJson.table.cols[c].label).trim();
+                  const checkName = fullName.replace(/\s/g, '');
+                  if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
 
                   const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
                   dynamicHonors.push({
-                    colIdx: colIdx,
+                    colIdx: c,
                     id: dynamicHonors.length,
                     name: fullName,
                     title: mMatch ? mMatch[1] : fullName,
@@ -1790,26 +1786,60 @@
               }
             }
 
-            if (headerRowIdx !== -1) {
-              for (let i = headerRowIdx + 1; i < hRows.length; i++) {
-                const r = hRows[i].c;
+            // 2. cols에 없다면 rows에서 헤더 검사
+            let headerRowIdx = -1;
+            if (!isHeaderInCols) {
+              for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
+                const r = hRows[rIdx].c;
                 if (!r) continue;
-
-                let rowName = "";
-                for (let cIdx = 0; cIdx < Math.min(4, r.length); cIdx++) {
+                for (let cIdx = 0; cIdx < Math.min(5, r.length); cIdx++) {
                   if (r[cIdx] && r[cIdx].v) {
-                    const val = String(r[cIdx].v).trim();
-                    if (members.some(m => m.name === val)) {
-                      rowName = val;
+                    const val = String(r[cIdx].v).replace(/\s/g, '');
+                    if (val === '이름' || val === '성명' || val === '대원명') {
+                      headerRowIdx = rIdx;
+                      nameColIdx = cIdx;
                       break;
                     }
                   }
                 }
+                if (headerRowIdx !== -1) break;
+              }
 
-                if (!rowName) continue;
+              if (headerRowIdx !== -1 && nameColIdx !== -1) {
+                const headerRow = hRows[headerRowIdx].c;
+                for (let c = nameColIdx + 1; c < headerRow.length; c++) {
+                  if (headerRow[c] && headerRow[c].v) {
+                    const fullName = String(headerRow[c].v).trim();
+                    const checkName = fullName.replace(/\s/g, '');
+                    if (!checkName || checkName === '합계' || checkName.includes('취득률') || checkName.includes('구분') || checkName.includes('취득합계')) continue;
+
+                    const mMatch = fullName.match(/^(.*?)\s*(\(\d+\.\d+\))$/);
+                    dynamicHonors.push({
+                      colIdx: c,
+                      id: dynamicHonors.length,
+                      name: fullName,
+                      title: mMatch ? mMatch[1] : fullName,
+                      date: mMatch ? mMatch[2] : "",
+                      count: 0,
+                      rate: "0%"
+                    });
+                  }
+                }
+              }
+            }
+
+            // 3. 기능장 취득 여부 파싱 (대원별 O/X)
+            if (dynamicHonors.length > 0 && nameColIdx !== -1) {
+              const startRow = isHeaderInCols ? 0 : headerRowIdx + 1;
+              for (let i = startRow; i < hRows.length; i++) {
+                const r = hRows[i].c;
+                if (!r) continue;
+
+                let rowName = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).trim() : "";
+                if (!rowName || rowName === '합계' || rowName.includes('대원수') || rowName.includes('평균')) continue;
+
                 const mem = members.find(m => m.name === rowName);
-                
-                if (mem && dynamicHonors.length > 0) {
+                if (mem) {
                   let userH = [];
                   let hCnt = 0;
                   dynamicHonors.forEach((dHonor) => {
@@ -1827,9 +1857,7 @@
                   mem.hCount = hCnt;
                 }
               }
-            }
 
-            if (dynamicHonors.length > 0) {
               const totalMCount = members.length || 13;
               dynamicHonors.forEach(dh => {
                 dh.rate = ((dh.count / totalMCount) * 100).toFixed(1) + "%";
@@ -1919,7 +1947,6 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 🚨 6. 누락되었던 [월간_상세계획표] 완벽 연동 파싱 로직 복구
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -1931,28 +1958,31 @@
             const rows = msJson.table.rows;
             let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
             
-            for (let r = 0; r < rows.length; r++) {
-              const rCells = rows[r].c;
-              if (!rCells) continue;
-
-              let isHeaderRow = false;
-              for (let c = 0; c < rCells.length; c++) {
-                if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
-                  const val = String(rCells[c].v).replace(/\s/g, '');
-                  if (val.includes('일자') || val.includes('안식일') || val === '날짜') { dCol = c; isHeaderRow = true; }
-                  if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { oCol = c; isHeaderRow = true; }
-                  if (val.includes('준비물') || val.includes('장비')) { mCol = c; isHeaderRow = true; }
-                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항') || val.includes('평가')) { mmCol = c; isHeaderRow = true; }
+            let headerRow = -1;
+            for (let r = 0; r < Math.min(5, rows.length); r++) {
+              if(!rows[r].c) continue;
+              for (let c = 0; c < rows[r].c.length; c++) {
+                if(rows[r].c[c] && rows[r].c[c].v) {
+                  const val = String(rows[r].c[c].v).replace(/\s/g, '');
+                  if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) dCol = c;
+                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) oCol = c;
+                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) mCol = c;
+                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항') || val.includes('평가'))) mmCol = c;
                 }
               }
+              if (dCol !== -1) { headerRow = r; break; }
+            }
 
-              if (isHeaderRow) continue;
+            if (dCol !== -1) {
+              for (let i = headerRow + 1; i < rows.length; i++) {
+                const r = rows[i].c;
+                if (!r || !r[dCol]) continue;
 
-              if (dCol !== -1 && rCells[dCol]) {
                 let dateVal = "";
-                if (rCells[dCol].f) dateVal = String(rCells[dCol].f).trim();
-                else if (rCells[dCol].v) {
-                  dateVal = String(rCells[dCol].v).trim();
+                if (r[dCol].f) {
+                  dateVal = String(r[dCol].f).trim();
+                } else if (r[dCol].v) {
+                  dateVal = String(r[dCol].v).trim();
                   if (dateVal.startsWith("Date(")) {
                     const parts = dateVal.match(/\d+/g);
                     if (parts && parts.length >= 3) {
@@ -1964,19 +1994,18 @@
                   }
                 }
 
-                if (dateVal) {
-                  dateVal = dateVal.replace(/[./]/g, '-').trim();
-                  if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
-                  const dParts = dateVal.split('-');
-                  if (dParts.length >= 3) {
-                    const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
-                    
-                    monthlyDetails[fDate] = {
-                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v) : "-",
-                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v) : "-",
-                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v) : "-"
-                    };
-                  }
+                if(!dateVal) continue;
+                dateVal = dateVal.replace(/[./]/g, '-').trim();
+                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                const dParts = dateVal.split('-');
+                if (dParts.length === 3) {
+                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                  
+                  monthlyDetails[dateVal] = {
+                    order: oCol !== -1 && r[oCol] && r[oCol].v ? String(r[oCol].v) : "",
+                    mat: mCol !== -1 && r[mCol] && r[mCol].v ? String(r[mCol].v) : "",
+                    memo: mmCol !== -1 && r[mmCol] && r[mmCol].v ? String(r[mmCol].v) : ""
+                  };
                 }
               }
             }
