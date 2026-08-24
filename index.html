@@ -343,6 +343,7 @@
     .badge-adv { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #d35400; }
     .badge-path { background: rgba(142, 68, 173, 0.2); color: #9b59b6; border: 1px solid #8e44ad; }
     .badge-honor { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border-radius: 4px; font-weight: bold; padding: 2px 6px; }
+    .badge-doc { background: rgba(229, 169, 59, 0.2); color: var(--accent-gold); border: 1px solid var(--accent-gold); font-size: 9px; margin-left: 4px; border-radius: 4px; padding: 1px 4px; }
     .badge-none { color: #556885; }
 
     .honor-th-title {
@@ -488,6 +489,30 @@
       flex: 1;
     }
 
+    /* 활동계획서 뷰 스타일 */
+    .plan-card-box {
+      background: #0c1628;
+      border: 1px solid #24385a;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .plan-card-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--accent-gold);
+      margin-bottom: 8px;
+      border-bottom: 1px dashed #24385a;
+      padding-bottom: 6px;
+    }
+    .plan-text-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e1e7f0;
+    }
+
     @keyframes modalScale {
       from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
@@ -503,9 +528,11 @@
       <div class="logo-badge">
         <div class="logo-text">
           <h1>
-            <img src="1787532102855.png" alt="어드벤처러" class="title-logo">
+            <!-- 패스파인더 로고 앞 -->
+            <img src="1787532102855.png" alt="패스파인더" class="title-logo">
             세종 JOY 패스파인더
-            <img src="1787532102945.png" alt="패스파인더" class="title-logo">
+            <!-- 어드벤처러 로고 뒤 -->
+            <img src="1787532102945.png" alt="어드벤처러" class="title-logo">
           </h1>
           <p>Google 시트 실시간 연동 운영 시스템</p>
         </div>
@@ -527,7 +554,6 @@
     <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
-        <!-- 1. 진행된 안식일 활동 -->
         <div class="kpi-card green" onclick="showCompletedActivities()">
           <div class="kpi-label">
             <span>진행된 안식일 활동</span>
@@ -538,7 +564,6 @@
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: 65.4%;"></div></div>
         </div>
 
-        <!-- 2. 등록 대원수 -->
         <div class="kpi-card blue" onclick="showAllMembersList()">
           <div class="kpi-label">
             <span>등록 대원수</span>
@@ -548,7 +573,6 @@
           <div class="kpi-sub" id="kpi-m-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
-        <!-- 3. 기능장 취득 합계 -->
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
           <div class="kpi-label">
             <span>기능장 취득 합계</span>
@@ -558,7 +582,6 @@
           <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">3.9</span>개 (터치 시 전체명부)</div>
         </div>
 
-        <!-- 4. 예산 집행 -->
         <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
             <span>예산 집행 (총 149만)</span>
@@ -658,7 +681,7 @@
                 <th>주차</th>
                 <th class="sticky-col">안식일</th>
                 <th>구분</th>
-                <th class="text-left">활동 주제</th>
+                <th class="text-left">활동 주제 (터치 시 계획서)</th>
                 <th>담당</th>
                 <th>장소</th>
                 <th class="text-left">세부 진행 순서</th>
@@ -677,7 +700,7 @@
     <!-- TAB 3: 52주 연간 일정 계획 -->
     <div id="tab-annual" class="tab-content">
       <div class="card">
-        <div class="card-title">📋 52주 안식일 활동 계획표</div>
+        <div class="card-title">📋 52주 안식일 활동 계획표 (터치 시 계획서 확인)</div>
         <div class="filter-bar">
           <button class="filter-btn active" onclick="filterSchedule('all')">전체</button>
           <button class="filter-btn" onclick="filterSchedule('1분기')">1분기</button>
@@ -800,7 +823,7 @@
         <span class="modal-title" id="modal-title">상세 정보</span>
         <button class="modal-close-btn" onclick="closeModal()">✕ 닫기</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="modal-body-container">
         <div class="table-container">
           <table>
             <thead id="modal-thead"></thead>
@@ -814,7 +837,9 @@
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
-    // 기본 기능장 9종 목록
+    // 활동계획서 캐시 객체 { '2026-09-12': [{ title: '...', text: '...' }] }
+    let activityPlans = {};
+
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
@@ -827,7 +852,6 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%" }
     ];
 
-    // 기본 대원 13명 전체 취득 내역
     let members = [
       { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
@@ -975,14 +999,19 @@
       }
       renderMonthlyTable(activeMonth);
 
-      // 3. 연간 계획표
-      document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => `
-        <tr class="sched-row" data-quarter="${s.q}" data-status="${s.status}">
+      // 3. 연간 계획표 (활동계획서 등록 시 배지 표시 및 클릭 연동)
+      document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
+        const hasPlan = activityPlans[s.date] && activityPlans[s.date].length > 0;
+        return `
+        <tr class="sched-row clickable-row" data-quarter="${s.q}" data-status="${s.status}" onclick="showActivityPlanModal('${s.date}', '${s.title}', '${s.teacher}', '${s.place}')">
           <td>${s.no}</td>
           <td class="sticky-col"><strong>${s.date}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left" style="font-weight:600; color:#fff;">
+            ${s.title}
+            ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
+          </td>
           <td>${s.field}</td>
           <td>${s.teacher}</td>
           <td>${s.place}</td>
@@ -990,7 +1019,7 @@
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
           <td class="text-left" style="color:var(--text-muted);">${s.note}</td>
         </tr>
-      `).join('');
+      `}).join('');
 
       // 4. 대원 출석·기능장 명부 탭
       renderFullMembersTable();
@@ -1017,7 +1046,6 @@
         </tr>
       `;
 
-      // honors 배열이 비어있거나 크기가 다르더라도 표가 깨지지 않게 예외처리 적용
       tbody.innerHTML = members.map(m => `
         <tr>
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
@@ -1034,10 +1062,52 @@
       `).join('');
     }
 
+    function renderMonthlyTable(m) {
+      document.getElementById('current-month-label').innerText = `${m}월`;
+      const filtered = rawMonthly.filter(item => item.month === m);
+      const tbody = document.getElementById('monthly-tbody');
+      
+      tbody.innerHTML = filtered.map(item => {
+        const hasPlan = activityPlans[item.date] && activityPlans[item.date].length > 0;
+        return `
+        <tr class="clickable-row" onclick="showActivityPlanModal('${item.date}', '${item.title}', '${item.teacher}', '${item.place}')">
+          <td><span class="badge badge-plan">${formatWeekLabel(item.week)}</span></td>
+          <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
+          <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
+          <td class="text-left" style="font-weight:600; color:#fff;">
+            ${item.title}
+            ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
+          </td>
+          <td>${item.teacher}</td>
+          <td>${item.place}</td>
+          <td class="text-left" style="color:#cbd5e1; font-size:11px;">${item.prog}</td>
+          <td class="text-left" style="color:var(--text-muted); font-size:11px;">${item.mat}</td>
+          <td>${item.budget.toLocaleString()}원</td>
+          <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
+          <td class="text-left" style="color:var(--accent-gold); font-size:11px;">${item.memo}</td>
+        </tr>
+      `}).join('');
+    }
+
+    // 모달 공통 함수
     function openModal(title, theadHtml, tbodyHtml) {
       document.getElementById('modal-title').innerText = title;
-      document.getElementById('modal-thead').innerHTML = theadHtml;
-      document.getElementById('modal-tbody').innerHTML = tbodyHtml;
+      const bodyContainer = document.getElementById('modal-body-container');
+      bodyContainer.innerHTML = `
+        <div class="table-container">
+          <table>
+            <thead>${theadHtml}</thead>
+            <tbody>${tbodyHtml}</tbody>
+          </table>
+        </div>
+      `;
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function openCustomModal(title, customHtml) {
+      document.getElementById('modal-title').innerText = title;
+      const bodyContainer = document.getElementById('modal-body-container');
+      bodyContainer.innerHTML = customHtml;
       document.getElementById('modal-overlay').style.display = 'flex';
     }
 
@@ -1049,6 +1119,32 @@
       if (e.target.id === 'modal-overlay') {
         closeModal();
       }
+    }
+
+    // 📄 활동계획서 모달 팝업
+    function showActivityPlanModal(dateStr, title, teacher, place) {
+      const plans = activityPlans[dateStr] || [];
+      let contentHtml = "";
+
+      if (plans.length === 0) {
+        contentHtml = `
+          <div style="padding: 30px 10px; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
+            <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 6px;">[${title}]</div>
+            <div style="font-size: 12px;">등록된 교사 활동계획서가 아직 없습니다.</div>
+            <div style="font-size: 11px; margin-top: 10px; color: var(--accent-gold);">💡 구글 시트 '활동계획서' 탭에 일자(${dateStr})와 내용을 추가하면 자동 연동됩니다.</div>
+          </div>
+        `;
+      } else {
+        contentHtml = plans.map((p, idx) => `
+          <div class="plan-card-box">
+            <div class="plan-card-title">📌 ${p.title || title} (${idx + 1})</div>
+            <div class="plan-text-content">${p.text}</div>
+          </div>
+        `).join('');
+      }
+
+      openCustomModal(`📝 활동계획서 - ${dateStr} [${teacher}]`, contentHtml);
     }
 
     function showBudgetDetailModal() {
@@ -1096,7 +1192,6 @@
       openModal(`🎖️ [${honorName}] 취득 대원 (${earners.length}명)`, thead, tbody);
     }
 
-    // 기능장 전체 취득 명부 팝업
     function showHonorsSummaryModal() {
       const thead = `
         <tr>
@@ -1217,35 +1312,13 @@
       renderMonthlyTable(m);
     }
 
-    function renderMonthlyTable(m) {
-      document.getElementById('current-month-label').innerText = `${m}월`;
-      const filtered = rawMonthly.filter(item => item.month === m);
-      const tbody = document.getElementById('monthly-tbody');
-      
-      tbody.innerHTML = filtered.map(item => `
-        <tr>
-          <td><span class="badge badge-plan">${formatWeekLabel(item.week)}</span></td>
-          <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
-          <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">${item.title}</td>
-          <td>${item.teacher}</td>
-          <td>${item.place}</td>
-          <td class="text-left" style="color:#cbd5e1; font-size:11px;">${item.prog}</td>
-          <td class="text-left" style="color:var(--text-muted); font-size:11px;">${item.mat}</td>
-          <td>${item.budget.toLocaleString()}원</td>
-          <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
-          <td class="text-left" style="color:var(--accent-gold); font-size:11px;">${item.memo}</td>
-        </tr>
-      `).join('');
-    }
-
     // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
 
       try {
-        // 1. 대원출석_현황 시트에서 나이/소속/이름/출석수 파싱
+        // 1. 대원출석_현황 파싱
         const attSheetName = encodeURIComponent("대원출석_현황");
         const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json`;
         const attRes = await fetch(attUrl);
@@ -1298,7 +1371,7 @@
           }
         }
 
-        // 2. 기능장_취득현황 시트에서 기능장 목록 및 대원별 취득 현황 파싱
+        // 2. 기능장_취득현황 파싱
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json`;
@@ -1308,8 +1381,6 @@
 
           if (honorJson && honorJson.table && honorJson.table.rows) {
             const hRows = honorJson.table.rows;
-            
-            // 헤더 행 및 이름 열 위치 유동적 탐색
             let headerRow = null;
             let headerRowIdx = -1;
             let nameColIdx = -1;
@@ -1329,7 +1400,6 @@
             }
 
             let dynamicHonors = [];
-            // 찾은 '이름' 열 다음부터 기능장 목록 추출
             if (headerRow && nameColIdx !== -1) {
               for (let colIdx = nameColIdx + 1; colIdx < headerRow.length; colIdx++) {
                 if (headerRow[colIdx] && headerRow[colIdx].v) {
@@ -1353,7 +1423,6 @@
               }
             }
 
-            // 대원별 기능장 취득 매칭 (안전하게 덮어쓰기)
             if (headerRowIdx !== -1) {
               for (let i = headerRowIdx + 1; i < hRows.length; i++) {
                 const r = hRows[i].c;
@@ -1373,15 +1442,12 @@
                 if (!rowName) continue;
                 const mem = updatedMembers.find(m => m.name === rowName);
                 
-                // 기능장 데이터가 정상적으로 읽혀왔을 경우에만 적용
                 if (mem && dynamicHonors.length > 0) {
                   let userH = [];
                   let hCnt = 0;
                   dynamicHonors.forEach((dHonor) => {
                     const cell = r[dHonor.colIdx];
                     const cellVal = cell && cell.v ? String(cell.v).trim().toUpperCase() : "";
-                    
-                    // 넓은 범위의 체크 기호 인식
                     let isEarned = (cellVal === '취득' || cellVal === 'O' || cellVal === '〇' || cellVal === '○' || cellVal === '1' || cellVal === 'TRUE' || cellVal === 'V') ? 1 : 0;
                     
                     userH.push(isEarned);
@@ -1406,6 +1472,61 @@
           }
         } catch (he) {
           console.log("기능장 동적 시트 연동:", he);
+        }
+
+        // 3. 📄 활동계획서 탭 파싱 (A열: 일자, B열: 구분, C열: 계획서전문)
+        try {
+          const planSheetName = encodeURIComponent("활동계획서");
+          const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json`;
+          const planRes = await fetch(planUrl);
+          const planText = await planRes.text();
+          const planJson = JSON.parse(planText.substr(47).slice(0, -2));
+
+          let loadedPlans = {};
+
+          if (planJson && planJson.table && planJson.table.rows) {
+            const pRows = planJson.table.rows;
+            for (let i = 0; i < pRows.length; i++) {
+              const r = pRows[i].c;
+              if (!r) continue;
+
+              // A열 날짜 추출 (문자열 또는 Google Date 객체 처리)
+              let dateStr = "";
+              if (r[0]) {
+                if (r[0].f) {
+                  dateStr = r[0].f;
+                } else if (r[0].v) {
+                  dateStr = String(r[0].v);
+                  if (dateStr.startsWith("Date(")) {
+                    const parts = dateStr.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                      const y = parts[0];
+                      const m = String(parseInt(parts[1]) + 1).padStart(2, '0');
+                      const d = String(parts[2]).padStart(2, '0');
+                      dateStr = `${y}-${m}-${d}`;
+                    }
+                  }
+                }
+              }
+
+              if (!dateStr || dateStr.includes("일자") || dateStr.includes("날짜")) continue;
+              dateStr = dateStr.trim().substring(0, 10);
+
+              const subTitle = r[1] && r[1].v ? String(r[1].v).trim() : "";
+              const fullText = r[2] && r[2].v ? String(r[2].v).trim() : (r[1] && r[1].v ? String(r[1].v).trim() : "");
+
+              if (fullText) {
+                if (!loadedPlans[dateStr]) loadedPlans[dateStr] = [];
+                loadedPlans[dateStr].push({
+                  title: subTitle,
+                  text: fullText
+                });
+              }
+            }
+          }
+          activityPlans = loadedPlans;
+        } catch (pe) {
+          console.log("활동계획서 시트 연동:", pe);
         }
 
         if (updatedMembers.length > 0) {
