@@ -833,7 +833,6 @@
       <div class="card">
         <div class="card-title">
           <span>👥 대원 출석 및 기능장 명부</span>
-          <!-- 📝 원격 출석체크 버튼 -->
           <button class="sync-btn" style="background:#27ae60; border-color:#2ecc71;" onclick="openAttendanceModal()">
             📝 원격 출석체크
           </button>
@@ -927,7 +926,7 @@
 
   <script>
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
-    // 🚨 Google Apps Script 원격 웹앱 API URL 연결
+    // 🚨 반드시 방금 발급받은 선생님의 웹 앱 URL을 붙여넣으세요!
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
 
     let activityPlans = {};
@@ -1446,9 +1445,7 @@
       renderMonthlyTable(m);
     }
 
-    // 🚨 원격 출석체크 모달 생성 및 처리 함수
     function openAttendanceModal() {
-      // 최근 8~10월 주차 목록 옵션 생성
       const recentDates = rawAnnual.filter(item => {
         const m = parseInt(item.date.substring(5, 7));
         return m >= 8 && m <= 10;
@@ -1457,8 +1454,8 @@
       let optionsHtml = recentDates.map(item => {
         const m = parseInt(item.date.substring(5, 7));
         const d = parseInt(item.date.substring(8, 10));
-        const weekLabel = `${m}월 ${Math.ceil(d/7)}주차 (${item.date})`;
-        return `<option value="${m}월 ${Math.ceil(d/7)}주차" ${item.date === selectedRundownDate ? 'selected' : ''}>${weekLabel}</option>`;
+        const weekLabel = `${m}월 ${Math.ceil(d/7)}주차`;
+        return `<option value="${item.date}" data-label="${weekLabel}" ${item.date === selectedRundownDate ? 'selected' : ''}>${weekLabel} (${item.date})</option>`;
       }).join('');
 
       let checkListHtml = members.map((m, idx) => `
@@ -1474,7 +1471,7 @@
       const customHtml = `
         <div>
           <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center;">
-            <label style="font-size:12px; color:var(--accent-gold); font-weight:bold; white-space:nowrap;">출석 주차:</label>
+            <label style="font-size:12px; color:var(--accent-gold); font-weight:bold; white-space:nowrap;">출석 안식일:</label>
             <select id="att-week-select" style="background:#0e1b33; color:#fff; border:1px solid #24385a; padding:6px 10px; border-radius:6px; flex:1; font-size:12px;">
               ${optionsHtml}
             </select>
@@ -1516,43 +1513,51 @@
       });
     }
 
+    // 🚨 체크 해제 시 "X"로 전송하도록 수정 완료
     async function submitAttendance() {
       const btn = document.getElementById('btn-submit-att');
       const select = document.getElementById('att-week-select');
-      const targetWeek = select.value;
+      const targetDate = select.value;
+      const targetWeek = select.options[select.selectedIndex].getAttribute('data-label');
 
       let attPayload = {};
       members.forEach((m, idx) => {
         const chk = document.getElementById(`att-input-${idx}`);
-        attPayload[m.name] = chk && chk.checked ? "O" : "";
+        attPayload[m.name] = chk && chk.checked ? "O" : "X"; 
       });
 
       btn.disabled = true;
       btn.innerText = "⏳ 구글 시트에 저장하는 중...";
 
       try {
-        await fetch(APPS_SCRIPT_URL, {
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
+            date: targetDate, 
             week: targetWeek,
             attendance: attPayload
           })
         });
-
-        showToast(`✅ [${targetWeek}] 출석이 성공적으로 저장되었습니다!`);
-        closeModal();
-        // 저장 후 최신 데이터 재동기화
-        setTimeout(() => fetchLiveSheetData(false), 1000);
+        
+        const result = await response.json();
+        
+        if (result.result === "success") {
+          showToast(`✅ [${targetDate}] 출석이 성공적으로 저장되었습니다!`);
+          closeModal();
+          setTimeout(() => fetchLiveSheetData(false), 1000);
+        } else {
+          alert("❌ 구글 시트 거부 오류: " + result.message);
+          btn.disabled = false;
+          btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
+        }
       } catch (err) {
-        alert("출석 저장 중 오류가 발생했습니다: " + err);
+        alert("❌ 전송 실패 (URL 주소나 인터넷 연결을 확인하세요): " + err);
         btn.disabled = false;
         btn.innerText = "🚀 구글 시트에 출석 일괄 저장하기";
       }
     }
 
-    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1560,7 +1565,6 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
-        // 0. 세종_JOY 탭 (연간총편성예산) 실시간 파싱
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1612,7 +1616,6 @@
           }
         } catch (je) { console.log("총예산 연동 오류:", je); }
 
-        // 1. 대원출석_현황 파싱
         try {
           const attSheetName = encodeURIComponent("대원출석_현황");
           const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
@@ -1667,7 +1670,6 @@
           if(updatedMembers.length > 0) members = updatedMembers;
         } catch(e) { console.log("대원 출석 연동 오류:", e); }
 
-        // 2. 기능장_취득현황 파싱
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
@@ -1768,7 +1770,6 @@
           }
         } catch (he) { console.log("기능장 동적 파싱 실패:", he); }
 
-        // 3. 52주 연간 일정 시트 파싱
         try {
           const annualSheetName = encodeURIComponent("2026_연간_토요일_일정계획");
           const annualUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${annualSheetName}&tqx=out:json${cacheBuster}`;
@@ -1849,7 +1850,6 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 4. 활동계획서 파싱
         try {
           const planSheetName = encodeURIComponent("활동계획서");
           const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json${cacheBuster}`;
@@ -1903,7 +1903,6 @@
           activityPlans = loadedPlans;
         } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
-        // 5. 토요일_주간세부계획서 파싱
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
           const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
