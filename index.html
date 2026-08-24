@@ -568,10 +568,8 @@
       <div class="logo-badge">
         <div class="logo-text">
           <h1>
-            <!-- 패스파인더 로고 앞 (왼쪽) -->
             <img src="1787532102855.png" alt="패스파인더" class="title-logo">
             세종 JOY 클럽
-            <!-- 어드벤처러 로고 뒤 (오른쪽) -->
             <img src="1787532102945.png" alt="어드벤처러" class="title-logo">
           </h1>
           <p>Google 시트 실시간 연동 운영 시스템</p>
@@ -599,9 +597,9 @@
             <span>진행된 안식일 활동</span>
             <span class="click-hint">목록보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-act-done">0</span> <span style="font-size:12px;color:var(--text-muted);">/ <span id="kpi-act-total">52</span>회</span></div>
-          <div class="kpi-sub" id="kpi-act-sub">진행률 0% (터치 시 완료목록)</div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-act-bar" style="width: 0%;"></div></div>
+          <div class="kpi-value"><span id="kpi-act-done">34</span> <span style="font-size:12px;color:var(--text-muted);">/ <span id="kpi-act-total">52</span>회</span></div>
+          <div class="kpi-sub" id="kpi-act-sub">진행률 65.4% (터치 시 완료목록)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-act-bar" style="width: 65.4%;"></div></div>
         </div>
 
         <div class="kpi-card blue" onclick="showAllMembersList()">
@@ -609,8 +607,8 @@
             <span>등록 대원수</span>
             <span class="click-hint">명부보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-m-total">0</span> <span style="font-size:12px;color:var(--text-muted);">명</span></div>
-          <div class="kpi-sub" id="kpi-m-sub">어드 0명 / 패파 0명 (터치 시 명부)</div>
+          <div class="kpi-value"><span id="kpi-m-total">13</span> <span style="font-size:12px;color:var(--text-muted);">명</span></div>
+          <div class="kpi-sub" id="kpi-m-sub">어드 6명 / 패파 7명 (터치 시 명부)</div>
         </div>
 
         <div class="kpi-card" onclick="showHonorsSummaryModal()">
@@ -618,18 +616,18 @@
             <span>기능장 취득 합계</span>
             <span class="click-hint">명부보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-h-total">0</span> <span style="font-size:12px;color:var(--text-muted);">건</span></div>
-          <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
+          <div class="kpi-value"><span id="kpi-h-total">51</span> <span style="font-size:12px;color:var(--text-muted);">건</span></div>
+          <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">3.9</span>개 (터치 시 전체명부)</div>
         </div>
 
         <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
-            <span>예산 집행 (총 <span id="kpi-b-total">0만</span>)</span>
+            <span>예산 집행 (총 <span id="kpi-b-total">149만</span>)</span>
             <span class="click-hint">내역보기 👆</span>
           </div>
-          <div class="kpi-value"><span id="kpi-b-spent">0</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
-          <div class="kpi-sub" id="kpi-b-sub">잔여 0원 (0%) (터치 시 내역)</div>
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-b-bar" style="width: 0%;"></div></div>
+          <div class="kpi-value"><span id="kpi-b-spent">930,000</span> <span style="font-size:12px;color:var(--text-muted);">원</span></div>
+          <div class="kpi-sub" id="kpi-b-sub">잔여 560,000원 (62.4%) (터치 시 내역)</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="kpi-b-bar" style="width: 62.4%;"></div></div>
         </div>
       </div>
 
@@ -794,13 +792,11 @@
           <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 48%;"></div>
         </div>
 
-        <!-- 1. 주간 세부 운영 개요 카드 -->
         <div class="overview-grid">
           <div class="overview-item">
             <span class="overview-label">일시</span>
             <span class="overview-val" id="ov-date">2026년 매주 토요일(안식일) 13:00 ~ 15:00</span>
           </div>
-          <!-- 활동 주제 클릭 시 활동계획서 팝업 연동 -->
           <div class="overview-item" id="ov-title-card" style="cursor: pointer;">
             <span class="overview-label">활동 주제</span>
             <span class="overview-val" id="ov-title" style="font-weight:700; color:var(--accent-gold);">-</span>
@@ -827,7 +823,6 @@
           ■ 안식일 오후 표준 타임테이블 (Run-down)
         </div>
 
-        <!-- 2. 표준 타임테이블 -->
         <div class="table-container">
           <table>
             <thead>
@@ -841,7 +836,6 @@
               </tr>
             </thead>
             <tbody id="rundown-tbody">
-              <!-- 데이터 로딩 전 기본 구조 -->
               <tr><td colspan="6">데이터를 불러오는 중입니다...</td></tr>
             </tbody>
           </table>
@@ -850,7 +844,6 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -869,15 +862,40 @@
   </div>
 
   <script>
-    // ==========================================
-    // 🚨 [필독] 구글 시트 ID 연결 부분 🚨
-    // 만약 "복사본" 파일을 새로 만드셨다면, 아래 주소를 PC 주소창의 ID로 반드시 바꿔주셔야 합니다!
-    // ==========================================
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
-    
+
     let activityPlans = {};
-    let honorStats = [];
-    let members = [];
+
+    // 🚨 1. 기능장 안전장치(기본 데이터) 복구
+    let honorStats = [
+      { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
+      { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
+      { id: 2, name: "내 친구 예수 (06.13)", title: "내 친구 예수", date: "(06.13)", count: 4, rate: "30.8%" },
+      { id: 3, name: "어린 소년 예수 (06.13)", title: "어린 소년 예수", date: "(06.13)", count: 4, rate: "30.8%" },
+      { id: 4, name: "지역사회 도우미 (06.20)", title: "지역사회 도우미", date: "(06.20)", count: 8, rate: "61.5%" },
+      { id: 5, name: "성경 친구들 1 (06.27)", title: "성경 친구들 1", date: "(06.27)", count: 4, rate: "30.8%" },
+      { id: 6, name: "성경 친구들 2 (07.04)", title: "성경 친구들 2", date: "(07.04)", count: 5, rate: "38.5%" },
+      { id: 7, name: "수영 1 / 초급 1 (07.15)", title: "수영 1 / 초급 1", date: "(07.15)", count: 6, rate: "46.2%" },
+      { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%" }
+    ];
+
+    // 🚨 2. 대원 명부 안전장치(기본 데이터) 복구
+    let members = [
+      { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
+      { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
+      { age: 8, dept: "어드벤처러", name: "박봄", days: 29, rate: "85.3%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { age: 8, dept: "어드벤처러", name: "최고은", days: 31, rate: "91.2%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
+      { age: 9, dept: "어드벤처러", name: "최시우", days: 31, rate: "91.2%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { age: 10, dept: "어드벤처러", name: "신동주", days: 32, rate: "94.1%", hCount: 7, honors: [1,1,0,0,1,1,1,1,1] },
+      { age: 11, dept: "패스파인더", name: "황예찬", days: 31, rate: "91.2%", hCount: 6, honors: [1,1,1,1,1,0,0,0,1] },
+      { age: 11, dept: "패스파인더", name: "성민수", days: 31, rate: "91.2%", hCount: 5, honors: [1,1,1,1,0,0,0,1,0] },
+      { age: 12, dept: "패스파인더", name: "최시은", days: 28, rate: "82.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
+      { age: 14, dept: "패스파인더", name: "황예림", days: 30, rate: "88.2%", hCount: 4, honors: [1,0,0,0,1,0,0,1,1] },
+      { age: 15, dept: "패스파인더", name: "차한규", days: 26, rate: "76.5%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
+      { age: 10, dept: "패스파인더", name: "강나래", days: 30, rate: "88.2%", hCount: 3, honors: [0,0,0,0,1,0,0,1,1] },
+      { age: 10, dept: "패스파인더", name: "김예송", days: 31, rate: "91.2%", hCount: 3, honors: [1,0,0,0,1,0,1,0,0] }
+    ];
+
     let rawAnnual = [];
     let rawMonthly = [];
 
@@ -917,7 +935,6 @@
       const pathCount = members.filter(m => m.dept === '패스파인더').length;
       const totalH = members.reduce((sum, m) => sum + (m.hCount || 0), 0);
 
-      // KPI 연산 (시트 데이터 기반)
       const doneActivities = rawAnnual.filter(s => s.status === '완료').length;
       const totalActivities = rawAnnual.length || 52;
       const actRate = ((doneActivities / totalActivities) * 100).toFixed(1);
@@ -927,7 +944,6 @@
       const remBudget = totalBudget - spentBudget;
       const budgetRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
 
-      // 1. KPI 카드 갱신
       document.getElementById('kpi-act-done').innerText = doneActivities;
       document.getElementById('kpi-act-total').innerText = totalActivities;
       document.getElementById('kpi-act-sub').innerText = `진행률 ${actRate}% (터치 시 완료목록)`;
@@ -943,7 +959,6 @@
       document.getElementById('kpi-b-sub').innerText = `잔여 ${remBudget.toLocaleString()}원 (${budgetRate}%) (터치 시 내역)`;
       document.getElementById('kpi-b-bar').style.width = `${budgetRate}%`;
 
-      // 2. 기능장 요약 표
       document.getElementById('honor-summary-tbody').innerHTML = honorStats.map((h, i) => `
         <tr class="clickable-row" onclick="showHonorMembers(${h.id}, '${h.name}')">
           <td>${i+1}</td>
@@ -953,7 +968,6 @@
         </tr>
       `).join('');
 
-      // 3. 월 선택 버튼 및 월간 계획표
       const monthBtnBox = document.getElementById('month-buttons');
       monthBtnBox.innerHTML = '';
       for (let m = 1; m <= 12; m++) {
@@ -965,7 +979,6 @@
       }
       renderMonthlyTable(activeMonth);
 
-      // 4. 52주 연간 계획표
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
         const hasPlan = activityPlans[s.date] && activityPlans[s.date].length > 0;
         return `
@@ -1060,8 +1073,7 @@
 
     function renderRundownOverview() {
       const dateSelector = document.getElementById('rundown-date-selector');
-      if (dateSelector) {
-        // 8월~9월 일정 버튼 생성
+      if (dateSelector && rawAnnual.length > 0) {
         const targetDates = rawAnnual.filter(item => {
           const m = parseInt(item.date.substring(5, 7));
           return m === 8 || m === 9;
@@ -1074,7 +1086,7 @@
         `).join('');
       }
 
-      const curPlan = rawAnnual.find(m => m.date === selectedRundownDate) || rawAnnual[0];
+      const curPlan = rawAnnual.find(m => m.date === selectedRundownDate) || (rawAnnual.length > 0 ? rawAnnual[0] : null);
 
       if (curPlan) {
         const hasPlan = activityPlans[curPlan.date] && activityPlans[curPlan.date].length > 0;
@@ -1322,7 +1334,7 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 완전 동기화 엔진 (캐시 방지 적용 & 파싱 로직 완벽 보강)
+    // Google 스프레드시트 실시간 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1370,14 +1382,17 @@
               const totalSabbaths = 34;
               const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
               
+              // 🚨 안전장치: 대원출석 시트 파싱 시, 기존(안전장치) 멤버의 기능장 데이터를 계승
+              const fallback = members.find(m => m.name === nameVal);
+              
               updatedMembers.push({
-                age: ageVal > 0 ? ageVal : 9,
+                age: ageVal > 0 ? ageVal : (fallback ? fallback.age : 9),
                 dept: deptVal,
                 name: nameVal,
-                days: attCount > 0 ? attCount : 30,
-                rate: attCount > 0 ? rateVal : "88.2%",
-                hCount: 0,
-                honors: []
+                days: attCount > 0 ? attCount : (fallback ? fallback.days : 30),
+                rate: attCount > 0 ? rateVal : (fallback ? fallback.rate : "88.2%"),
+                hCount: fallback ? fallback.hCount : 0,
+                honors: fallback ? fallback.honors : []
               });
             }
           }
@@ -1398,15 +1413,19 @@
             let headerRowIdx = -1;
             let nameColIdx = -1;
             
+            // 🚨 유연한 헤더 찾기 로직: 공백 무시하고 '이름', '성명', '대원명' 찾기
             for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
               const r = hRows[rIdx].c;
               if (!r) continue;
               for (let cIdx = 0; cIdx < Math.min(5, r.length); cIdx++) {
-                if (r[cIdx] && String(r[cIdx].v).trim() === '이름') {
-                  headerRow = r;
-                  headerRowIdx = rIdx;
-                  nameColIdx = cIdx;
-                  break;
+                if (r[cIdx] && r[cIdx].v) {
+                  const val = String(r[cIdx].v).replace(/\s/g, ''); // 공백 모두 제거
+                  if (val === '이름' || val === '성명' || val === '대원명') {
+                    headerRow = r;
+                    headerRowIdx = rIdx;
+                    nameColIdx = cIdx;
+                    break;
+                  }
                 }
               }
               if (headerRow) break;
@@ -1472,6 +1491,7 @@
               }
             }
 
+            // 🚨 파싱이 정상적으로 이루어져 dynamicHonors가 존재할 때만 덮어쓰기
             if (dynamicHonors.length > 0) {
               const totalMCount = members.length || 13;
               dynamicHonors.forEach(dh => {
@@ -1480,9 +1500,9 @@
               honorStats = dynamicHonors;
             }
           }
-        } catch (he) { console.log("기능장 연동 오류:", he); }
+        } catch (he) { console.log("기능장 동적 파싱 실패 (기본값 유지):", he); }
 
-        // 3. 🚨 52주 연간 일정 시트 파싱 (완벽 수정본) 🚨
+        // 3. 52주 연간 일정 시트 파싱
         try {
           const annualSheetName = encodeURIComponent("2026_연간_토요일_일정계획");
           const annualUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${annualSheetName}&tqx=out:json${cacheBuster}`;
@@ -1498,7 +1518,6 @@
               const r = aRows[i].c;
               if (!r) continue;
 
-              // A열(No) 값이 정상적인 숫자일 때만 무조건 데이터로 파싱하도록 보완
               const col0 = r[0] && r[0].v !== null ? String(r[0].v).trim() : "";
               const noVal = parseInt(col0);
 
