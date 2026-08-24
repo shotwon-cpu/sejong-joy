@@ -1678,11 +1678,25 @@
               }
             }
 
+            // 🚨 1번 폭탄 제거: 시트의 날짜가 구글 내부 코드(Date)로 들어오더라도 안전하게 M/D 텍스트로 변환
             let headerDates = [];
             if (headerRow !== -1) {
               for (let c = nameColIdx + 1; c < (sumColIdx !== -1 ? sumColIdx : rows[headerRow].c.length); c++) {
                 const cell = rows[headerRow].c[c];
-                headerDates.push(cell && cell.v ? String(cell.v).replace(/\s/g, '') : "");
+                let dateStr = "";
+                if (cell) {
+                  if (cell.f) dateStr = String(cell.f).trim(); 
+                  else if (cell.v) {
+                    dateStr = String(cell.v).trim();
+                    if (dateStr.startsWith("Date(")) {
+                      const parts = dateStr.match(/\d+/g);
+                      if (parts && parts.length >= 3) {
+                        dateStr = `${parseInt(parts[1]) + 1}/${parseInt(parts[2])}`; 
+                      }
+                    }
+                  }
+                }
+                headerDates.push(dateStr.replace(/\s/g, ''));
               }
             }
 
@@ -1989,6 +2003,7 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
+        // 🚨 2. 월간 상세계획표 파싱: 제목줄 찾기 철벽 방어 (4줄까지만 찾고 다중 키워드 매칭)
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -1998,38 +2013,65 @@
 
           if (msJson && msJson.table && msJson.table.rows) {
             const rows = msJson.table.rows;
+            let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
+            let headerRow = -1;
             
-            for (let r = 0; r < rows.length; r++) {
+            for (let r = 0; r < Math.min(4, rows.length); r++) {
               const rCells = rows[r].c;
-              if (!rCells || !rCells[1]) continue;
-
-              let dateVal = "";
-              if (rCells[1].f) dateVal = String(rCells[1].f).trim();
-              else if (rCells[1].v) {
-                dateVal = String(rCells[1].v).trim();
-                if (dateVal.startsWith("Date(")) {
-                  const parts = dateVal.match(/\d+/g);
-                  if (parts && parts.length >= 3) {
-                    dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-                  }
+              if (!rCells) continue;
+              
+              let matchCount = 0;
+              let tempD = -1, tempO = -1, tempM = -1, tempMm = -1;
+              
+              for (let c = 0; c < rCells.length; c++) {
+                if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
+                  const val = String(rCells[c].v).replace(/\s/g, '');
+                  if (val.includes('일자') || val.includes('안식일') || val === '날짜') { tempD = c; matchCount++; }
+                  if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { tempO = c; matchCount++; }
+                  if (val.includes('준비물') || val.includes('장비')) { tempM = c; matchCount++; }
+                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항')) { tempMm = c; matchCount++; }
                 }
               }
+              
+              if (matchCount >= 2) { 
+                headerRow = r; 
+                dCol = tempD; oCol = tempO; mCol = tempM; mmCol = tempMm; 
+                break; 
+              } 
+            }
 
-              if (dateVal && (dateVal.includes('-') || dateVal.includes('.') || dateVal.includes('/'))) {
-                dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+            for (let r = headerRow !== -1 ? headerRow + 1 : 0; r < rows.length; r++) {
+              const rCells = rows[r].c;
+              if (!rCells) continue;
+              
+              if (dCol !== -1 && rCells[dCol]) {
+                let dateVal = "";
+                if (rCells[dCol].f) dateVal = String(rCells[dCol].f).trim();
+                else if (rCells[dCol].v) {
+                  dateVal = String(rCells[dCol].v).trim();
+                  if (dateVal.startsWith("Date(")) {
+                    const parts = dateVal.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                      dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                    }
+                  }
+                }
                 
-                if (dateVal.includes("일자") || dateVal.includes("날짜")) continue;
-
-                const dParts = dateVal.split('-');
-                if (dParts.length >= 3) {
-                  const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
+                if (dateVal) {
+                  dateVal = dateVal.replace(/[./]/g, '-').trim();
+                  if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
                   
-                  monthlyDetails[fDate] = {
-                    order: rCells[6] && rCells[6].v ? String(rCells[6].v).replace(/['"]/g, '`') : "-",
-                    mat: rCells[7] && rCells[7].v ? String(rCells[7].v).replace(/['"]/g, '`') : "-",
-                    memo: rCells[10] && rCells[10].v ? String(rCells[10].v).replace(/['"]/g, '`') : "-"
-                  };
+                  if (dateVal.includes("일자") || dateVal.includes("날짜")) continue;
+
+                  const dParts = dateVal.split('-');
+                  if (dParts.length >= 3) {
+                    const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
+                    monthlyDetails[fDate] = {
+                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v).replace(/['"]/g, '`') : "-",
+                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v).replace(/['"]/g, '`') : "-",
+                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v).replace(/['"]/g, '`') : "-"
+                    };
+                  }
                 }
               }
             }
