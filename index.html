@@ -651,6 +651,7 @@
   </header>
 
   <main>
+    <!-- TAB 1: 운영 현황 -->
     <div id="tab-dash" class="tab-content active">
       <div class="kpi-grid">
         <div class="kpi-card green" onclick="showCompletedActivities()">
@@ -804,13 +805,13 @@
         <div class="table-container" style="max-height: 550px; overflow-y: auto;">
           <table>
             <thead>
+              <!-- 🚨 52주 일정 헤더에서 "영역" 삭제 반영 -->
               <tr>
                 <th>No</th>
                 <th class="sticky-col">일자</th>
                 <th>분기</th>
                 <th>구분</th>
                 <th class="text-left">활동 주제 및 계획</th>
-                <th>영역</th>
                 <th>담당</th>
                 <th>장소</th>
                 <th>예산</th>
@@ -936,10 +937,9 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%" }
     ];
 
-    // 🚨 PC 원본 시트와 완벽히 동일한 안전장치 데이터 적용
     let members = [
-      { age: 7, dept: "어드벤처러", name: "정우호", days: 30, rate: "78.9%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
-      { age: 7, dept: "어드벤처러", name: "최하람", days: 33, rate: "89.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
+      { age: 7, dept: "어드벤처러", name: "정우호", days: 28, rate: "77.8%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
+      { age: 7, dept: "어드벤처러", name: "최하람", days: 31, rate: "88.6%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
       { age: 8, dept: "어드벤처러", name: "박봄", days: 30, rate: "85.7%", hCount: 0, honors: [0,0,0,0,0,0,0,0,0] },
       { age: 8, dept: "어드벤처러", name: "최고은", days: 32, rate: "91.4%", hCount: 9, honors: [1,1,1,1,1,1,1,1,1] },
       { age: 9, dept: "어드벤처러", name: "최시우", days: 32, rate: "91.4%", hCount: 1, honors: [1,0,0,0,0,0,0,0,0] },
@@ -1075,20 +1075,20 @@
       updateFieldStats();
       renderMonthlyTable(activeMonth);
 
+      // 🚨 52주 일정 탭 - 년도 삭제, 영역 삭제, 교사 이름 자동 줄바꿈 적용
       document.getElementById('annual-schedule-tbody').innerHTML = rawAnnual.map(s => {
         const hasPlan = activityPlans[s.date] && activityPlans[s.date].length > 0;
         return `
         <tr class="sched-row clickable-row" data-quarter="${s.q}" data-status="${s.status}" onclick="showActivityPlanModal('${s.date}', '${s.title}', '${s.teacher}', '${s.place}')">
           <td>${s.no}</td>
-          <td class="sticky-col"><strong>${s.date}</strong></td>
+          <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
           <td class="text-left wrap-text" style="font-weight:600; color:#fff;">
             ${s.title}
             ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
           </td>
-          <td>${s.field}</td>
-          <td>${s.teacher}</td>
+          <td style="white-space: normal; word-break: keep-all; min-width: 60px; line-height: 1.3;">${s.teacher}</td>
           <td>${s.place}</td>
           <td>${(s.budget || 0).toLocaleString()}원</td>
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
@@ -1386,7 +1386,6 @@
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
-          <!-- 🚨 모달의 출석일수도 /34 하드코딩 완전 제거 적용 -->
           <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개 취득</span></td>
@@ -1544,7 +1543,6 @@
       }
     }
 
-    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1552,7 +1550,6 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
-        // 0. 세종_JOY 탭 (연간총편성예산) 실시간 파싱
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1604,7 +1601,6 @@
           }
         } catch (je) { console.log("총예산 연동 오류:", je); }
 
-        // 🚨 1. 대원출석_현황 파싱 (무적 파싱 로직 적용)
         try {
           const attSheetName = encodeURIComponent("대원출석_현황");
           const attUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${attSheetName}&tqx=out:json${cacheBuster}`;
@@ -1617,9 +1613,8 @@
             const rows = attJson.table.rows;
             let sumColIdx = -1;
             let rateColIdx = -1;
-            let nameColIdx = 2; // 기본 C열
+            let nameColIdx = 2; 
 
-            // ① table.cols 검사 (헤더가 첫 행에서 분리된 경우 방어)
             if (attJson.table.cols) {
               for (let c = 0; c < attJson.table.cols.length; c++) {
                 if (attJson.table.cols[c] && attJson.table.cols[c].label) {
@@ -1631,7 +1626,6 @@
               }
             }
 
-            // ② table.rows 검사
             let headerRow = -1;
             if (sumColIdx === -1 || rateColIdx === -1) {
               for (let r = 0; r < Math.min(5, rows.length); r++) {
@@ -1677,7 +1671,6 @@
                 }
               }
 
-              // 최후의 방어벽: 그래도 못 찾으면 O를 직접 센다
               if (parsedDays === 0) {
                 let attCount = 0;
                 for (let cIdx = nameColIdx + 1; cIdx < (sumColIdx !== -1 ? sumColIdx : r.length); cIdx++) {
@@ -1704,7 +1697,6 @@
           if(updatedMembers.length > 0) members = updatedMembers;
         } catch(e) { console.log("대원 출석 연동 오류:", e); }
 
-        // 2. 기능장_취득현황 파싱
         try {
           const honorSheetName = encodeURIComponent("기능장_취득현황");
           const honorUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${honorSheetName}&tqx=out:json${cacheBuster}`;
@@ -1805,7 +1797,6 @@
           }
         } catch (he) { console.log("기능장 동적 파싱 실패:", he); }
 
-        // 3. 52주 연간 일정 시트 파싱
         try {
           const annualSheetName = encodeURIComponent("2026_연간_토요일_일정계획");
           const annualUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${annualSheetName}&tqx=out:json${cacheBuster}`;
@@ -1886,7 +1877,6 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 4. 활동계획서 파싱
         try {
           const planSheetName = encodeURIComponent("활동계획서");
           const planUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${planSheetName}&tqx=out:json${cacheBuster}`;
@@ -1940,7 +1930,6 @@
           activityPlans = loadedPlans;
         } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
-        // 5. 토요일_주간세부계획서 파싱
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
           const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
