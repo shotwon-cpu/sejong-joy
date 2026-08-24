@@ -940,7 +940,12 @@
   </div>
 
   <script>
+    // ==============================================================================
+    // 🚨 1. 원격 출석 체크용 Apps Script 웹앱 주소 입력칸
+    // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
+    
+    // 2. 구글 시트 ID 
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let activityPlans = {};
@@ -953,7 +958,7 @@
     let totalAnnualBudget = 7000000;
 
     let activeMonth = new Date().getMonth() + 1;
-    let selectedRundownDate = ""; // 🚨 2. 스마트 날짜 자동인식을 위해 비워둡니다.
+    let selectedRundownDate = "";
 
     function formatWeekLabel(weekStr) {
       const match = weekStr.match(/(\d+)주/);
@@ -1211,7 +1216,6 @@
         document.getElementById('ov-teacher').innerText = curPlan.teacher || '-';
         document.getElementById('ov-target').innerText = `어드벤처러 및 패스파인더 대원 ${members.length || 13}명`;
         
-        // 🚨 월간 계획의 준비물을 가져와서 보여줌 (없으면 기본값)
         const d_mat = monthlyDetails[curPlan.date] && monthlyDetails[curPlan.date].mat && monthlyDetails[curPlan.date].mat !== '-' ? monthlyDetails[curPlan.date].mat : '단복 정렬 및 기본 준비물';
         document.getElementById('ov-mat').innerText = d_mat;
       }
@@ -1459,7 +1463,6 @@
       renderMonthlyTable(m);
     }
 
-    // 🚨 1. 원격 출석체크 기존 데이터 연동 함수 추가
     function updateModalCheckboxes() {
       const select = document.getElementById('att-week-select');
       const targetWeek = select.value; 
@@ -1467,7 +1470,6 @@
       members.forEach((m, idx) => {
         const chk = document.getElementById(`att-input-${idx}`);
         if(chk) {
-          // 기존에 구글 시트에 데이터가 있으면 그걸 반영하고, 아예 없으면 기본으로 체크
           chk.checked = m.attHistory && m.attHistory.hasOwnProperty(targetWeek) ? m.attHistory[targetWeek] : true;
           updateAttBoxStyle(idx);
         }
@@ -1518,7 +1520,6 @@
       `;
 
       openCustomModal("📝 안식일 대원 원격 출석체크", customHtml);
-      // 팝업 열릴 때, 선택된 날짜 기준으로 기존 출석 정보 세팅
       setTimeout(updateModalCheckboxes, 50);
     }
 
@@ -1592,6 +1593,21 @@
       const cacheBuster = `&_=${Date.now()}`;
 
       try {
+        if (APPS_SCRIPT_URL.startsWith("http")) {
+          try {
+            const appRes = await fetch(APPS_SCRIPT_URL);
+            const appData = await appRes.json();
+            if (appData.members && appData.members.length > 0) {
+              members = appData.members;
+            }
+            if (appData.honors && appData.honors.length > 0) {
+              honorStats = appData.honors;
+            }
+          } catch(appErr) {
+            console.log("웹앱 연동 오류:", appErr);
+          }
+        }
+
         try {
           const joySheetName = encodeURIComponent("세종_JOY");
           const joyUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${joySheetName}&tqx=out:json${cacheBuster}`;
@@ -1677,7 +1693,6 @@
               }
             }
 
-            // 🚨 출석 날짜 헤더 저장 (원격 출석체크 과거 기록 조회용)
             let headerDates = [];
             if (headerRow !== -1) {
               for (let c = nameColIdx + 1; c < (sumColIdx !== -1 ? sumColIdx : rows[headerRow].c.length); c++) {
@@ -1690,7 +1705,6 @@
               const r = rows[i].c;
               if (!r) continue;
 
-              // 🚨 이름 매칭용 필터 추가 (스페이스바 무시)
               let rawName = r[nameColIdx] && r[nameColIdx].v ? String(r[nameColIdx].v).trim() : "";
               let nameVal = rawName.replace(/\s/g, '');
               let ageVal = r[0] ? (parseInt(r[0].v) || 0) : 0;
@@ -1733,12 +1747,12 @@
               updatedMembers.push({
                 age: ageVal > 0 ? ageVal : (fallback ? fallback.age : 9),
                 dept: deptVal,
-                name: rawName, // 원래 이름 유지
+                name: rawName,
                 days: parsedDays > 0 ? parsedDays : (fallback ? fallback.days : 30),
                 rate: parsedRate ? parsedRate : (fallback ? fallback.rate : "88.6%"),
                 hCount: fallback ? fallback.hCount : 0,
                 honors: fallback ? fallback.honors : [],
-                attHistory: attHistory // 🚨 원격 출석 체크용 기록 추가
+                attHistory: attHistory 
               });
             }
           }
@@ -1934,8 +1948,9 @@
               if (!isNaN(noVal) && noVal > 0 && noVal <= 100) {
                 let dateVal = "";
                 if (r[dCol]) {
-                  if (r[dCol].f) dateVal = String(r[dCol].f).trim();
-                  else if (r[dCol].v) {
+                  if (r[dCol].f) {
+                    dateVal = String(r[dCol].f).trim();
+                  } else if (r[dCol].v) {
                     dateVal = String(r[dCol].v).trim();
                     if (dateVal.startsWith("Date(")) {
                       const parts = dateVal.match(/\d+/g);
@@ -1945,10 +1960,15 @@
                     }
                   }
                 }
+
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
-                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
+                  dateVal = "20" + dateVal;
+                }
                 const dParts = dateVal.split('-');
-                if (dParts.length === 3) dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                if (dParts.length === 3) {
+                  dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
+                }
 
                 const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
                 const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
@@ -1963,7 +1983,6 @@
                 if(r[stCol] && r[stCol].v) {
                      statusVal = String(r[stCol].v).trim().replace(/[\n\r]/g, '');
                 }
-                
                 const noteVal = r[ntCol] && r[ntCol].v ? String(r[ntCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
 
                 loadedAnnual.push({
@@ -1976,7 +1995,6 @@
             }
             if (loadedAnnual.length > 0) rawAnnual = loadedAnnual;
             
-            // 🚨 2. 스마트 날짜 추적 기능 추가: 오늘 기준 다가오는 가장 가까운 일정으로 셋팅
             if (!selectedRundownDate && rawAnnual.length > 0) {
               const todayStr = new Date().toISOString().substring(0, 10);
               const upcoming = rawAnnual.find(s => s.date >= todayStr);
@@ -1986,7 +2004,7 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 🚨 4. 월간상세계획표 버그 수정: 헤더 탐색을 위에서 딱 5줄까지만 하도록 제한
+        // 🚨 5. 월간 상세계획표 (헤더 탐색 완전 폐기 및 칸 번호 하드코딩 직결)
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -1996,54 +2014,43 @@
 
           if (msJson && msJson.table && msJson.table.rows) {
             const rows = msJson.table.rows;
-            let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
-            let headerRow = -1;
             
-            // 데이터 교란 방지: 위에서 최대 5번째 줄까지만 제목줄인지 검사하고 멈춥니다!
-            for (let r = 0; r < Math.min(5, rows.length); r++) {
+            for (let r = 0; r < rows.length; r++) {
               const rCells = rows[r].c;
-              if (!rCells) continue;
-              let found = false;
-              for (let c = 0; c < rCells.length; c++) {
-                if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
-                  const val = String(rCells[c].v).replace(/\s/g, '');
-                  if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) { dCol = c; found = true; }
-                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) { oCol = c; found = true; }
-                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) { mCol = c; found = true; }
-                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항'))) { mmCol = c; found = true; }
+              
+              // 1번 칸(B열)에 데이터가 없으면 무시
+              if (!rCells || !rCells[1]) continue;
+
+              let dateVal = "";
+              if (rCells[1].f) dateVal = String(rCells[1].f).trim();
+              else if (rCells[1].v) {
+                dateVal = String(rCells[1].v).trim();
+                if (dateVal.startsWith("Date(")) {
+                  const parts = dateVal.match(/\d+/g);
+                  if (parts && parts.length >= 3) {
+                    dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                  }
                 }
               }
-              if (found) { headerRow = r; break; } 
-            }
 
-            for (let r = headerRow !== -1 ? headerRow + 1 : 0; r < rows.length; r++) {
-              const rCells = rows[r].c;
-              if (!rCells) continue;
-              
-              if (dCol !== -1 && rCells[dCol]) {
-                let dateVal = "";
-                if (rCells[dCol].f) dateVal = String(rCells[dCol].f).trim();
-                else if (rCells[dCol].v) {
-                  dateVal = String(rCells[dCol].v).trim();
-                  if (dateVal.startsWith("Date(")) {
-                    const parts = dateVal.match(/\d+/g);
-                    if (parts && parts.length >= 3) {
-                      dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-                    }
-                  }
-                }
-                if (dateVal) {
-                  dateVal = dateVal.replace(/[./]/g, '-').trim();
-                  if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
-                  const dParts = dateVal.split('-');
-                  if (dParts.length >= 3) {
-                    const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
-                    monthlyDetails[fDate] = {
-                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v) : "-",
-                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v) : "-",
-                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v) : "-"
-                    };
-                  }
+              // 날짜 데이터가 맞는지(기호 포함 여부) 확인
+              if (dateVal && (dateVal.includes('-') || dateVal.includes('.') || dateVal.includes('/'))) {
+                dateVal = dateVal.replace(/[./]/g, '-').trim();
+                if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                
+                // 🚨 제목줄 방어벽: 날짜 칸에 "일자"나 "날짜"라는 글자가 있으면 무조건 무시!
+                if (dateVal.includes("일자") || dateVal.includes("날짜")) continue;
+
+                const dParts = dateVal.split('-');
+                if (dParts.length >= 3) {
+                  const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
+                  
+                  // 🚨 6번칸(진행순서), 7번칸(준비물), 10번칸(교사메모) 고정 위치에서 쏙 빼옵니다!
+                  monthlyDetails[fDate] = {
+                    order: rCells[6] && rCells[6].v ? String(rCells[6].v).replace(/['"]/g, '`') : "-",
+                    mat: rCells[7] && rCells[7].v ? String(rCells[7].v).replace(/['"]/g, '`') : "-",
+                    memo: rCells[10] && rCells[10].v ? String(rCells[10].v).replace(/['"]/g, '`') : "-"
+                  };
                 }
               }
             }
@@ -2141,7 +2148,7 @@
           }
         } catch (re) { console.log("시간표 연동 오류:", re); }
 
-        if (isUserClick && APPS_SCRIPT_URL.startsWith("http")) {
+        if (isUserClick) {
           showToast("✨ 최신 데이터로 완벽하게 동기화되었습니다!");
         }
 
