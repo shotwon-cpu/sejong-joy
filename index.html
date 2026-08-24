@@ -702,7 +702,6 @@
           <div class="kpi-sub">1인 평균 <span id="kpi-h-avg">0</span>개 (터치 시 전체명부)</div>
         </div>
 
-        <!-- 원래 원하시던 '작은 예산 카드' -->
         <div class="kpi-card red" onclick="showBudgetDetailModal()">
           <div class="kpi-label">
             <span>예산 집행 (총 <span id="kpi-b-total">700만</span>)</span>
@@ -941,12 +940,7 @@
   </div>
 
   <script>
-    // ==============================================================================
-    // 🚨 1. 여기에 방금 구글 시트에서 배포하신 [새 웹앱 주소]를 꼭 넣어주세요! 🚨
-    // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
-    
-    // 2. 기존 구글 시트 ID (그대로 유지)
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let activityPlans = {};
@@ -994,7 +988,7 @@
       let total = 0;
 
       rawAnnual.forEach(s => {
-        const f = (s.field || "").replace(/\s/g, ''); 
+        const f = (s.type || "").replace(/\s/g, ''); 
         if (!f || f === '-') return;
 
         if (f.includes('기능')) counts.skill++;
@@ -1404,7 +1398,7 @@
           <td><span style="color:var(--accent-gold); font-weight:700;">${m.age}세</span></td>
           <td><span class="badge ${m.dept === '어드벤처러' ? 'badge-adv' : 'badge-path'}">${m.dept}</span></td>
           <td class="sticky-col" style="font-weight:700; color:#fff; font-size:13px;">${m.name}</td>
-          <td>${m.days}일 / 34일</td>
+          <td>${m.days}일</td>
           <td style="font-weight:700; color:var(--accent-gold);">${m.rate}</td>
           <td><span class="badge badge-done">${m.hCount}개 취득</span></td>
         </tr>
@@ -1415,7 +1409,7 @@
 
     function showFieldDetails(category) {
       const filtered = rawAnnual.filter(s => {
-         const f = (s.field || "").replace(/\s/g, '');
+         const f = (s.type || "").replace(/\s/g, ''); 
          if(category === '기능') return f.includes('기능');
          if(category === '정기') return f.includes('정기') || f.includes('제식') || f.includes('기율');
          if(category === '영성') return f.includes('영성') || f.includes('예배');
@@ -1529,7 +1523,6 @@
       });
     }
 
-    // 🚨 핵심 수정: mode: 'no-cors' 및 text/plain 설정으로 브라우저 보안 에러 완벽 해결
     async function submitAttendance() {
       if(!APPS_SCRIPT_URL.startsWith("http")) {
         alert("웹앱 주소가 입력되지 않았습니다. 깃허브 코드 상단을 확인해주세요.");
@@ -1642,7 +1635,51 @@
           if (annualJson && annualJson.table && annualJson.table.rows) {
             const aRows = annualJson.table.rows;
             let loadedAnnual = [];
-            for (let i = 0; i < aRows.length; i++) {
+            
+            // 🚨 무적 동적 파싱 로직 장착 (열이 삭제되거나 순서가 바뀌어도 추적)
+            let dCol = 1, qCol = 2, typeCol = 3, titleCol = 4, teacherCol = 6, placeCol = 7, bdgCol = 8, stCol = 9, ntCol = 10;
+            let headerRow = -1;
+
+            if (annualJson.table.cols) {
+                for (let c = 0; c < annualJson.table.cols.length; c++) {
+                    if (annualJson.table.cols[c] && annualJson.table.cols[c].label) {
+                        const val = String(annualJson.table.cols[c].label).replace(/\s/g, '');
+                        if (val.includes('일자')) dCol = c;
+                        if (val.includes('분기')) qCol = c;
+                        if (val === '구분') typeCol = c;
+                        if (val.includes('활동주제')) titleCol = c;
+                        if (val.includes('담당')) teacherCol = c;
+                        if (val.includes('장소')) placeCol = c;
+                        if (val.includes('예산')) bdgCol = c;
+                        if (val.includes('상태')) stCol = c;
+                        if (val.includes('비고')) ntCol = c;
+                    }
+                }
+            }
+
+            for (let r = 0; r < Math.min(10, aRows.length); r++) {
+              if (!aRows[r].c) continue;
+              let isHeader = false;
+              for (let c = 0; c < aRows[r].c.length; c++) {
+                if (aRows[r].c[c] && aRows[r].c[c].v) {
+                  const val = String(aRows[r].c[c].v).replace(/\s/g, '');
+                  if (val === '구분') { typeCol = c; isHeader = true; }
+                  if (val.includes('일자')) { dCol = c; isHeader = true; }
+                  if (val.includes('활동주제')) { titleCol = c; isHeader = true; }
+                  if (val.includes('담당')) { teacherCol = c; isHeader = true; }
+                  if (val.includes('장소')) { placeCol = c; isHeader = true; }
+                  if (val.includes('예산')) { bdgCol = c; isHeader = true; }
+                  if (val.includes('상태')) { stCol = c; isHeader = true; }
+                  if (val.includes('비고')) { ntCol = c; isHeader = true; }
+                }
+              }
+              if (isHeader) {
+                headerRow = r;
+                break;
+              }
+            }
+
+            for (let i = headerRow !== -1 ? headerRow + 1 : 0; i < aRows.length; i++) {
               const r = aRows[i].c;
               if (!r) continue;
 
@@ -1651,10 +1688,10 @@
 
               if (!isNaN(noVal) && noVal > 0 && noVal <= 100) {
                 let dateVal = "";
-                if (r[1]) {
-                  if (r[1].f) dateVal = String(r[1].f).trim();
-                  else if (r[1].v) {
-                    dateVal = String(r[1].v).trim();
+                if (r[dCol]) {
+                  if (r[dCol].f) dateVal = String(r[dCol].f).trim();
+                  else if (r[dCol].v) {
+                    dateVal = String(r[dCol].v).trim();
                     if (dateVal.startsWith("Date(")) {
                       const parts = dateVal.match(/\d+/g);
                       if (parts && parts.length >= 3) {
@@ -1668,16 +1705,24 @@
                 const dParts = dateVal.split('-');
                 if (dParts.length === 3) dateVal = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
 
-                const quarterVal = r[2] && r[2].v ? String(r[2].v).trim() : "";
-                const typeVal = r[3] && r[3].v ? String(r[3].v).trim() : "";
-                const titleVal = r[4] && r[4].v ? String(r[4].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
-                const fieldVal = r[5] && r[5].v ? String(r[5].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : typeVal;
-                const teacherVal = r[6] && r[6].v ? String(r[6].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
-                const placeVal = r[7] && r[7].v ? String(r[7].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "소예배실";
-                const budgetVal = r[8] && r[8].v ? (parseInt(String(r[8].v).replace(/,/g, '')) || 0) : 0;
+                const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
+                
+                // 🚨 수정사항: 무조건 '구분(D열)'에서 텍스트를 정확하게 추출하여 활동 영역 분류!
+                const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
+                const titleVal = r[titleCol] && r[titleCol].v ? String(r[titleCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                const fieldVal = typeVal; 
+                const teacherVal = r[teacherCol] && r[teacherCol].v ? String(r[teacherCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                const placeVal = r[placeCol] && r[placeCol].v ? String(r[placeCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "소예배실";
+                const budgetVal = r[bdgCol] && r[bdgCol].v ? (parseInt(String(r[bdgCol].v).replace(/,/g, '')) || 0) : 0;
+                
                 const todayStr = new Date().toISOString().substring(0, 10);
-                const statusVal = dateVal <= todayStr ? "완료" : "예정";
-                const noteVal = r[9] && r[9].v ? String(r[9].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                let statusVal = dateVal <= todayStr ? "완료" : "예정";
+                if (r[stCol] && r[stCol].v) {
+                    statusVal = String(r[stCol].v).trim().replace(/[\n\r]/g, '');
+                }
+                
+                // 🚨 비고란(Note)도 정확하게 찾아서 파싱
+                const noteVal = r[ntCol] && r[ntCol].v ? String(r[ntCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
 
                 loadedAnnual.push({
                   no: noVal, date: dateVal,
