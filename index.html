@@ -923,7 +923,6 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -946,7 +945,7 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
 
     let activityPlans = {};
-    // 🚨 새로 추가된 월간 상세 계획표 저장용 객체
+    // 🚨 월간_상세계획표 데이터 파싱을 위한 객체
     let monthlyDetails = {};
 
     let honorStats = [
@@ -1173,15 +1172,15 @@
       // 🚨 월간 계획 탭 - 월간_상세계획표 연동 파싱 데이터 활용
       tbody.innerHTML = filtered.map((item, idx) => {
         const hasPlan = activityPlans[item.date] && activityPlans[item.date].length > 0;
-        const details = monthlyDetails[item.date] || { order: '-', mat: '-', memo: '-' }; // 상세 계획서 데이터 삽입
+        const details = monthlyDetails[item.date] || { order: '-', mat: '-', memo: '-' };
 
         return `
         <tr class="clickable-row" onclick="showActivityPlanModal('${item.date}', '${item.title}', '${item.teacher}', '${item.place}')">
           <td><span class="badge badge-plan">${idx + 1}주</span></td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
           <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <td class="text-left" style="min-width: 120px; max-width: 180px;">
-            <div class="clamp-2" style="font-weight:600; color:#fff;">${item.title}</div>
+          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">
+            ${item.title}
             ${hasPlan ? '<div style="margin-top: 3px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
           </td>
           <td style="white-space: normal; word-break: keep-all; min-width: 60px; max-width: 100px; line-height: 1.3;">
@@ -1920,7 +1919,7 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 🚨 6. 월간_상세계획표 파싱 (세부 순서, 준비물, 메모 가져오기)
+        // 🚨 6. 월간_상세계획표 파싱 로직 추가
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -1939,9 +1938,9 @@
                 if(rows[r].c[c] && rows[r].c[c].v) {
                   const val = String(rows[r].c[c].v).replace(/\s/g, '');
                   if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) dCol = c;
-                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서'))) oCol = c;
-                  if (mCol === -1 && val.includes('준비물')) mCol = c;
-                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('특이사항'))) mmCol = c;
+                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) oCol = c;
+                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) mCol = c;
+                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항'))) mmCol = c;
                 }
               }
               if (dCol !== -1) { headerRow = r; break; }
@@ -1968,6 +1967,7 @@
                   }
                 }
 
+                if(!dateVal) continue;
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
                 if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
                 const dParts = dateVal.split('-');
