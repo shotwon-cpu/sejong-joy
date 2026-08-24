@@ -199,7 +199,7 @@
     }
 
     .card-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--accent-gold);
       margin-bottom: 12px;
@@ -791,16 +791,17 @@
       <div class="card">
         <div class="card-title">
           <span>📋 세종 JOY 클럽 주간 운영계획</span>
-          <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 50%;"></div>
+          <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 48%;"></div>
         </div>
 
-        <!-- 1. 주간 세부 운영 개요 카드 (월간 계획 실시간 연동) -->
+        <!-- 1. 주간 세부 운영 개요 카드 (월간 계획 및 활동계획서 실시간 연동) -->
         <div class="overview-grid">
           <div class="overview-item">
             <span class="overview-label">일시</span>
             <span class="overview-val" id="ov-date">2026년 매주 토요일(안식일) 13:00 ~ 15:00</span>
           </div>
-          <div class="overview-item">
+          <!-- 활동 주제 클릭 시 활동계획서 팝업 연동 -->
+          <div class="overview-item" id="ov-title-card" style="cursor: pointer;">
             <span class="overview-label">활동 주제</span>
             <span class="overview-val" id="ov-title" style="font-weight:700; color:var(--accent-gold);">-</span>
           </div>
@@ -1165,6 +1166,7 @@
       `}).join('');
     }
 
+    // 활동시간표 상단 주간 세부 운영 개요 렌더링 및 계획서 연동
     function renderRundownOverview() {
       const dateSelector = document.getElementById('rundown-date-selector');
       if (dateSelector) {
@@ -1178,8 +1180,19 @@
       const curPlan = rawMonthly.find(m => m.date === selectedRundownDate) || rawMonthly[34];
 
       if (curPlan) {
+        const hasPlan = activityPlans[curPlan.date] && activityPlans[curPlan.date].length > 0;
+
         document.getElementById('ov-date').innerText = `${curPlan.date} (안식일) 13:00 ~ 15:00`;
-        document.getElementById('ov-title').innerText = `[${curPlan.type}] ${curPlan.title}`;
+        
+        // 활동 주제에 계획서 배지 표시 및 클릭 이벤트 바인딩
+        const ovTitleElem = document.getElementById('ov-title');
+        ovTitleElem.innerHTML = `[${curPlan.type}] ${curPlan.title} ${hasPlan ? '<span class="badge-doc">📄 계획서 보기</span>' : ''}`;
+        
+        const ovTitleCard = document.getElementById('ov-title-card');
+        ovTitleCard.onclick = () => {
+          showActivityPlanModal(curPlan.date, curPlan.title, curPlan.teacher, curPlan.place);
+        };
+
         document.getElementById('ov-place').innerText = curPlan.place || '세종 JOY 패스파인더실 & 소예배실';
         document.getElementById('ov-teacher').innerText = `${curPlan.teacher} (총괄 인도)`;
         document.getElementById('ov-target').innerText = '어드벤처러 및 패스파인더 대원 13명';
@@ -1413,7 +1426,7 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 실시간 동기화 엔진 (캐시 방지 적용)
+    // Google 스프레드시트 실시간 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
