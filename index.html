@@ -290,13 +290,21 @@
     td.text-left, th.text-left {
       text-align: left;
     }
-
+    
     /* 팝업 등에서 텍스트 말줄임 처리용 */
     .truncate-text {
-      max-width: 140px; /* 모바일 기준 적정 길이 */
+      max-width: 140px; 
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* 긴 텍스트 자동 줄바꿈 처리용 (완료된 활동, 영역별 일정 등) */
+    .wrap-text {
+      white-space: normal !important;
+      word-break: keep-all;
+      min-width: 180px; /* 모바일에서 너무 좁아지지 않도록 최소 너비 보장 */
+      line-height: 1.4;
     }
 
     tbody tr:nth-child(even) {
@@ -576,10 +584,8 @@
       <div class="logo-badge">
         <div class="logo-text">
           <h1>
-            <!-- 패스파인더 로고 앞 (왼쪽) -->
             <img src="1787532102855.png" alt="패스파인더" class="title-logo">
             세종 JOY 클럽
-            <!-- 어드벤처러 로고 뒤 (오른쪽) -->
             <img src="1787532102945.png" alt="어드벤처러" class="title-logo">
           </h1>
           <p>Google 시트 실시간 연동 운영 시스템</p>
@@ -796,13 +802,11 @@
           <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 48%;"></div>
         </div>
 
-        <!-- 주간 세부 운영 개요 카드 -->
         <div class="overview-grid">
           <div class="overview-item">
             <span class="overview-label">일시</span>
             <span class="overview-val" id="ov-date">2026년 매주 토요일(안식일) 13:00 ~ 15:00</span>
           </div>
-          <!-- 활동 주제 클릭 시 활동계획서 팝업 연동 -->
           <div class="overview-item" id="ov-title-card" style="cursor: pointer;">
             <span class="overview-label">활동 주제</span>
             <span class="overview-val" id="ov-title" style="font-weight:700; color:var(--accent-gold);">-</span>
@@ -829,7 +833,6 @@
           ■ 안식일 오후 표준 타임테이블 (Run-down)
         </div>
 
-        <!-- 표준 타임테이블 -->
         <div class="table-container">
           <table>
             <thead>
@@ -851,7 +854,6 @@
     </div>
   </main>
 
-  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -873,7 +875,6 @@
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let activityPlans = {};
-
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
@@ -936,13 +937,12 @@
       }, 1500);
     }
 
-    // 🚨 활동 영역별 실시간 통계 계산 함수
     function updateFieldStats() {
       let counts = { skill: 0, regular: 0, spirit: 0, outdoor: 0, service: 0, special: 0 };
       let total = 0;
 
       rawAnnual.forEach(s => {
-        const f = (s.field || "").replace(/\s/g, ''); // 공백 제거 후 분석
+        const f = (s.field || "").replace(/\s/g, ''); 
         if (!f || f === '-') return;
 
         if (f.includes('기능')) counts.skill++;
@@ -950,7 +950,7 @@
         else if (f.includes('영성') || f.includes('예배')) counts.spirit++;
         else if (f.includes('야외') || f.includes('탐사')) counts.outdoor++;
         else if (f.includes('봉사') || f.includes('이웃')) counts.service++;
-        else counts.special++; // 특별행사, 수료, 진급, 휴식 등 나머지 전부
+        else counts.special++; 
         
         total++;
       });
@@ -1021,7 +1021,6 @@
         monthBtnBox.appendChild(btn);
       }
       
-      // 🚨 활동 영역 비중 실시간 업데이트 호출
       updateFieldStats();
       renderMonthlyTable(activeMonth);
 
@@ -1033,7 +1032,7 @@
           <td class="sticky-col"><strong>${s.date}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">
+          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">
             ${s.title}
             ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
           </td>
@@ -1102,7 +1101,7 @@
           <td><span class="badge badge-plan">${idx + 1}주</span></td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
           <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">
+          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">
             ${item.title}
             ${hasPlan ? '<span class="badge-doc">📄 계획서</span>' : ''}
           </td>
@@ -1215,7 +1214,6 @@
       openCustomModal(`📝 활동계획서 - ${dateStr} [${teacher}]`, contentHtml);
     }
 
-    // 🚨 예산 집행 세부 내역 (활동주제 말줄임 처리 적용)
     function showBudgetDetailModal() {
       const thead = `
         <tr>
@@ -1310,7 +1308,7 @@
           <td>${s.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">${s.title}</td>
+          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">${s.title}</td>
           <td>${s.teacher}</td>
           <td>${s.place}</td>
           <td><span class="badge badge-done">완료</span></td>
@@ -1346,7 +1344,6 @@
       openModal(`👥 2026 등록 대원 명부 (총 ${members.length}명)`, thead, tbody);
     }
 
-    // 🚨 활동 영역 모달 팝업 조건식 보강
     function showFieldDetails(category) {
       const filtered = rawAnnual.filter(s => {
          const f = (s.field || "").replace(/\s/g, '');
@@ -1374,7 +1371,7 @@
         <tr>
           <td>${item.no}</td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
-          <td class="text-left" style="font-weight:600; color:#fff;">${item.title}</td>
+          <td class="text-left wrap-text" style="font-weight:600; color:#fff;">${item.title}</td>
           <td>${item.teacher}</td>
           <td>${item.place}</td>
           <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
@@ -1392,7 +1389,6 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 완전 동기화 엔진
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1691,7 +1687,7 @@
           activityPlans = loadedPlans;
         } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
-        // 🚨 5. 토요일_주간세부계획서 (타임테이블 완벽 보호 로직)
+        // 5. 토요일_주간세부계획서 파싱
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
           const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
@@ -1710,7 +1706,6 @@
               const col0 = r[0] && r[0].v ? String(r[0].v).trim() : "";
               const col1 = r[1] && r[1].v ? String(r[1].v).trim() : "";
               
-              // 시간표 데이터 판단: 2번째 열(시간)에 콜론(:)이 있으면 무조건 타임테이블 데이터로 긁어옵니다.
               if (!col1.includes(':')) continue;
 
               const badgeType = col0.includes('개회') || col0.includes('폐회') ? 'badge-plan' : 
