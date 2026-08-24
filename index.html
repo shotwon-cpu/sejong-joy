@@ -568,8 +568,10 @@
       <div class="logo-badge">
         <div class="logo-text">
           <h1>
+            <!-- 패스파인더 로고 앞 (왼쪽) -->
             <img src="1787532102855.png" alt="패스파인더" class="title-logo">
             세종 JOY 클럽
+            <!-- 어드벤처러 로고 뒤 (오른쪽) -->
             <img src="1787532102945.png" alt="어드벤처러" class="title-logo">
           </h1>
           <p>Google 시트 실시간 연동 운영 시스템</p>
@@ -792,11 +794,13 @@
           <div class="filter-bar" id="rundown-date-selector" style="margin: 0; max-width: 48%;"></div>
         </div>
 
+        <!-- 1. 주간 세부 운영 개요 카드 -->
         <div class="overview-grid">
           <div class="overview-item">
             <span class="overview-label">일시</span>
             <span class="overview-val" id="ov-date">2026년 매주 토요일(안식일) 13:00 ~ 15:00</span>
           </div>
+          <!-- 활동 주제 클릭 시 활동계획서 팝업 연동 -->
           <div class="overview-item" id="ov-title-card" style="cursor: pointer;">
             <span class="overview-label">활동 주제</span>
             <span class="overview-val" id="ov-title" style="font-weight:700; color:var(--accent-gold);">-</span>
@@ -823,6 +827,7 @@
           ■ 안식일 오후 표준 타임테이블 (Run-down)
         </div>
 
+        <!-- 2. 표준 타임테이블 -->
         <div class="table-container">
           <table>
             <thead>
@@ -844,6 +849,7 @@
     </div>
   </main>
 
+  <!-- 전체화면 모달 -->
   <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -866,7 +872,6 @@
 
     let activityPlans = {};
 
-    // 🚨 1. 기능장 안전장치(기본 데이터) 복구
     let honorStats = [
       { id: 0, name: "복슬복슬 양 (03.12)", title: "복슬복슬 양", date: "(03.12)", count: 9, rate: "69.2%" },
       { id: 1, name: "창조 (06.06)", title: "창조", date: "(06.06)", count: 6, rate: "46.2%" },
@@ -879,7 +884,6 @@
       { id: 8, name: "화재 안전 (07.25)", title: "화재 안전", date: "(07.25)", count: 5, rate: "38.5%" }
     ];
 
-    // 🚨 2. 대원 명부 안전장치(기본 데이터) 복구
     let members = [
       { age: 7, dept: "어드벤처러", name: "정우호", days: 26, rate: "76.5%", hCount: 6, honors: [1,1,0,0,1,1,1,1,0] },
       { age: 7, dept: "어드벤처러", name: "최하람", days: 30, rate: "88.2%", hCount: 6, honors: [0,1,1,1,1,1,1,0,0] },
@@ -1076,7 +1080,7 @@
       if (dateSelector && rawAnnual.length > 0) {
         const targetDates = rawAnnual.filter(item => {
           const m = parseInt(item.date.substring(5, 7));
-          return m === 8 || m === 9;
+          return m === 8 || m === 9 || m === 10; // 8~10월 데이터 노출
         });
 
         dateSelector.innerHTML = targetDates.map(item => `
@@ -1102,7 +1106,8 @@
         };
 
         document.getElementById('ov-place').innerText = curPlan.place || '세종 JOY 패스파인더실 & 소예배실';
-        document.getElementById('ov-teacher').innerText = `${curPlan.teacher} (총괄 인도)`;
+        // 🚨 괄호(총괄 인도) 텍스트 제거 반영
+        document.getElementById('ov-teacher').innerText = curPlan.teacher || '-';
         document.getElementById('ov-target').innerText = '어드벤처러 및 패스파인더 대원 13명';
         document.getElementById('ov-mat').innerText = curPlan.note || '단복 정렬 및 기본 준비물';
       }
@@ -1334,7 +1339,7 @@
       renderMonthlyTable(m);
     }
 
-    // Google 스프레드시트 실시간 동기화 엔진
+    // Google 스프레드시트 완전 동기화 엔진 (파싱 무적 방어 적용)
     async function fetchLiveSheetData(isUserClick = false) {
       const syncBtn = document.getElementById('btn-sync');
       if (syncBtn) syncBtn.classList.add('spinning');
@@ -1381,8 +1386,6 @@
 
               const totalSabbaths = 34;
               const rateVal = ((attCount / totalSabbaths) * 100).toFixed(1) + "%";
-              
-              // 🚨 안전장치: 대원출석 시트 파싱 시, 기존(안전장치) 멤버의 기능장 데이터를 계승
               const fallback = members.find(m => m.name === nameVal);
               
               updatedMembers.push({
@@ -1413,13 +1416,12 @@
             let headerRowIdx = -1;
             let nameColIdx = -1;
             
-            // 🚨 유연한 헤더 찾기 로직: 공백 무시하고 '이름', '성명', '대원명' 찾기
             for (let rIdx = 0; rIdx < Math.min(8, hRows.length); rIdx++) {
               const r = hRows[rIdx].c;
               if (!r) continue;
               for (let cIdx = 0; cIdx < Math.min(5, r.length); cIdx++) {
                 if (r[cIdx] && r[cIdx].v) {
-                  const val = String(r[cIdx].v).replace(/\s/g, ''); // 공백 모두 제거
+                  const val = String(r[cIdx].v).replace(/\s/g, ''); 
                   if (val === '이름' || val === '성명' || val === '대원명') {
                     headerRow = r;
                     headerRowIdx = rIdx;
@@ -1491,7 +1493,6 @@
               }
             }
 
-            // 🚨 파싱이 정상적으로 이루어져 dynamicHonors가 존재할 때만 덮어쓰기
             if (dynamicHonors.length > 0) {
               const totalMCount = members.length || 13;
               dynamicHonors.forEach(dh => {
@@ -1500,7 +1501,7 @@
               honorStats = dynamicHonors;
             }
           }
-        } catch (he) { console.log("기능장 동적 파싱 실패 (기본값 유지):", he); }
+        } catch (he) { console.log("기능장 동적 파싱 실패:", he); }
 
         // 3. 52주 연간 일정 시트 파싱
         try {
@@ -1637,7 +1638,7 @@
           activityPlans = loadedPlans;
         } catch (pe) { console.log("활동계획서 시트 연동 오류:", pe); }
 
-        // 5. 토요일_주간세부계획서 파싱
+        // 🚨 5. 토요일_주간세부계획서 파싱 (절대 고장 안나게 방어 로직 강화)
         try {
           const runSheetName = encodeURIComponent("토요일_주간세부계획서");
           const runUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${runSheetName}&tqx=out:json${cacheBuster}`;
@@ -1648,50 +1649,57 @@
           if (runJson && runJson.table && runJson.table.rows) {
             const rRows = runJson.table.rows;
             let loadedRundown = [];
-            let headerFound = false;
 
             for (let i = 0; i < rRows.length; i++) {
               const r = rRows[i].c;
               if (!r) continue;
 
               const col0 = r[0] && r[0].v ? String(r[0].v).trim() : "";
-              if (col0 === '구분') {
-                headerFound = true;
-                continue;
-              }
+              const col1 = r[1] && r[1].v ? String(r[1].v).trim() : "";
+              
+              // 헤더("구분" 등) 통과, 시간이 포함된 진짜 데이터 줄만 담기
+              if (!col0 || col0 === '구분' || col0.includes('구 분')) continue;
 
-              if (headerFound && col0) {
-                const badgeType = col0.includes('개회') || col0.includes('폐회') ? 'badge-plan' : 
-                                 (col0.includes('기능') ? 'badge-done' : 
-                                 (col0.includes('활동') ? 'badge-adv' : 'badge-path'));
+              const badgeType = col0.includes('개회') || col0.includes('폐회') ? 'badge-plan' : 
+                               (col0.includes('기능') ? 'badge-done' : 
+                               (col0.includes('활동') ? 'badge-adv' : 'badge-path'));
 
-                loadedRundown.push({
-                  type: col0,
-                  badge: badgeType,
-                  time: r[1] && r[1].v ? String(r[1].v).trim() : "",
-                  duration: r[2] && r[2].v ? String(r[2].v).trim() + (String(r[2].v).includes('분') ? '' : '분') : "",
-                  content: r[3] && r[3].v ? String(r[3].v).trim() : "",
-                  teacher: r[4] && r[4].v ? String(r[4].v).trim() : "",
-                  mat: (r[5] && r[5].v ? String(r[5].v).trim() : "") + 
-                       (r[6] && r[6].v ? (r[5] && r[5].v ? ', ' : '') + String(r[6].v).trim() : "")
-                });
-              }
+              loadedRundown.push({
+                type: col0,
+                badge: badgeType,
+                time: col1,
+                duration: r[2] && r[2].v ? String(r[2].v).trim() + (String(r[2].v).includes('분') ? '' : '분') : "",
+                content: r[3] && r[3].v ? String(r[3].v).trim() : "",
+                teacher: r[4] && r[4].v ? String(r[4].v).trim() : "",
+                mat: (r[5] && r[5].v ? String(r[5].v).trim() : "") + 
+                     (r[6] && r[6].v ? (r[5] && r[5].v ? ', ' : '') + String(r[6].v).trim() : "")
+              });
             }
 
-            if (loadedRundown.length > 0) {
-              const rTbody = document.getElementById('rundown-tbody');
-              if (rTbody) {
-                rTbody.innerHTML = loadedRundown.map(item => `
-                  <tr>
-                    <td><span class="badge ${item.badge}">${item.type}</span></td>
-                    <td class="sticky-col" style="font-weight:bold;">${item.time}</td>
-                    <td>${item.duration}</td>
-                    <td class="text-left" style="font-weight:600; color:#fff;">${item.content}</td>
-                    <td>${item.teacher}</td>
-                    <td class="text-left">${item.mat || '-'}</td>
-                  </tr>
-                `).join('');
-              }
+            // 시트에서 데이터를 하나도 못 찾았다면, 화면이 깨지지 않게 기본 시간표 강제 주입
+            if (loadedRundown.length === 0) {
+              loadedRundown = [
+                { badge: 'badge-path', type: '제식', time: '12:00 ~ 12:15', duration: '15분', content: '제식활동(설교예배후 교회 본당에서)', teacher: '이소연, 정돈구', mat: '-' },
+                { badge: 'badge-plan', type: '개회', time: '13:00 ~ 13:30', duration: '30분', content: '개회식 (입장, 기국례, 서약 및 법 제창, 표어, 찬양, 개회기도)', teacher: '인도자 / 기수', mat: '클럽기, 태극기, 반주, 단복 정렬 및 제식 점검' },
+                { badge: 'badge-done', type: '기능', time: '13:30 ~ 14:00', duration: '30분', content: '기능 교육 (해당 주차 기능장 이론 및 실습)', teacher: '기능교사', mat: '교안, 실습 재료, 어드벤처러/패스파인더 분반' },
+                { badge: 'badge-adv', type: '활동', time: '14:00 ~ 14:30', duration: '30분', content: '팀 빌딩 & 응용 신체활동 게임 (조별 협동 미션)', teacher: '활동교사', mat: '미션 카드, 타이머, 안전사고 유의, 체육관' },
+                { badge: 'badge-path', type: '영성', time: '14:30 ~ 14:45', duration: '15분', content: '영성 훈련 & 말씀 나눔 (성경 퀴즈 및 기도 짝 나눔)', teacher: '영성교사', mat: '성경 퀴즈지, 선물, 대원별 기도제목 공유' },
+                { badge: 'badge-plan', type: '폐회', time: '14:45 ~ 15:00', duration: '15분', content: '폐회식 & 공지사항 (클럽기 하강, 폐회기도, 간식 배부, 해산)', teacher: '총괄부장', mat: '간식(개별포장), 다음 주 준비물 안내' }
+              ];
+            }
+
+            const rTbody = document.getElementById('rundown-tbody');
+            if (rTbody) {
+              rTbody.innerHTML = loadedRundown.map(item => `
+                <tr>
+                  <td><span class="badge ${item.badge}">${item.type}</span></td>
+                  <td class="sticky-col" style="font-weight:bold;">${item.time}</td>
+                  <td>${item.duration}</td>
+                  <td class="text-left" style="font-weight:600; color:#fff;">${item.content}</td>
+                  <td>${item.teacher}</td>
+                  <td class="text-left">${item.mat || '-'}</td>
+                </tr>
+              `).join('');
             }
           }
         } catch (re) { console.log("시간표 연동 오류:", re); }
