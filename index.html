@@ -291,29 +291,12 @@
       text-align: left;
     }
 
-    .truncate-text {
-      max-width: 140px; 
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .wrap-text {
-      white-space: normal !important;
-      word-break: keep-all;
-      min-width: 180px; 
-      line-height: 1.4;
-    }
-
-    .clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    /* 🚨 수정: clamp-2 삭제 후 모든 텍스트가 줄바꿈되어 다 보이도록 wrap-text-full 클래스 추가 */
+    .wrap-text-full {
       white-space: normal !important;
       word-break: keep-all;
       line-height: 1.4;
+      min-width: 160px; /* 너무 좁아지지 않도록 최소 너비 설정 */
     }
 
     tbody tr:nth-child(even) {
@@ -713,7 +696,6 @@
         </div>
       </div>
 
-      <!-- 🚨 요청하신 위치 변경 반영: 영역별 비중을 위로, 기능장 현황을 아래로 -->
       <div class="card">
         <div class="card-title">
           <span>📊 2026 안식일활동 영역별 계획 및 비중</span>
@@ -795,14 +777,15 @@
                 <th>주차</th>
                 <th class="sticky-col">안식일</th>
                 <th>구분</th>
-                <th class="text-left">활동 주제 (터치 시 계획서)</th>
+                <!-- 🚨 제목 컬럼에도 내용이 다 보이도록 class 적용 -->
+                <th class="text-left wrap-text-full">활동 주제 (터치 시 계획서)</th>
                 <th>담당</th>
                 <th>장소</th>
-                <th class="text-left">세부 진행 순서</th>
-                <th class="text-left">준비물</th>
+                <th class="text-left wrap-text-full">세부 진행 순서</th>
+                <th class="text-left wrap-text-full">준비물</th>
                 <th>소요 예산</th>
                 <th>상태</th>
-                <th class="text-left">교사 메모</th>
+                <th class="text-left wrap-text-full">교사 메모</th>
               </tr>
             </thead>
             <tbody id="monthly-tbody"></tbody>
@@ -832,12 +815,12 @@
                 <th class="sticky-col">일자</th>
                 <th>분기</th>
                 <th>구분</th>
-                <th class="text-left">활동 주제 및 계획</th>
+                <th class="text-left wrap-text-full">활동 주제 및 계획</th>
                 <th>담당</th>
                 <th>장소</th>
                 <th>예산</th>
                 <th>상태</th>
-                <th class="text-left">비고</th>
+                <th class="text-left wrap-text-full">비고</th>
               </tr>
             </thead>
             <tbody id="annual-schedule-tbody"></tbody>
@@ -942,12 +925,7 @@
   </div>
 
   <script>
-    // ==============================================================================
-    // 🚨 1. 원격 출석 체크용 Apps Script 웹앱 주소 입력칸
-    // ==============================================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxgw2mlCyKpwUHqt0nEsIN4ajkG3cyDOTLyo0u1UyoNAdYVxIRxJVx2hWcix9xyisT/exec";
-    
-    // 2. 구글 시트 ID 
     const GOOGLE_SHEET_ID = "1haoKonWSSv_N-Gdg61qGHnk03OZmnXHicyg8Nd6mWl4";
 
     let activityPlans = {};
@@ -1087,18 +1065,19 @@
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <td class="text-left" style="min-width: 140px; max-width: 200px;">
-            <div class="clamp-2" style="font-weight:600; color:#fff;">${s.title}</div>
-            ${hasPlan ? '<div style="margin-top: 3px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
+          <!-- 🚨 글자 잘림 방지: wrap-text-full 클래스 적용 (clamp-2 삭제) -->
+          <td class="text-left wrap-text-full">
+            <div style="font-weight:600; color:#fff;">${s.title}</div>
+            ${hasPlan ? '<div style="margin-top: 5px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
           </td>
-          <td style="white-space: normal; word-break: keep-all; min-width: 60px; max-width: 100px; line-height: 1.3;">
-            <div class="clamp-2">${s.teacher}</div>
+          <td style="white-space: normal; word-break: keep-all; min-width: 60px; line-height: 1.3;">
+            <div>${s.teacher}</div>
           </td>
           <td>${s.place}</td>
           <td>${(s.budget || 0).toLocaleString()}원</td>
           <td><span class="badge ${s.status === '완료' ? 'badge-done' : 'badge-plan'}">${s.status}</span></td>
-          <td class="text-left wrap-text" style="color:var(--text-muted); font-size:11px; min-width:100px; max-width: 150px;">
-            <div class="clamp-2">${s.note}</div>
+          <td class="text-left wrap-text-full" style="color:var(--text-muted); font-size:11px;">
+            <div>${s.note}</div>
           </td>
         </tr>
       `}).join('');
@@ -1161,24 +1140,25 @@
           <td><span class="badge badge-plan">${idx + 1}주</span></td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
           <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <td class="text-left" style="min-width: 120px; max-width: 180px;">
-            <div class="clamp-2" style="font-weight:600; color:#fff;">${item.title}</div>
-            ${hasPlan ? '<div style="margin-top: 3px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
+          <!-- 🚨 글자 잘림 방지: wrap-text-full 적용 -->
+          <td class="text-left wrap-text-full">
+            <div style="font-weight:600; color:#fff;">${item.title}</div>
+            ${hasPlan ? '<div style="margin-top: 5px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
           </td>
-          <td style="white-space: normal; word-break: keep-all; min-width: 60px; max-width: 100px; line-height: 1.3;">
-            <div class="clamp-2">${item.teacher}</div>
+          <td style="white-space: normal; word-break: keep-all; min-width: 60px; line-height: 1.3;">
+            <div>${item.teacher}</div>
           </td>
           <td>${item.place}</td>
-          <td class="text-left wrap-text" style="color:#cbd5e1; font-size:11px; min-width:120px; max-width: 180px;">
-             <div class="clamp-2">${details.order || '-'}</div>
+          <td class="text-left wrap-text-full" style="color:#cbd5e1; font-size:11px;">
+             <div>${details.order || '-'}</div>
           </td>
-          <td class="text-left wrap-text" style="color:#cbd5e1; font-size:11px; min-width:100px; max-width: 150px;">
-             <div class="clamp-2">${details.mat || '-'}</div>
+          <td class="text-left wrap-text-full" style="color:#cbd5e1; font-size:11px;">
+             <div>${details.mat || '-'}</div>
           </td>
           <td>${(item.budget || 0).toLocaleString()}원</td>
           <td><span class="badge ${item.status === '완료' ? 'badge-done' : 'badge-plan'}">${item.status}</span></td>
-          <td class="text-left wrap-text" style="color:var(--accent-gold); font-size:11px; min-width:100px; max-width: 150px;">
-             <div class="clamp-2">${details.memo || '-'}</div>
+          <td class="text-left wrap-text-full" style="color:var(--accent-gold); font-size:11px;">
+             <div>${details.memo || '-'}</div>
           </td>
         </tr>
       `}).join('');
@@ -1955,12 +1935,17 @@
                     if (dateVal.startsWith("Date(")) {
                       const parts = dateVal.match(/\d+/g);
                       if (parts && parts.length >= 3) {
-                        dateVal = `${parts[0]}-${String(parseInt(parts[1]) + 1).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                        // 🚨 날짜 포맷 강제 변환 (8/22 팝업 안열리는 문제 해결)
+                        const yy = parts[0];
+                        const mm = String(parseInt(parts[1]) + 1).padStart(2, '0');
+                        const dd = String(parts[2]).padStart(2, '0');
+                        dateVal = `${yy}-${mm}-${dd}`;
                       }
                     }
                   }
                 }
 
+                // 🚨 어떤 형식이든 YYYY-MM-DD로 맞춤
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
                 if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
                   dateVal = "20" + dateVal;
@@ -2004,6 +1989,7 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
+        // 🚨 월간 계획서 및 활동계획서 팝업 연동 시에도 날짜 포맷 강제 통일
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
