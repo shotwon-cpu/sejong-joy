@@ -291,12 +291,36 @@
       text-align: left;
     }
 
-    /* 🚨 수정: clamp-2 삭제 후 모든 텍스트가 줄바꿈되어 다 보이도록 wrap-text-full 클래스 추가 */
+    .truncate-text {
+      max-width: 140px; 
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .wrap-text {
+      white-space: normal !important;
+      word-break: keep-all;
+      min-width: 180px; 
+      line-height: 1.4;
+    }
+
     .wrap-text-full {
       white-space: normal !important;
       word-break: keep-all;
       line-height: 1.4;
-      min-width: 160px; /* 너무 좁아지지 않도록 최소 너비 설정 */
+      min-width: 160px;
+    }
+
+    .clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal !important;
+      word-break: keep-all;
+      line-height: 1.4;
     }
 
     tbody tr:nth-child(even) {
@@ -777,7 +801,6 @@
                 <th>주차</th>
                 <th class="sticky-col">안식일</th>
                 <th>구분</th>
-                <!-- 🚨 제목 컬럼에도 내용이 다 보이도록 class 적용 -->
                 <th class="text-left wrap-text-full">활동 주제 (터치 시 계획서)</th>
                 <th>담당</th>
                 <th>장소</th>
@@ -1065,7 +1088,6 @@
           <td class="sticky-col"><strong>${formatDateShort(s.date)}</strong></td>
           <td>${s.q}</td>
           <td><span class="badge badge-plan">${formatCategoryShort(s.type)}</span></td>
-          <!-- 🚨 글자 잘림 방지: wrap-text-full 클래스 적용 (clamp-2 삭제) -->
           <td class="text-left wrap-text-full">
             <div style="font-weight:600; color:#fff;">${s.title}</div>
             ${hasPlan ? '<div style="margin-top: 5px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
@@ -1140,7 +1162,6 @@
           <td><span class="badge badge-plan">${idx + 1}주</span></td>
           <td class="sticky-col"><strong>${formatDateShort(item.date)}</strong></td>
           <td><span class="badge badge-done">${formatCategoryShort(item.type)}</span></td>
-          <!-- 🚨 글자 잘림 방지: wrap-text-full 적용 -->
           <td class="text-left wrap-text-full">
             <div style="font-weight:600; color:#fff;">${item.title}</div>
             ${hasPlan ? '<div style="margin-top: 5px;"><span class="badge-doc">📄 계획서</span></div>' : ''}
@@ -1935,7 +1956,6 @@
                     if (dateVal.startsWith("Date(")) {
                       const parts = dateVal.match(/\d+/g);
                       if (parts && parts.length >= 3) {
-                        // 🚨 날짜 포맷 강제 변환 (8/22 팝업 안열리는 문제 해결)
                         const yy = parts[0];
                         const mm = String(parseInt(parts[1]) + 1).padStart(2, '0');
                         const dd = String(parts[2]).padStart(2, '0');
@@ -1945,7 +1965,6 @@
                   }
                 }
 
-                // 🚨 어떤 형식이든 YYYY-MM-DD로 맞춤
                 dateVal = dateVal.replace(/[./]/g, '-').trim();
                 if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) {
                   dateVal = "20" + dateVal;
@@ -1957,10 +1976,11 @@
 
                 const quarterVal = r[qCol] && r[qCol].v ? String(r[qCol].v).trim() : "";
                 const typeVal = r[typeCol] && r[typeCol].v ? String(r[typeCol].v).trim() : "";
-                const titleVal = r[titleCol] && r[titleCol].v ? String(r[titleCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                // 🚨 수정사항: 큰따옴표(")가 명령어를 박살내는 것을 막기 위해, 시각적으로 똑같은 전각 큰따옴표(＂)로 싹 변환!
+                const titleVal = r[titleCol] && r[titleCol].v ? String(r[titleCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`').replace(/"/g, '＂') : "";
                 const fieldVal = typeVal; 
-                const teacherVal = r[teacherCol] && r[teacherCol].v ? String(r[teacherCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
-                const placeVal = r[placeCol] && r[placeCol].v ? String(r[placeCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "소예배실";
+                const teacherVal = r[teacherCol] && r[teacherCol].v ? String(r[teacherCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`').replace(/"/g, '＂') : "";
+                const placeVal = r[placeCol] && r[placeCol].v ? String(r[placeCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`').replace(/"/g, '＂') : "소예배실";
                 const budgetVal = r[bdgCol] && r[bdgCol].v ? (parseInt(String(r[bdgCol].v).replace(/,/g, '')) || 0) : 0;
                 
                 const todayStr = new Date().toISOString().substring(0, 10);
@@ -1968,7 +1988,7 @@
                 if(r[stCol] && r[stCol].v) {
                      statusVal = String(r[stCol].v).trim().replace(/[\n\r]/g, '');
                 }
-                const noteVal = r[ntCol] && r[ntCol].v ? String(r[ntCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`') : "";
+                const noteVal = r[ntCol] && r[ntCol].v ? String(r[ntCol].v).trim().replace(/[\n\r]/g, ' ').replace(/'/g, '`').replace(/"/g, '＂') : "";
 
                 loadedAnnual.push({
                   no: noVal, date: dateVal,
@@ -1989,7 +2009,6 @@
           }
         } catch (ane) { console.log("연간 일정 시트 연동 오류:", ane); }
 
-        // 🚨 월간 계획서 및 활동계획서 팝업 연동 시에도 날짜 포맷 강제 통일
         try {
           const msName = encodeURIComponent("월간_상세계획표");
           const msUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${msName}&tqx=out:json${cacheBuster}`;
@@ -2002,20 +2021,28 @@
             let dCol = -1, oCol = -1, mCol = -1, mmCol = -1;
             let headerRow = -1;
             
-            for (let r = 0; r < Math.min(5, rows.length); r++) {
+            for (let r = 0; r < Math.min(4, rows.length); r++) {
               const rCells = rows[r].c;
               if (!rCells) continue;
-              let found = false;
+              
+              let matchCount = 0;
+              let tempD = -1, tempO = -1, tempM = -1, tempMm = -1;
+              
               for (let c = 0; c < rCells.length; c++) {
                 if (rCells[c] && rCells[c].v && typeof rCells[c].v === 'string') {
                   const val = String(rCells[c].v).replace(/\s/g, '');
-                  if (dCol === -1 && (val.includes('일자') || val.includes('안식일') || val === '날짜')) { dCol = c; found = true; }
-                  if (oCol === -1 && (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램'))) { oCol = c; found = true; }
-                  if (mCol === -1 && (val.includes('준비물') || val.includes('장비'))) { mCol = c; found = true; }
-                  if (mmCol === -1 && (val.includes('메모') || val.includes('비고') || val.includes('전달사항'))) { mmCol = c; found = true; }
+                  if (val.includes('일자') || val.includes('안식일') || val === '날짜') { tempD = c; matchCount++; }
+                  if (val.includes('진행순서') || val.includes('세부진행') || val.includes('순서') || val.includes('프로그램')) { tempO = c; matchCount++; }
+                  if (val.includes('준비물') || val.includes('장비')) { tempM = c; matchCount++; }
+                  if (val.includes('메모') || val.includes('비고') || val.includes('전달사항')) { tempMm = c; matchCount++; }
                 }
               }
-              if (found) { headerRow = r; break; } 
+              
+              if (matchCount >= 2) { 
+                headerRow = r; 
+                dCol = tempD; oCol = tempO; mCol = tempM; mmCol = tempMm; 
+                break; 
+              } 
             }
 
             for (let r = headerRow !== -1 ? headerRow + 1 : 0; r < rows.length; r++) {
@@ -2034,16 +2061,21 @@
                     }
                   }
                 }
+                
                 if (dateVal) {
                   dateVal = dateVal.replace(/[./]/g, '-').trim();
                   if (/^\d{2}-\d{1,2}-\d{1,2}$/.test(dateVal)) dateVal = "20" + dateVal;
+                  
+                  if (dateVal.includes("일자") || dateVal.includes("날짜")) continue;
+
                   const dParts = dateVal.split('-');
                   if (dParts.length >= 3) {
                     const fDate = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].substring(0,2).padStart(2, '0')}`;
+                    // 🚨 수정사항: 여기도 모두 전각 큰따옴표(＂) 변환 적용!
                     monthlyDetails[fDate] = {
-                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v).replace(/['"]/g, '`') : "-",
-                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v).replace(/['"]/g, '`') : "-",
-                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v).replace(/['"]/g, '`') : "-"
+                      order: oCol !== -1 && rCells[oCol] && rCells[oCol].v ? String(rCells[oCol].v).replace(/['"]/g, '`').replace(/"/g, '＂') : "-",
+                      mat: mCol !== -1 && rCells[mCol] && rCells[mCol].v ? String(rCells[mCol].v).replace(/['"]/g, '`').replace(/"/g, '＂') : "-",
+                      memo: mmCol !== -1 && rCells[mmCol] && rCells[mmCol].v ? String(rCells[mmCol].v).replace(/['"]/g, '`').replace(/"/g, '＂') : "-"
                     };
                   }
                 }
@@ -2085,8 +2117,9 @@
               const dParts = dateStr.split('-');
               if (dParts.length === 3) dateStr = `${dParts[0]}-${dParts[1].padStart(2, '0')}-${dParts[2].padStart(2, '0')}`;
 
-              const subTitle = r[1] && r[1].v ? String(r[1].v).trim().replace(/'/g, '`') : "";
-              const fullText = r[2] && r[2].v ? String(r[2].v).trim() : (r[1] && r[1].v ? String(r[1].v).trim() : "");
+              // 🚨 수정사항: 여기도 모두 전각 큰따옴표(＂) 변환 적용!
+              const subTitle = r[1] && r[1].v ? String(r[1].v).trim().replace(/'/g, '`').replace(/"/g, '＂') : "";
+              const fullText = r[2] && r[2].v ? String(r[2].v).trim().replace(/'/g, '`').replace(/"/g, '＂') : (r[1] && r[1].v ? String(r[1].v).trim().replace(/'/g, '`').replace(/"/g, '＂') : "");
               if (fullText) {
                 if (!loadedPlans[dateStr]) loadedPlans[dateStr] = [];
                 loadedPlans[dateStr].push({ title: subTitle, text: fullText });
@@ -2120,8 +2153,8 @@
               loadedRundown.push({
                 type: col0 || '일정', badge: badgeType, time: col1,
                 duration: r[2] && r[2].v ? String(r[2].v).trim() + (String(r[2].v).includes('분') ? '' : '분') : "",
-                content: r[3] && r[3].v ? String(r[3].v).trim() : "",
-                teacher: r[4] && r[4].v ? String(r[4].v).trim() : "",
+                content: r[3] && r[3].v ? String(r[3].v).trim().replace(/'/g, '`').replace(/"/g, '＂') : "",
+                teacher: r[4] && r[4].v ? String(r[4].v).trim().replace(/'/g, '`').replace(/"/g, '＂') : "",
                 mat: (r[5] && r[5].v ? String(r[5].v).trim() : "") + (r[6] && r[6].v ? (r[5] && r[5].v ? ', ' : '') + String(r[6].v).trim() : "")
               });
             }
